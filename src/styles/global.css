@@ -12,25 +12,24 @@ html > body[data-scroll-locked] {
   --removed-body-scroll-bar-size: 0px !important;
 }
 
-/* 落地页专属：深色星空与渐变 */
+/* 落地页专属：浅色暖纸背景（参考 fumadocs.dev） */
 .landing-hero {
   background:
-    radial-gradient(1100px 500px at 70% -10%, rgba(124, 58, 237, 0.18), transparent 60%),
-    radial-gradient(900px 500px at 20% -10%, rgba(37, 99, 235, 0.16), transparent 60%),
-    radial-gradient(800px 600px at 50% 110%, rgba(16, 185, 129, 0.10), transparent 60%),
-    #09090b;
+    radial-gradient(900px 420px at 85% -8%, rgba(234, 88, 12, 0.07), transparent 60%),
+    radial-gradient(800px 420px at 15% -8%, rgba(37, 99, 235, 0.06), transparent 60%),
+    #f8f7f5;
+  color: #18181b;
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
+.paper-card {
+  background: #ffffff;
+  border: 1px solid rgba(24, 24, 27, 0.1);
 }
 
 .code-window {
-  background: #0c0c0e;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  background: #ffffff;
+  border: 1px solid rgba(24, 24, 27, 0.12);
+  box-shadow: 0 24px 60px rgba(24, 24, 27, 0.08);
 }
 
 /* 滚动淡入动画 */
