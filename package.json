@@ -35,6 +35,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
     "@astrojs/markdown-satteri": "^0.4.10",
     "@fumadocs/cli": "^1.9.2",
     "@tailwindcss/vite": "^4.3.5",
@@ -45,6 +46,6 @@
     "opencc": "^1.4.2",
     "tailwindcss": "^4.3.5",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5.9.2"
+    "typescript": "6"
   }
 }
