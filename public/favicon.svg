@@ -1,1 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#g)"/><text x="50" y="68" font-size="52" font-weight="700" font-family="Inter, system-ui, sans-serif" text-anchor="middle" fill="white">F</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <clipPath id="sphere">
+      <circle cx="32" cy="32" r="28" />
+    </clipPath>
+
+    <!-- Primary solar-eclipse gradient matching Fumadocs sphere & warm paper/ember/gold palette -->
+    <linearGradient id="eclipseBase" x1="12" y1="12" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0b0b0a" />
+      <stop offset="46%" stop-color="#141311" />
+      <stop offset="68%" stop-color="#9e3b05" />
+      <stop offset="82%" stop-color="#f25c05" />
+      <stop offset="93%" stop-color="#ffe57f" />
+      <stop offset="100%" stop-color="#faf8f2" />
+    </linearGradient>
+
+    <!-- Deep obsidian core shadow shifted toward upper-left, smoothly reaching 0 opacity well inside bounds -->
+    <radialGradient id="obsidianCore" cx="22" cy="22" fx="18" fy="18" r="29" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#090908" stop-opacity="0.98" />
+      <stop offset="56%" stop-color="#0e0e0c" stop-opacity="0.88" />
+      <stop offset="84%" stop-color="#181310" stop-opacity="0.32" />
+      <stop offset="100%" stop-color="#181310" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Silky lower-right corona rim falloff matching outer sphere geometry (zero hard edges) -->
+    <radialGradient id="coronaGlow" cx="43" cy="43" fx="51" fy="51" r="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fffdf4" stop-opacity="0.92" />
+      <stop offset="28%" stop-color="#ffe17d" stop-opacity="0.65" />
+      <stop offset="58%" stop-color="#f25c05" stop-opacity="0.28" />
+      <stop offset="85%" stop-color="#af4204" stop-opacity="0" />
+      <stop offset="100%" stop-color="#af4204" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="rimLight" x1="10" y1="10" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#22211d" stop-opacity="0.85" />
+      <stop offset="58%" stop-color="#c95412" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#ffea85" />
+    </linearGradient>
+
+    <linearGradient id="rimDark" x1="10" y1="10" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#525049" stop-opacity="0.9" />
+      <stop offset="58%" stop-color="#f26b21" />
+      <stop offset="100%" stop-color="#fff5a8" />
+    </linearGradient>
+
+    <style>
+      .rim { stroke: url(#rimLight); }
+      @media (prefers-color-scheme: dark) {
+        .rim { stroke: url(#rimDark); }
+      }
+    </style>
+  </defs>
+
+  <g clip-path="url(#sphere)">
+    <circle cx="32" cy="32" r="28" fill="url(#eclipseBase)" />
+    <circle cx="32" cy="32" r="28" fill="url(#coronaGlow)" />
+    <circle cx="32" cy="32" r="28" fill="url(#obsidianCore)" />
+  </g>
+
+  <circle cx="32" cy="32" r="27.25" stroke-width="1.5" class="rim" />
+</svg>
