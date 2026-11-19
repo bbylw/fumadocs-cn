@@ -16,7 +16,19 @@ const { title, description, image, landing = false } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="text-scale" content="scale" />
     <meta name="color-scheme" content="light dark" />
+    {
+      landing && (
+        <link
+          rel="preload"
+          href="/fonts/GeistPixel-Square.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin
+        />
+      )
+    }
     <script is:inline>
       (function () {
         function syncScheme() {
@@ -47,6 +59,7 @@ const { title, description, image, landing = false } = Astro.props;
     <ClientRouter />
   </head>
   <body data-landing={landing ? '' : undefined} class="flex flex-col min-h-screen">
+    {landing && <a href="#nd-home-layout" class="skip-link">跳至正文内容</a>}
     <slot />
   </body>
 </html>

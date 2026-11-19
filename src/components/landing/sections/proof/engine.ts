@@ -78,8 +78,7 @@ export function createProjects(
     windows.set(el.dataset.window ?? '', el);
   const clocks = { machine: createClock([machine]), desk: createClock([desk]) };
   let dead = false;
-  let open!: () => void;
-  const opened = new Promise<void>((done) => (open = done));
+  const { promise: opened, resolve: open } = Promise.withResolvers<void>();
 
   function power(on: boolean) {
     lamp!.dataset.state = on ? 'on' : 'off';

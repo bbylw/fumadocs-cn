@@ -42,11 +42,38 @@
 }
 
 @utility scrollbar-thumb-lp-ink {
-  scrollbar-color: var(--lp-ink) var(--lp-paper, transparent);
+  --scrollbar-thumb: var(--lp-ink, currentColor);
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track, transparent);
 }
 
 @utility scrollbar-track-lp-paper {
-  scrollbar-color: var(--lp-ink, currentColor) var(--lp-paper);
+  --scrollbar-track: var(--lp-paper, transparent);
+  scrollbar-color: var(--scrollbar-thumb, currentColor) var(--scrollbar-track);
+}
+
+@supports not (scrollbar-width: none) {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@supports not (scrollbar-color: auto) {
+  .scrollbar-thin {
+    scrollbar-width: auto;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb, currentColor);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: var(--scrollbar-track, transparent);
+  }
 }
 
 @utility paused {

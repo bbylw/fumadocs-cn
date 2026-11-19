@@ -250,7 +250,7 @@ export function Cli() {
               className="absolute inset-0 overflow-y-auto scrollbar-thin scrollbar-thumb-lp-ink scrollbar-track-lp-paper"
             >
               {/* a name wider than its column, in a font still loading, breaks instead of spilling */}
-              <Files className="rounded-none border-0 bg-transparent py-2 ps-2 pe-1 font-mono wrap-anywhere [&_.ms-2]:ms-1.5 [&_.ps-2]:ps-1 [&_button]:py-0.5 md:[&_button]:text-xs [&_svg]:text-lp-ink-2">
+              <Files className="rounded-none border-0 bg-transparent py-2 ps-2 pe-1 font-mono wrap-anywhere [&_.ms-2]:ms-1.5 [&_.ps-2]:ps-1 [&_button]:min-h-6 [&_button]:py-1 md:[&_button]:text-xs [&_svg]:text-lp-ink-2">
                 {rows(plan.tree)}
               </Files>
             </div>

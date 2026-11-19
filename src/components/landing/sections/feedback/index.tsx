@@ -56,6 +56,7 @@ function Voice({ quote, port, className }: { quote: Quote; port: boolean; classN
               width={44}
               height={44}
               loading="lazy"
+              decoding="async"
               className="size-11 shrink-0 border border-lp-line-strong object-cover grayscale"
             />
             <span className="flex min-w-0 flex-col">

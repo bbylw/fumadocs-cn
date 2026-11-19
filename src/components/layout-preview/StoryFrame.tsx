@@ -2,6 +2,7 @@
 import { type ComponentProps, useCallback, useEffect, useState } from 'react';
 import { FrameworkProvider } from 'fumadocs-core/framework';
 import { RootProvider as BaseRootProvider } from 'fumadocs-ui/provider/base';
+import { isSameOriginEvent } from '@/lib/origin';
 import { STORY_ARGS, type LayoutId } from '@/components/landing/sections/style/data';
 import { DocsLayoutPreview } from './docs';
 import { NotebookLayoutPreview } from './notebook';
@@ -53,7 +54,7 @@ export function StoryFrame({ initialStory }: { initialStory: LayoutId }) {
     }
 
     const onMessage = (e: MessageEvent) => {
-      if (e.source !== window.parent || e.origin !== window.location.origin) return;
+      if (e.source !== window.parent || !isSameOriginEvent(e)) return;
       const data = e.data;
       if (!data || typeof data !== 'object') return;
       if (data.type === 'fumadocs-story:args') {

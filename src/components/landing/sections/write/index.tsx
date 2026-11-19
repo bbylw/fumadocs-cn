@@ -28,7 +28,7 @@ export function Write({ code }: { code: WriteCodeProps }) {
       <p className="text-lg text-fd-muted-foreground">创建你的第一个文档站点。</p>
     </div>,
     <div key="install" className="flex flex-col gap-3">
-      <h4 className="mt-0! text-base font-semibold">安装</h4>
+      <h3 className="mt-0! text-base font-semibold">安装</h3>
       <CodeBlockTabs defaultValue={code.installTabs[0]?.label ?? 'npm'} className="my-0">
         <CodeBlockTabsList>
           {code.installTabs.map((tab) => (

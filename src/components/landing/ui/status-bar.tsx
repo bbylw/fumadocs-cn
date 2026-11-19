@@ -54,7 +54,7 @@ function Figures() {
   const active = useActive();
 
   return (
-    <nav aria-label="章节导航" className="flex items-stretch pe-(--lp-gutter) max-md:hidden">
+    <nav aria-label="章节" className="flex items-stretch pe-(--lp-gutter) max-md:hidden">
       {figures.map((figure) => (
         <a
           key={figure.id}

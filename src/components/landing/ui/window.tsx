@@ -39,7 +39,7 @@ export function Window({ title, actions, children, className, ...props }: Window
   return (
     <div
       {...props}
-      className={cn('flex flex-col border border-lp-line-strong bg-lp-paper', className)}
+      className={cn('relative z-0 flex flex-col border border-lp-line-strong bg-lp-paper', className)}
     >
       <TitleBar title={title} actions={actions} />
       {children}

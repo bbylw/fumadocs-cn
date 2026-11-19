@@ -1,8 +1,8 @@
 'use client';
 import { type ReactNode, useState } from 'react';
-import { Check, Clipboard } from 'lucide-react';
+import { Check, Clipboard, X } from 'lucide-react';
 import { useSearchContext } from 'fumadocs-ui/contexts/search';
-import { useCopyButton } from 'fumadocs-ui/utils/use-copy-button';
+import { useCopyFeedback } from '@/lib/use-copy';
 import { mount, reduce } from '../../lib/script';
 import { restore, setStatus } from '../../lib/status';
 import { Roller } from '../../ui/text';
@@ -189,7 +189,7 @@ function playOnScreen(board: HTMLDivElement) {
 }
 
 function Install({ commands, command }: { commands: string[]; command: string }) {
-  const [copied, onCopy] = useCopyButton(() => navigator.clipboard.writeText(command));
+  const { copied, failed, announcement, onCopy } = useCopyFeedback(() => command);
   // as wide as the longest command, so the window keeps its size as the command changes
   const sizers = [];
   for (const item of commands) {
@@ -217,11 +217,22 @@ function Install({ commands, command }: { commands: string[]; command: string })
         <button
           type="button"
           onClick={onCopy}
-          aria-label={copied ? '已复制' : `复制 "${command}"`}
-          className="flex size-6 shrink-0 items-center justify-center border border-lp-line-strong transition-none hover:bg-lp-ink hover:text-lp-paper focus-visible:bg-lp-ink focus-visible:text-lp-paper focus-visible:outline-none"
+          data-copied={copied || undefined}
+          data-failed={failed || undefined}
+          aria-label={`复制 "${command}"`}
+          className="flex min-h-6 min-w-6 shrink-0 items-center justify-center border border-lp-line-strong transition-none hover:bg-lp-ink hover:text-lp-paper focus-visible:bg-lp-ink focus-visible:text-lp-paper focus-visible:outline-none"
         >
-          {copied ? <Check className="size-3.5" /> : <Clipboard className="size-3.5" />}
+          {copied ? (
+            <Check aria-hidden className="size-3.5" />
+          ) : failed ? (
+            <X aria-hidden className="size-3.5" />
+          ) : (
+            <Clipboard aria-hidden className="size-3.5" />
+          )}
         </button>
+        <span role="status" className="sr-only">
+          {announcement}
+        </span>
       </div>
     </Window>
   );

@@ -90,6 +90,60 @@ body[data-landing],
   color: var(--lp-ink);
 }
 
+/* accessible skip link for keyboard navigation */
+.skip-link {
+  position: fixed;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 0.75rem;
+  z-index: 100;
+  border: 2px solid var(--lp-ink);
+  background-color: var(--lp-yellow);
+  color: var(--lp-on-yellow);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:where(:not(:focus-within, :active)) {
+  position: fixed !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* balanced headings and pretty body copy inside the landing page only */
+.landing :where(h1, h2, h3, h4) {
+  text-wrap: balance;
+}
+
+.landing :where(p, blockquote) {
+  text-wrap: pretty;
+}
+
+/* forced-colors mode legibility for interactive states */
+@media (forced-colors: active) {
+  .landing :where(a, button, [role='button'], [role='tab'], [role='radio']):focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px;
+  }
+
+  .landing [aria-pressed='true'],
+  .landing [aria-selected='true'],
+  .landing [aria-checked='true'],
+  .landing [aria-current='location'] {
+    forced-color-adjust: none;
+    background-color: Highlight !important;
+    color: HighlightText !important;
+    border-color: ButtonBorder !important;
+  }
+}
+
 /* dual-theme Shiki inside landing blocks */
 .landing .shiki,
 .landing .shiki span {

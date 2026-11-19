@@ -12,19 +12,19 @@ const { title = 'Fumadocs 实时预览' } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="text-scale" content="scale" />
     <meta name="robots" content="noindex" />
     <meta name="color-scheme" content="light dark" />
     <script is:inline>
       (function () {
+        var media = matchMedia('(prefers-color-scheme: dark)');
         function syncScheme() {
           var meta = document.querySelector('meta[name="color-scheme"]');
           var stored = null;
           try {
             stored = localStorage.getItem('theme');
           } catch {}
-          var isDark =
-            stored === 'dark' ||
-            (stored !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+          var isDark = stored === 'dark' || (stored !== 'light' && media.matches);
           document.documentElement.classList.toggle('dark', isDark);
           if (meta) {
             meta.setAttribute(
@@ -35,6 +35,7 @@ const { title = 'Fumadocs 实时预览' } = Astro.props;
         }
         syncScheme();
         window.addEventListener('storage', syncScheme);
+        media.addEventListener('change', syncScheme);
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

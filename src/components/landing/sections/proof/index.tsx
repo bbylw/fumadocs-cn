@@ -95,7 +95,7 @@ function Pick({ site, title, style }: PickProps) {
       href={site.url}
       target="_blank"
       rel="noreferrer noopener"
-      aria-label={site.name}
+      aria-label={typeof title === 'string' ? `${title} - ${site.name}` : site.name}
       data-window={file(site.name)}
       style={style}
       className={cn(
@@ -112,6 +112,7 @@ function Pick({ site, title, style }: PickProps) {
               src={site.image}
               alt=""
               loading="lazy"
+              decoding="async"
               className="absolute inset-0 size-full object-cover"
             />
           )}
@@ -144,7 +145,10 @@ function Small({ image, index }: { image: string; index: number }) {
         <img
           src={image}
           alt=""
+          width={84}
+          height={44}
           loading="lazy"
+          decoding="async"
           className="absolute inset-0 size-full object-cover"
         />
       </span>

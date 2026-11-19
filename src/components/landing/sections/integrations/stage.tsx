@@ -116,7 +116,7 @@ export function choreograph<T extends Record<string, Track>>(
     const first = 0 in poses ? poses[0].replace(LINEAR, '') : '';
     // just short of the tick after `rest`, still on its pose
     const count = +((rest + 0.999) / ticks).toFixed(5);
-    css += `.${id}{${base};${held}}[data-queued] .${id}{${base};${first}}[data-play] .${id}{animation-name:${id};animation-iteration-count:${count}}@keyframes ${id}{${frames}}`;
+    css += `.${id}{${base};${held}}[data-queued] .${id}{${base};${first}}@media (prefers-reduced-motion: no-preference){[data-play] .${id}{animation-name:${id};animation-iteration-count:${count}}@keyframes ${id}{${frames}}}`;
   }
   return { name, dur: ticks * TICK, css, cls };
 }

@@ -70,6 +70,10 @@ export function SiteHomeLayout({
                       <img
                         src="/banner.png"
                         alt="Fumadocs 文档预览"
+                        width={400}
+                        height={210}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full rounded-t-lg object-cover"
                         style={{
                           maskImage: 'linear-gradient(to bottom,white 60%,transparent)',

@@ -1,3 +1,4 @@
+import { isSameOriginEvent } from '@/lib/origin';
 import { DITHER_MASKS, ditherKeyframes } from '../../lib/dither';
 import { TICK } from '../../lib/motion';
 import { reduce } from '../../lib/script';
@@ -157,9 +158,18 @@ export function createFrames(
     frame?.contentWindow?.postMessage(message, location.origin);
   }
 
+  function syncFrameTheme(doc: Document | null | undefined) {
+    if (!doc) return;
+    const dark = isDark();
+    doc.documentElement.classList.toggle('dark', dark);
+    doc.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    doc
+      .querySelector('meta[name="color-scheme"]')
+      ?.setAttribute('content', dark ? 'dark' : 'light');
+  }
+
   function create() {
     frame = document.createElement('iframe');
-    frame.setAttribute('scrolling', 'no');
     frame.className = 'absolute top-0 left-0 origin-top-left border-0 bg-transparent';
     frame.addEventListener('load', onLoad);
     fit();
@@ -206,7 +216,7 @@ export function createFrames(
   function ink(print: boolean) {
     const doc = frame?.contentDocument;
     if (!doc || !view || !shown) return;
-    doc.documentElement.classList.toggle('dark', isDark());
+    syncFrameTheme(doc);
     if (inked === view.theme && inked !== 'shadcn') return;
     const css = inkCss(table, view.theme, frame!, !shown.startsWith(DEMO));
     const apply = () => adopt(doc, css);
@@ -222,7 +232,7 @@ export function createFrames(
   }
 
   function onMessage(e: MessageEvent) {
-    if (!frame || e.source !== frame.contentWindow || e.origin !== location.origin) return;
+    if (!frame || e.source !== frame.contentWindow || !isSameOriginEvent(e)) return;
     const { type, path } = e.data ?? {};
     if (norm(path) !== norm(going)) return;
     if (type === 'fumadocs-story:ready' && !listening) {
@@ -252,8 +262,7 @@ export function createFrames(
   window.addEventListener('message', onMessage);
   // mirror parent dark mode onto the iframe, and re-ink shadcn if active
   const stopTheme = onTheme(() => {
-    const doc = frame?.contentDocument;
-    if (doc) doc.documentElement.classList.toggle('dark', isDark());
+    syncFrameTheme(frame?.contentDocument);
     if (view?.theme !== 'shadcn') return;
     inked = null;
     ink(false);
