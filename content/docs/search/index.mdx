@@ -1,0 +1,55 @@
+---
+title: 搜寻
+description: 为您的文件网站实作文件搜寻功能
+---
+
+若要了解如何自订文件搜寻的 UI，请参阅[搜寻 UI](/docs/ui/search)。
+
+## 搜寻用户端 [#search-client]
+
+您可以依据所使用的搜寻引擎，选择并设定搜寻用户端，预设为 ZBSearch。
+
+### 搜寻 Hook [#search-hooks]
+
+搜寻用户端提供了 React hook，例如 `useFetchSearch()` 和 `useAlgoliaSearch()`，可回传 `` 所需的 props：
+
+```tsx
+import { useFetchSearch } from 'fumadocs-core/search/client';
+
+const search = useFetchSearch();
+
+<SearchDialog {...search} {...props} />;
+```
+
+除了用于搜寻输入框的 `search` 与 `onSearchChange` 之外，这些 Hook 还会回传：
+
+* `data`：最近一次成功的搜寻，在重新搜寻期间以及发生错误后都会保留。
+  * `items`：该次搜寻的结果，其内容也会解析为 [hast](https://github.com/syntax-tree/hast)，并以 `hastContent` 提供。表格的各列会归入同一个 `table` 项目。
+  * `query`：该次搜寻所使用的查询字串。
+* `error`：最近一次搜寻失败时会设定此值。
+* `isLoading`：针对 `search` 的搜寻是否仍在进行中。
+
+若要使用其他搜寻引擎，请将经过 memoize 的搜寻函式传入 `experimental_useSearch()`；当该函式变更时，便会重新搜寻。
+
+```tsx
+'use client';
+import { useCallback } from 'react';
+import { experimental_useSearch } from 'fumadocs-core/search/client';
+import type { SortedResult } from 'fumadocs-core/search';
+
+export function useMySearch(locale: string) {
+  const search = useCallback(
+    async (query: string): Promise<SortedResult[]> => {
+      const res = await fetch(`/api/my-search?${new URLSearchParams({ query, locale })}`);
+      return res.json();
+    },
+    [locale],
+  );
+
+  return experimental_useSearch(search);
+}
+```
+以下是由社群维护的整合清单。
+
+* [Trieve Search](/docs/headless/search/trieve)
+* [Typesense Search](/docs/headless/search/typesense)

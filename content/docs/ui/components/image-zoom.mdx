@@ -1,0 +1,96 @@
+---
+title: 可缩放图片
+description: 让文件中的图片支援点击放大检视
+---
+
+请在您的 MDX 元件中，将 `img` 替换为 `ImageZoom`。
+
+```tsx title="components/mdx.tsx"
+import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
+import defaultComponents from 'fumadocs-ui/mdx';
+import type { MDXComponents } from 'mdx/types';
+
+export function getMDXComponents(components?: MDXComponents) {
+  return {
+    ...defaultComponents,
+    // [!code ++]
+    img: (props) => <ImageZoom {...(props as any)} />,
+    ...components,
+  } satisfies MDXComponents;
+}
+```
+
+现在，所有图片都会自动启用图片缩放功能。
+
+```mdx
+![Test](/banner.png)
+```
+在 Next.js 中，若 `` 元件未指定 [`sizes` 属性](https://nextjs.org/docs/app/api-reference/components/image#sizes)，系统会自动为其设定预设值。
+
+## Lightbox [#lightbox]
+
+`` 内的可缩放图片会在同一个检视器中开启，您可以使用方向键、滑动手势或侧边按钮浏览图片。
+
+  
+    <div className="not-prose grid grid-cols-2 gap-2">
+      <ImageZoom src="/docs/notebook-tab-mode.png" width={1453} height={963} alt="Notebook 版面配置" title="页签模式：导览列" />
+
+      <ImageZoom
+        src="/docs/notebook-nav-mode.png"
+        width={1451}
+        height={954}
+        alt="Notebook 版面配置"
+        caption={
+      <>
+        Nav 模式：顶部，请参阅 <a href="/docs/ui/layouts/notebook#nav-mode">Notebook 版面配置</a>
+      </>
+    }
+      />
+    </div>
+  
+
+用它包覆页面内容，即可浏览整个页面中的所有图片：
+
+```tsx title="app/docs/[[...slug]]/page.tsx"
+import { Lightbox } from 'fumadocs-ui/components/image-zoom';
+
+<DocsBody>
+  {/* [!code ++] */}
+  <Lightbox>
+    <MDX components={getMDXComponents()} />
+    {/* [!code ++] */}
+  </Lightbox>
+</DocsBody>;
+```
+图片的标题 (title) 会显示为图说。
+
+```mdx
+![Notebook Layout](/notebook.png 'Tab mode: navbar')
+```
+
+若要加入连结等丰富内容，请传入 `caption`。
+
+```tsx
+<ImageZoom
+  src="/notebook.png"
+  alt="Notebook Layout"
+  caption={
+    <>
+      See <a href="/docs/ui/layouts/notebook">Notebook Layout</a>
+    </>
+  }
+/>
+```
+若要让一组图片可单独浏览，请将它们包在另一个 `` 中，例如以网格排列：
+
+```mdx
+<Lightbox>
+<div className="not-prose grid grid-cols-2 gap-2">
+
+![Light Mode](/light.png)
+
+![Dark Mode](/dark.png)
+
+</div>
+</Lightbox>
+```

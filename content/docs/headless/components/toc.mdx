@@ -1,0 +1,68 @@
+---
+title: 目录
+description: 目录
+---
+
+具备作用中锚点侦测与自动卷动功能的目录。
+
+## 使用方式 [#usage]
+
+```tsx
+import * as Base from 'fumadocs-core/toc';
+
+return (
+  <Base.AnchorProvider>
+    <Base.ScrollProvider>
+      <Base.TOCItem />
+      <Base.TOCItem />
+    </Base.ScrollProvider>
+  </Base.AnchorProvider>
+);
+```
+透过 Intersection Observer API 追踪目前作用中的锚点。
+
+<auto-type-table path="../props.ts" name="AnchorProviderProps" />
+
+### Scroll Provider [#scroll-provider]
+
+将卷动容器卷动至目前作用中的锚点。
+
+<auto-type-table path="../props.ts" name="ScrollProviderProps" />
+
+### 目录项目 [#toc-item]
+
+用于跳至目标锚点的锚点项目。
+
+| 资料属性          | 值             | 说明          |
+| ------------- | ------------- | ----------- |
+| `data-active` | `true, false` | 锚点是否处于作用中状态 |
+
+## 范例 [#example]
+
+
+
+```tsx
+import { AnchorProvider, ScrollProvider, TOCItem, type TOCItemType } from 'fumadocs-core/toc';
+import { type ReactNode, useRef } from 'react';
+
+export function Page({ items, children }: { items: TOCItemType[]; children: ReactNode }) {
+  const viewRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <AnchorProvider toc={items}>
+      <div ref={viewRef} className="overflow-auto">
+        <ScrollProvider containerRef={viewRef}>
+          {items.map((item) => (
+            <TOCItem key={item.url} href={item.url}>
+              {item.title}
+            </TOCItem>
+          ))}
+        </ScrollProvider>
+      </div>
+      {children}
+    </AnchorProvider>
+  );
+}
+```
+
+

@@ -1,0 +1,10 @@
+---
+title: Remark 引入
+description: 重复使用其他档案的内容。
+---
+
+Remark 引入是一个 remark 外挂。Fumadocs MDX 在 unified 与 Sätteri 上皆预设启用此外挂。语法请参阅[引入](/docs/mdx/include)。
+
+路径以编译中的档案为基准。在 unified 上，除非您传入 `getProcessor`，否则被引入的 Markdown 与 MDX 档案会交由目前的处理器解析。Fumadocs MDX 会传入此选项，因此每个档案都会依其本身的格式解析。
+
+<auto-type-table type="import('fumadocs-core/mdx-plugins/remark-include').RemarkIncludeOptions" />

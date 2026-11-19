@@ -1,0 +1,27 @@
+---
+title: 型别表格
+description: 用于说明型别的表格
+---
+
+此元件接受 `type` 属性。
+
+```mdx
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+<TypeTable
+  type={{
+    percentage: {
+      description: 'The percentage of scroll position to display the roll button',
+      type: 'number',
+      default: 0.2,
+    },
+  }}
+/>
+```
+### 型别表格 [#type-table]
+
+<auto-type-table cwd path="content/docs/ui/props.ts" name="TypeTableProps" />
+
+### 物件型别 [#object-type]
+
+<auto-type-table cwd path="content/docs/ui/props.ts" name="ObjectTypeProps" />

@@ -1,0 +1,142 @@
+---
+title: Trieve 搜寻
+description: 将 Trieve 搜寻整合至 Fumadocs
+---
+
+> 此整合由社群维护。
+
+## 简介 [#introduction]
+
+Trieve 整合会自动设定 Trieve Search，用于网站搜寻。
+
+预设情况下，它会为文件中的**每个段落**各建立一个 chunk，这也是
+Trieve 官方建议的做法。
+
+## 设定 [#setup]
+
+### 安装相依套件 [#install-dependencies]
+
+```package-install
+trieve-ts-sdk trieve-fumadocs-adapter
+```
+请先注册并建立一个资料集 (dataset) ，接著取得 2 组 API 金钥：一组仅有读取权限，另一组则具备管理员权限，可用来建立及删除 chunk。
+请将资料集 ID 与管理员金钥存放在 `.env.local` 中，以便进行同步：
+
+```dotenv
+TRIEVE_DATASET_ID="dataset ID"
+TRIEVE_ADMIN_API_KEY="admin API key"
+```
+
+<Callout title="注意">
+  其中一组 API Key 应仅具备唯读权限，供对外公开的搜寻使用；另一组则需具备
+  管理员权限，用于建立及删除 chunk。
+</Callout>
+
+### 同步资料集 [#sync-dataset]
+
+Trieve 会沿用 [Algolia 整合](/docs/headless/search/algolia)的纪录。请透过预先算绘的 `static.json` 路由汇出这些纪录，并在每次建置后以指令码将其同步至 Trieve：
+
+<feature>search/trieve</feature>
+
+`build` 指令码会在每次建置时进行同步，因此请在您的部署平台上设定相同的变数。
+
+### 搜寻 UI [#search-ui]
+
+您可以使用对方提供的 `SearchDialog` 元件：
+
+```tsx title="components/search.tsx"
+'use client';
+import type { SharedProps } from 'fumadocs-ui/components/dialog/search';
+import SearchDialog from 'trieve-fumadocs-adapter/components/dialog/search';
+import { TrieveSDK } from 'trieve-ts-sdk';
+
+const trieveClient = new TrieveSDK({
+  apiKey: 'readOnlyApiKey',
+  datasetId: 'datasetId',
+});
+
+export default function CustomSearchDialog(props: SharedProps) {
+  return <SearchDialog trieveClient={trieveClient} {...props} />;
+}
+```
+
+1. 将 `apiKey` 和 `datasetId` 替换为您要使用的值。
+
+2. 将预设的搜寻对话方块替换为您新建立的版本。
+
+### 搜寻用户端 [#search-client]
+
+加入 `useTrieveSearch` hook：
+
+```ts
+import { TrieveSDK } from 'trieve-ts-sdk';
+import { useTrieveSearch } from 'trieve-fumadocs-adapter/search/trieve';
+
+const client = new TrieveSDK({
+  apiKey: 'readOnlyApiKey',
+  datasetId: 'datasetId',
+});
+
+const { search, setSearch, query } = useTrieveSearch(client);
+```
+### 标签筛选 [#tag-filter]
+
+若要设定标签筛选，请在索引中加入 `tag` 值。
+
+```js
+import { sync } from 'trieve-fumadocs-adapter/search/sync';
+import { TrieveSDK } from 'trieve-ts-sdk';
+
+const client = new TrieveSDK({
+  apiKey: 'adminApiKey',
+  datasetId: 'datasetId',
+});
+
+const documents = records.map((index) => ({
+  ...index,
+  tag: 'value', // [!code highlight]
+}));
+
+sync(client, documents);
+```
+启用标签筛选。
+
+```tsx title="components/search.tsx"
+import SearchDialog from 'trieve-fumadocs-adapter/components/dialog/search';
+
+<SearchDialog
+  defaultTag="value"
+  tags={[
+    {
+      name: 'Tag Name',
+      value: 'value',
+    },
+  ]}
+/>;
+```
+`tag_set` 栏位是用于筛选的属性。若要依标签筛选索引，请在 Trieve 搜寻用户端中使用筛选功能。
+
+```json
+{
+  "must": [
+    {
+      "field": "tag_set",
+      "match": ["value"]
+    }
+  ]
+}
+```
+
+或使用 `useTrieveSearch` hook：
+
+```ts
+import { TrieveSDK } from 'trieve-ts-sdk';
+import { useTrieveSearch } from 'trieve-fumadocs-adapter/search/trieve';
+
+const client = new TrieveSDK({
+  apiKey: 'readOnlyApiKey',
+  datasetId: 'datasetId',
+});
+
+const { search, setSearch, query } = useTrieveSearch(client, undefined, '<your tag value>');
+```

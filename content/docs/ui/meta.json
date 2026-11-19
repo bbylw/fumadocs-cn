@@ -1,4 +1,11 @@
 {
-  "title": "UI（默认主题）",
-  "pages": ["index", "components", "theme", "layouts-docs"]
+  "title": "概览",
+  "pages": [
+    "index",
+    "component-library",
+    "theme",
+    "translations",
+    "components",
+    "layouts"
+  ]
 }

@@ -1,0 +1,70 @@
+---
+title: 全域选项
+description: 自订 Fumadocs MDX
+---
+
+Fumadocs MDX 的全域选项 (例如所有集合共用的 MDX 外挂) 应写在专案根目录的 `source.config.ts` 中。此档案并非必要，且可搭配在 `lib/source.ts` 中透过 [Macro API](/docs/mdx/macro) 定义的集合使用。
+
+## 全域选项 [#global-options]
+
+```ts title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  // 全域选项
+});
+```
+
+<auto-type-table path="./props.ts" name="GlobalConfig" />
+
+### MDX 选项 [#mdx-options]
+
+自订集合的[预设组合](/docs/mdx/mdx)。`mdxOptions` 适用于以 unified 编译的集合，`satteriOptions` 则适用于设定 `compiler: 'satteri'` 的集合。
+
+```ts tab="unified" title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+import { myPlugin } from './remark-plugin';
+
+export default defineConfig({
+  mdxOptions: {
+    // 需要控制顺序时
+    remarkPlugins: (v) => [myPlugin, ...v],
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+import { myPlugin } from './mdast-plugin';
+
+export default defineConfig({
+  satteriOptions: {
+    // 需要控制顺序时
+    mdastPlugins: (v) => [myPlugin(), ...v],
+  },
+});
+```
+
+或使用 minimal 预设组合：
+
+```ts tab="unified" title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    preset: 'minimal',
+    // 现在只接受 MDX 处理器选项
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  satteriOptions: {
+    preset: 'minimal',
+    // 此时仅接受 Sätteri 编译选项
+  },
+});
+```

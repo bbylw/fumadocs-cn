@@ -1,0 +1,203 @@
+---
+title: 翻译
+description: 为 UI 加入翻译
+---
+
+所有官方 Fumadocs 套件预设皆使用英文，您也可以为其他语言新增翻译。
+
+> 本页主要说明新增 UI 翻译的细节；若需要完整说明，请参阅[国际化](/docs/internationalization)指南。
+
+### 单一 (Singular)  [#singular]
+
+**单一** (Singular) 是指只为单一语言新增翻译：
+
+```ts title="lib/layout.shared.tsx"
+import { defineTranslations } from 'fumadocs-core/i18n';
+import { uiTranslations } from 'fumadocs-ui/i18n';
+
+export const translations = defineTranslations().extend(uiTranslations()).add({
+  // [标签]：[翻译文字]
+  'Search(search trigger)': '搜寻文档',
+});
+```
+
+> 请务必在所有 `.extend()` 呼叫完成**之后**，才呼叫 `.add()`。
+
+请将翻译内容传入 ``。
+
+```tsx
+import { RootProvider } from 'fumadocs-ui/provider/<framework>';
+import { i18nProvider } from 'fumadocs-ui/i18n';
+import { translations } from '@/lib/layout.shared';
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <RootProvider
+      // [!code ++]
+      i18n={i18nProvider(translations)}
+    >
+      {children}
+    </RootProvider>
+  );
+}
+```
+为多种语言定义翻译。此功能需要标准的 [i18n](/docs/internationalization) 设定。
+
+```ts title="lib/layout.shared.tsx"
+import { defineTranslations } from 'fumadocs-core/i18n';
+import { uiTranslations } from 'fumadocs-ui/i18n';
+import { i18n } from '@/lib/i18n';
+
+export const translations = i18n
+  .translations()
+  .extend(uiTranslations())
+  .add({
+    // [语系代码]：[翻译]
+    cn: {
+      // [标签]：[翻译]
+      'Search(search trigger)': '搜寻文档',
+    },
+  });
+```
+
+将翻译内容传给 ``。
+
+```tsx
+import { RootProvider } from 'fumadocs-ui/provider/<framework>';
+import { i18nProvider } from 'fumadocs-ui/i18n';
+import { translations } from '@/lib/layout.shared';
+
+export function Layout({ locale, children }: { locale: string; children: React.ReactNode }) {
+  return (
+    <RootProvider
+      // [!code ++]
+      i18n={i18nProvider(translations, locale)}
+    >
+      {children}
+    </RootProvider>
+  );
+}
+```
+语言包为 `fumadocs-ui` 及 Fumadocs OpenAPI 等多项整合提供翻译。
+
+```npm
+npm i @fumadocs/language
+```
+
+> 若官方语言包中没有您需要的语言，欢迎到[我们的储存库](https://github.com/fuma-nama/fumadocs)贡献翻译。
+
+使用 `preset()` 套用语言包：
+
+```ts tab="Singular"
+import { defineTranslations } from 'fumadocs-core/i18n';
+import { openapiTranslations } from 'fumadocs-openapi/i18n';
+import { uiTranslations } from 'fumadocs-ui/i18n';
+import { zhTW } from '@fumadocs/language/zh-tw';
+
+export const translations = defineTranslations()
+  .extend(uiTranslations())
+  // 依照您已设定的整合加入对应的扩充功能，例如 Fumadocs OpenAPI：
+  .extend(openapiTranslations())
+  // 繁体中文
+  .preset(zhTW());
+```
+
+```ts tab="Multilingual"
+import { defineTranslations } from 'fumadocs-core/i18n';
+import { openapiTranslations } from 'fumadocs-openapi/i18n';
+import { uiTranslations } from 'fumadocs-ui/i18n';
+import { zhTW } from '@fumadocs/language/zh-tw';
+import { i18n } from '@/lib/i18n';
+
+export const translations = i18n
+  .translations()
+  .extend(uiTranslations())
+  // 依照您设定的整合加入对应的扩充功能，例如 Fumadocs OpenAPI：
+  .extend(openapiTranslations())
+  // 将繁体中文翻译套用至语系代码 "cn"
+  .preset('cn', zhTW());
+```
+您也可以建立并发布自己的语言包。
+
+例如，`zh-TW` 语言包的结构如下：
+
+```ts twoslash
+import type { TranslationPreset } from 'fumadocs-core/i18n';
+import * as OpenAPI from 'fumadocs-openapi/i18n';
+import * as UI from 'fumadocs-ui/i18n';
+import * as Story from '@fumadocs/story/i18n';
+
+const translations = {
+  displayName: '繁体中文',
+  'Server URL(playground server select)': '伺服器 URL',
+  'Variant(story controls)': '变体',
+  // ...
+} satisfies Partial<UI.Translations & OpenAPI.Translations & Story.Translations>;
+
+export function zhTW(): TranslationPreset<keyof typeof translations> {
+  return {
+    name: 'zh-TW',
+    value: translations,
+  };
+}
+```
+扩充功能会宣告可供翻译的标签，只有已注册的标签才会传送至用户端酬载。
+
+### 自订扩充功能 [#custom-extension]
+
+如果您正在为 Fumadocs 开发社群套件，可以建立扩充功能来注册您自己的翻译。
+
+首先，请安装 Fumadocs 所使用的翻译工具组：
+
+```npm
+npm i @fuma-translate/react
+```
+
+```ts tab="i18n.ts" twoslash
+import type { TranslationExtension } from 'fumadocs-core/i18n';
+
+const keys = [
+  // 键的格式："your label(additional context)"
+  'Hello {user}(welcome screen)',
+] as const;
+
+export function myTranslations(): TranslationExtension<(typeof keys)[number]> {
+  return { keys };
+}
+```
+
+```tsx tab="Reference"
+'use client';
+import { useTranslations } from '@fuma-translate/react';
+
+export function Comp() {
+  const t = useTranslations();
+
+  return (
+    <div>
+      {t('Hello {user}', {
+        note: 'welcome screen',
+        variables: {
+          user: '...',
+        },
+      })}
+    </div>
+  );
+}
+```
+
+> 为求简洁，此处省略相关说明；您可以参阅 [Fuma Translate](https://fuma-translate.vercel.app) 的文件，了解如何编译翻译键值 &amp; 型别，而非直接写死在程式码中。
+
+使用者可以这样使用您的扩充功能：
+
+```ts
+import { defineTranslations } from 'fumadocs-core/i18n';
+import { myTranslations } from 'my-package/i18n';
+
+export const translations = defineTranslations()
+  // [!code ++]
+  .extend(myTranslations())
+  .add({
+    'Hello {user}(welcome screen)': '你好 {user}',
+  });
+```

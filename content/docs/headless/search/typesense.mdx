@@ -1,0 +1,87 @@
+---
+title: Typesense 搜寻
+description: 将 Typesense 搜寻整合至 Fumadocs
+---
+
+> 此整合由社群维护。
+
+## 设定 [#setup]
+
+### 安装相依套件 [#install-dependencies]
+
+```package-install
+typesense typesense-fumadocs-adapter
+```
+您可以自行架设 Typesense 伺服器，或使用其云端服务。请依照官方的[入门指南](https://typesense.org/docs/guide/install-typesense.html)设定伺服器，并将认证资讯储存在 `.env.local` 中 (在 Vite 框架中请将 `NEXT_PUBLIC_` 改为 `VITE_`，在 Astro 中则改为 `PUBLIC_`) ：
+
+```dotenv
+NEXT_PUBLIC_TYPESENSE_URL="server URL"
+NEXT_PUBLIC_TYPESENSE_SEARCH_KEY="search-only API key"
+TYPESENSE_API_KEY="API key with write access"
+```
+透过预先算绘的 `static.json` 路由汇出搜寻索引，并在每次建置后以指令码将其同步至 Typesense：
+
+<feature>search/typesense</feature>
+
+`build` 指令码会在每次建置时执行同步，因此请在您的部署平台上设定相同的变数。
+
+### 搜寻 UI [#search-ui]
+
+若要实作搜寻 UI，您可以：
+
+* 使用 [Fumadocs UI 搜寻对话方块](/docs/search/typesense)。
+* 使用 Typesense 搜寻用户端 hook，自行打造搜寻 UI。
+
+  ```ts
+  import { Client } from 'typesense';
+  import { useTypesenseSearch } from 'typesense-fumadocs-adapter/client';
+
+  const client = new Client({
+    nodes: [{ url: 'YOUR_TYPESENSE_SERVER_URL' }],
+    apiKey: 'YOUR_TYPESENSE_SEARCH_ONLY_API_KEY',
+  });
+
+  const { search, setSearch, query } = useTypesenseSearch({
+    typesenseCollectionName: 'docs',
+    client,
+  });
+  ```
+### 标签筛选 [#tag-filter]
+
+若要设定标签筛选，请在 `static.json` 路由中为各份文件加上 `tag` 值：
+
+```ts
+documents.push({
+  // 其他栏位……
+  // [!code ++]
+  tag: '<your value>',
+});
+```
+
+接著更新您的搜寻用户端：
+
+* **Fumadocs UI**：在搜寻 UI 中启用[标签筛选](/docs/search/typesense#tag-filter)。
+* **搜寻用户端**：您可以依下列方式加入标签筛选：
+
+  ```ts
+  import { useTypesenseSearch } from 'typesense-fumadocs-adapter/client';
+  const { search, setSearch, query } = useTypesenseSearch({
+    tag: '<your tag value>',
+    // ...
+  });
+  ```
+文件会包含所属页面的 `locale`，请将 `locale` 传入搜寻用户端：
+
+```ts
+import { useI18n } from 'fumadocs-ui/contexts/i18n';
+import { useTypesenseSearch } from 'typesense-fumadocs-adapter/client';
+
+const { locale } = useI18n();
+const { search, setSearch, query } = useTypesenseSearch({
+  // [!code ++]
+  locale,
+  // 其他栏位...
+});
+```
+
+在底层，Typesense 会为每个语系分别建立集合，集合名称会加上 `_{locale}` 后缀 (例如 `docs_en`、`docs_fr`) 。

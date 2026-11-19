@@ -1,0 +1,31 @@
+---
+title: Dynamic 进入点
+description: 以随需编译的方式存取您的集合。
+---
+
+请在 docs/doc 集合上启用 [Dynamic 模式](/docs/mdx/async#dynamic-mode)，并改从 `dynamic` 进入点汇入，而非 `server`。
+
+其输出与 `server` 进入点相同，但编译后的属性必须透过 `load()` 方法载入。
+
+```ts tab="Docs (Meta + Doc)"
+// [!code highlight]
+import { docs } from 'collections/dynamic';
+import { loader } from 'fumadocs-core/source';
+
+export const source = loader({
+  baseUrl: '/docs',
+  source: docs.toFumadocsSource(),
+});
+```
+
+```ts tab="Doc"
+// [!code highlight]
+import { blogPosts } from 'collections/dynamic';
+import { toFumadocsSource } from 'fumadocs-mdx/runtime/server';
+import { loader } from 'fumadocs-core/source';
+
+export const blog = loader({
+  baseUrl: '/blog',
+  source: toFumadocsSource(blogPosts, []),
+});
+```

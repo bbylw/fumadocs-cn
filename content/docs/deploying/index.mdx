@@ -1,0 +1,88 @@
+---
+title: 部署
+description: 部署您的 Fumadocs 应用程式
+---
+
+您的 Fumadocs 应用程式的部署方式与其他 Astro 应用程式相同。
+
+若要输出可由 CDN 托管的静态网站，请参阅[静态建置](/docs/deploying/static)。
+
+
+  ## Cloudflare [#cloudflare]
+
+  Fumadocs 无法在 Edge 执行阶段上运作，请改用 [OpenNext](https://opennext.js.org/cloudflare) 部署。
+
+  ## Docker [#docker]
+
+  此 Dockerfile 改编自官方的 [Next.js Dockerfile 范例](https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile)，使用前需在您的 Next.js 设定中加入 `output: 'standalone'`：
+
+  ```zsh title="Dockerfile"
+  # syntax=docker.io/docker/dockerfile:1
+
+  FROM node:24-alpine AS base
+
+  # 仅在需要时安装相依套件
+  FROM base AS deps
+  # 请参阅 https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine 以了解为何可能需要 libc6-compat。
+  RUN apk add --no-cache libc6-compat
+  WORKDIR /app
+
+  # 依据偏好的套件管理器安装相依套件
+  COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
+  RUN \
+    if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then npm ci; \
+    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+    else echo "Lockfile not found." && exit 1; \
+    fi
+
+  # 仅在需要时重新建置原始码
+  FROM base AS builder
+  WORKDIR /app
+  COPY --from=deps /app/node_modules ./node_modules
+  COPY . .
+
+  # Next.js 会收集完全匿名的一般使用情况遥测资料。
+  # 详细资讯请参阅：https://nextjs.org/telemetry
+  # 若要在建置期间停用遥测，请取消注解下一行。
+  # ENV NEXT_TELEMETRY_DISABLED=1
+
+  RUN \
+    if [ -f yarn.lock ]; then yarn run build; \
+    elif [ -f package-lock.json ]; then npm run build; \
+    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
+    else echo "Lockfile not found." && exit 1; \
+    fi
+
+  # 正式环境映像档：复制所有档案并执行 next
+  FROM base AS runner
+  WORKDIR /app
+
+  ENV NODE_ENV=production
+  # 若要在执行阶段停用遥测，请取消注解下一行。
+  # ENV NEXT_TELEMETRY_DISABLED=1
+
+  RUN addgroup --system --gid 1001 nodejs
+  RUN adduser --system --uid 1001 nextjs
+
+  COPY --from=builder /app/public ./public
+
+  # 自动利用输出追踪来缩减映像档大小
+  # https://nextjs.org/docs/advanced-features/output-file-tracing
+  COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+  COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+  USER nextjs
+
+  EXPOSE 3000
+
+  ENV PORT=3000
+
+  # server.js 由 next build 从 standalone 输出产生
+  # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
+  ENV HOSTNAME="0.0.0.0"
+  CMD ["node", "server.js"]
+  ```
+
+  若您 `package.json` 中的 `postinstall` 会执行 `fumadocs-mdx`，请在 `deps` 阶段一并复制 `next.config.*`、`source.config.ts` 及其汇入的本机档案，因为该指令码会打包设定档。
+

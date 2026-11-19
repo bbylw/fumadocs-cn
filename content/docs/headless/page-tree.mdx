@@ -1,0 +1,88 @@
+---
+title: 页面树
+description: 页面树的结构。
+---
+
+页面树是一种树状结构，用来描述所有导览连结，以及分隔符、资料夹等其他项目。
+
+页面树会传送到用户端，供侧边栏和 Breadcrumb 等导览元素引用。
+因此，请勿在页面树中存放任何敏感或大型的资料。
+
+<Callout title="注意">
+  页面树在设计上只会包含所有页面与资料夹的必要资讯。
+
+  无法序列化的资料 (例如函式) 无法传入页面树。
+</Callout>
+
+## 惯例 [#conventions]
+
+您可以汇入页面树的型别定义，若您想以写死的方式定义或自动产生页面树，这会相当实用。
+
+```ts
+import type * as PageTree from 'fumadocs-core/page-tree';
+
+const tree: PageTree.Root = {
+  // props
+};
+```
+
+部分节点包含 `$ref` 属性，这类属性仅供内部使用，以写死 (hardcode) 方式定义时不需要用到。
+
+### 根节点 [#root]
+
+页面树的初始根节点。
+
+<auto-type-table path="props.ts" name="PageTreeRoot" />
+
+### Page [#page]
+
+代表连结的节点。
+
+```json
+{
+  "type": "page",
+  "name": "Quick Start",
+  "url": "/docs"
+}
+```
+
+> 也支援外部 URL
+
+<auto-type-table path="props.ts" name="PageTreeItem" />
+
+### 资料夹 [#folder]
+
+包含多个子节点的节点。
+
+```json
+{
+    "type": "folder",
+    "name": "Guide",
+    "index": {
+        "type": "page",
+        ...
+    }
+    "children": [
+        ...
+    ]
+}
+```
+
+<auto-type-table path="props.ts" name="PageTreeFolder" />
+
+### 分隔项目 [#separator]
+
+位于项目之间的标签。
+
+```json
+{
+  "type": "separator",
+  "name": "Components"
+}
+```
+
+<auto-type-table path="props.ts" name="PageTreeSeparator" />
+
+## 图示 [#icons]
+
+图示的型别为 `ReactElement`，页面与资料夹皆可设定。

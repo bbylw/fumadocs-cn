@@ -1,0 +1,63 @@
+---
+title: Remark TS 转 JS
+description: 一个 remark 外挂，可将 TypeScript 程式码区块转换为两个页签，分别呈现 TypeScript 与对应的 JavaScript 版本。
+---
+
+安装相依套件：
+
+```package-install tab="unified"
+fumadocs-docgen
+```
+
+```package-install tab="Sätteri"
+@fumadocs/satteri
+```
+
+Remark TS 转 JS 是一个 remark 外挂，请将它加入您的设定中：
+
+```ts tab="unified" title="source.config.ts"
+import { remarkTypeScriptToJavaScript } from 'fumadocs-docgen/remark-ts2js';
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    remarkPlugins: [remarkTypeScriptToJavaScript],
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { remarkTs2js } from '@fumadocs/satteri/remark-ts2js';
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: { compiler: 'satteri' },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    mdastPlugins: [remarkTs2js()],
+  },
+});
+```
+
+它会产生与 [Remark NPM](/docs/headless/mdx/remark-npm#usage) 相同的 `CodeBlockTabs` 元件，Fumadocs UI 已预设内建这些元件。
+
+现在您可以在 TypeScript/TSX 程式码区块上启用它，例如：
+
+````md
+```tsx ts2js
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return <div>{children}</div>;
+}
+```
+````
+
+```tsx ts2js
+import { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return <div>{children}</div>;
+}
+```

@@ -1,0 +1,108 @@
+---
+title: Remark NPM
+description: 为各个套件管理工具产生程式码区块
+---
+
+Remark NPM 是一个 remark 外挂，Fumadocs MDX 预设已启用。您可以透过 `remarkNpmOptions` 传入选项。
+
+请定义所需的元件：
+
+```tsx tab="Custom" title="components/mdx.tsx"
+import { CodeBlockTabs, CodeBlockTab, CodeBlockTabsList, CodeBlockTabsTrigger } from 'my-ui';
+import type { MDXComponents } from 'mdx/types';
+
+export function getMDXComponents(components?: MDXComponents) {
+  return {
+    CodeBlockTabs,
+    CodeBlockTab,
+    CodeBlockTabsList,
+    CodeBlockTabsTrigger,
+    ...components,
+  } satisfies MDXComponents;
+}
+```
+
+```tsx tab="Fumadocs UI" title="components/mdx.tsx"
+import defaultComponents from 'fumadocs-ui/mdx';
+import type { MDXComponents } from 'mdx/types';
+
+export function getMDXComponents(components?: MDXComponents) {
+  return {
+    // `defaultComponents` 中已预设包含这些元件
+    ...defaultComponents,
+    ...components,
+  } satisfies MDXComponents;
+}
+```
+建立语言指定为 `npm` 的程式码区块。
+
+````mdx
+```npm
+npm i my-package
+```
+
+```npm
+npm i my-package -D
+```
+````
+
+`package-install` 程式码区块也同样适用。您只需提供套件名称 (例如 `my-package`) ，它就会将其转换为 `npm install` 指令。
+
+### 输出 [#output]
+
+此外挂应会产生以下结构。
+
+```mdx
+<CodeBlockTabs defaultValue="npm">
+  <CodeBlockTabsList>
+    <CodeBlockTabsTrigger value="npm">npm</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="pnpm">pnpm</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="yarn">yarn</CodeBlockTabsTrigger>
+    <CodeBlockTabsTrigger value="bun">bun</CodeBlockTabsTrigger>
+  </CodeBlockTabsList>
+
+  <CodeBlockTab value="npm">...</CodeBlockTab>
+  <CodeBlockTab value="pnpm">...</CodeBlockTab>
+  <CodeBlockTab value="yarn">...</CodeBlockTab>
+  <CodeBlockTab value="bun">...</CodeBlockTab>
+</CodeBlockTabs>
+```
+
+```npm
+npm i my-package
+```
+搭配 Fumadocs UI 使用时，您可以透过 `persist` 选项持久保存所选取的值。
+
+```ts tab="unified" title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    remarkNpmOptions: {
+      persist: {
+        id: 'package-manager',
+      },
+    },
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: { compiler: 'satteri' },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    remarkNpmOptions: {
+      persist: {
+        id: 'package-manager',
+      },
+    },
+  },
+});
+```
+
+这会为 `` 产生 [`persist`](/docs/ui/components/tabs#persistent) prop。

@@ -1,0 +1,62 @@
+---
+title: Remark Files
+description: 从程式码区块产生档案。
+---
+
+此外挂会将像这样的程式码区块：
+
+````md
+```files
+project
+├── src
+│   ├── index.js
+│   └── utils
+│       └── helper.js
+├── package.json
+```
+````
+
+并将其转换为：
+
+```mdx
+<Files>
+  <Folder name="project" defaultOpen>
+    <Folder name="src" defaultOpen>
+      <File name="index.js" />
+      <Folder name="utils" defaultOpen>
+        <File name="helper.js" />
+      </Folder>
+    </Folder>
+    <File name="package.json" />
+  </Folder>
+</Files>
+```
+Remark Files 是一个 remark 外挂，请将它加入您的设定档中：
+
+```ts tab="unified" title="source.config.ts"
+import { remarkMdxFiles } from 'fumadocs-core/mdx-plugins';
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    remarkPlugins: [remarkMdxFiles],
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { remarkMdxFiles } from '@fumadocs/satteri/remark-mdx-files';
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: { compiler: 'satteri' },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    mdastPlugins: [remarkMdxFiles()],
+  },
+});
+```
+
+另外，请确认您已定义 `<Files />`、`<Folder />` 和 `<File />` 这几个 MDX 元件。

@@ -1,0 +1,217 @@
+---
+title: Macro API
+description: 使用 fumadocs-mdx/macro 在您的应用程式中定义集合。
+---
+
+透过 `fumadocs-mdx/macro`，直接在您的应用程式模组中宣告集合。
+
+打包工具 (或执行阶段载入器) 会将 `defineDocs` / `defineCollections` 编译为内容档案的汇入陈述式。
+
+* 无需产生程式码。
+* 无需 `source.config.ts`。
+
+## 使用方式 [#usage]
+
+```ts tab="lib/source.ts"
+import { defineDocs } from 'fumadocs-mdx/macro';
+import { loader } from 'fumadocs-core/source';
+
+export const docs = defineDocs({
+  dir: 'content/docs',
+});
+
+export const source = loader({
+  baseUrl: '/docs',
+  source: docs.toFumadocsSource(),
+});
+```
+
+```ts tab="lib/blog.ts"
+import { defineCollections } from 'fumadocs-mdx/macro';
+import { loader } from 'fumadocs-core/source';
+
+const blog = defineCollections({
+  type: 'doc',
+  dir: 'content/blog',
+});
+
+export const blogSource = loader({
+  baseUrl: '/blog',
+  source: blog.toFumadocsSource(),
+});
+```
+
+集合选项大致与 [config API](/docs/mdx/collections) 相同。
+
+使用巨集定义集合时，您仍可保留 `source.config.ts`，用来设定[全域选项](/docs/mdx/global)与外挂。
+
+### Monorepo [#monorepos]
+
+若要在多个应用程式之间共用集合，请在工作区套件中宣告这些集合。`dir` 的路径是相对于汇入该集合的应用程式而言，因此每个应用程式都会载入各自的内容。
+
+```ts tab="packages/content/index.ts"
+import { defineCollections } from 'fumadocs-mdx/macro';
+import { pageSchema } from 'fumadocs-core/source/schema';
+
+export const blog = defineCollections({
+  type: 'doc',
+  dir: 'content/blog',
+  schema: pageSchema,
+});
+```
+
+```ts tab="apps/web/lib/source.ts"
+import { loader } from 'fumadocs-core/source';
+import { blog } from '@acme/content';
+
+export const blogSource = loader({
+  baseUrl: '/blog',
+  source: blog.toFumadocsSource(),
+});
+```
+巨集集合同样可以在浏览器中使用。只要在用户端元件中汇入集合，再透过 `body` 算绘项目即可，不需要[用户端载入器](/docs/mdx/entry/browser)。
+
+```tsx
+import { docs } from '@/lib/source';
+
+export default function Page({ path }: { path: string }) {
+  const page = docs.getPage(path);
+  if (!page) return <div>Not Found</div>;
+
+  const MDX = page.body;
+
+  return (
+    <div className="prose">
+      <h1>{page.title}</h1>
+      <MDX />
+    </div>
+  );
+}
+```
+
+若页面使用了[路径参数](/docs/page-conventions#path-params)，请从载入器传入其参数：`docs.getPage(page.path, page.params)`。
+
+<Callout type="warn">
+  浏览器会执行您汇入 `docs` 的那个模组的全部内容。若您的 `loader()` 含有仅限伺服器的
+  来源 (例如 `openapi.staticSource()`) ，请在另一个模组中定义集合 (例如
+  `lib/collections.ts`) ，再从该模组汇入。
+</Callout>
+
+#### Async 集合 [#async-collections]
+
+启用 [`async`](/docs/mdx/async) 后，只有 frontmatter 会预先打包，内容则会随需撷取。
+
+`body` 的运作方式相同，只是它会先暂停 (suspend) ，直到内容就绪为止。另有两个方法可以控制这个行为：
+
+* `preload()` 会在算绘前先载入内容，让 `body` 算绘时不必暂停。请在您的路由载入器中呼叫它。
+* `load()` 会回传已载入的内容，例如 `toc`。它的 promise 会被快取，因此您可以在算绘期间呼叫它。
+
+```tsx
+import { use } from 'react';
+import { docs } from '@/lib/source';
+
+// 在您的路由载入器中（React Router、TanStack Start）
+export async function loader({ path }: { path: string }) {
+  await docs.getPage(path)?.preload();
+  return { path };
+}
+
+export default function Page({ path }: { path: string }) {
+  const page = docs.getPage(path);
+  if (!page) return <div>Not Found</div>;
+
+  const { toc } = use(page.load());
+  const MDX = page.body;
+
+  return (
+    <div className="prose">
+      <h1>{page.title}</h1>
+      <MDX />
+    </div>
+  );
+}
+```
+
+由于内容采用延迟载入，除非您已预先载入，否则请用 `<Suspense>` 边界包住页面。
+
+## 设定 [#configuration]
+
+Macro API 预设为启用。传入 `macro` 可限制哪些模组能使用它，传入 `false` 则会将其停用。若使用 React Router 或 TanStack Start，请将其传给 Vite 外挂。
+
+```js tab="Next.js" title="next.config.mjs"
+import { createMDX } from 'fumadocs-mdx/next';
+
+const withMDX = createMDX({
+  macro: {
+    // 相对于专案根目录的 glob 模式
+    include: ['lib/**/*.ts', 'lib/**/*.tsx'],
+  },
+  // 或完全停用：
+  // macro: false,
+});
+```
+
+```ts tab="Vite" title="vite.config.ts"
+import { fumadocsMdx } from 'fumadocs-mdx/vite';
+
+export default {
+  plugins: [
+    fumadocsMdx({
+      macro: {
+        include: ['src/**/*.ts', 'src/**/*.tsx'],
+      },
+    }),
+  ],
+};
+```
+
+```ts tab="Waku" title="waku.config.ts"
+import { defineConfig } from 'waku/config';
+import { fumadocsMdx } from 'fumadocs-mdx/vite';
+
+export default defineConfig({
+  vite: {
+    plugins: [
+      fumadocsMdx({
+        macro: {
+          include: ['src/**/*.ts', 'src/**/*.tsx'],
+        },
+      }),
+    ],
+  },
+});
+```
+
+```js tab="Node.js"
+import { register } from 'fumadocs-mdx/node';
+
+register({
+  macro: {
+    include: ['lib/**/*.ts'],
+  },
+});
+```
+
+预设情况下，所有 JS/TS 模组都会纳入处理 (`node_modules` 一律排除) 。若您只想让转换套用在特定路径上，请缩小 `include` 的范围。
+
+### 限制 [#constraints]
+
+巨集呼叫会以静态方式编译，请留意以下规则：
+
+* 将每个呼叫指派给顶层的 `const` (集合由变数名称识别) ：
+
+  ```ts
+  // ✓
+  const docs = defineDocs({ dir: 'content/docs' });
+
+  // ✗ 不支援
+  export function create() {
+    return defineDocs({ dir: 'content/docs' });
+  }
+  ```
+
+* 会影响内容打包方式的选项 (`dir`、`files`、`async`) 必须能够静态分析 (即字串／布林常值) 。动态逻辑请改放在 `schema` 或 `mdxOptions` 等选项中。
+
+* Macro API 目前尚不支援 [`dynamic`](/docs/mdx/async#dynamic-mode) 集合。如需延迟载入，建议改用 [`async`](/docs/mdx/async)。
+
+* 不支援从 `fumadocs-mdx/macro` 重新汇出。

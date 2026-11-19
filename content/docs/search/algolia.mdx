@@ -1,0 +1,282 @@
+---
+title: Algolia
+description: 在 Fumadocs UI 中使用 Algolia。
+---
+
+设定指南请参阅[整合 Algolia 搜寻](/docs/headless/search/algolia)。
+
+虽然我们一般建议您使用 Algolia 的用户端 SDK 自行建构搜寻功能，
+但您也可以直接套用内建的搜寻对话方块介面。
+
+## 设定 [#setup]
+
+Fumadocs CLI 可以自动帮您完成设定，包括建立搜寻对话方块、`static.json` 路由，以及在每次建置后同步搜寻索引的指令码：
+
+```package-install
+npx @fumadocs/cli feature search --provider algolia
+```
+
+或手动设定：
+
+建立搜寻对话方块，并将 `appId`、`apiKey` 和 `indexName` 替换为您需要的值。
+
+
+
+```tsx title="components/search.tsx"
+'use client';
+import { liteClient } from 'algoliasearch/lite';
+import {
+  SearchDialog,
+  SearchDialogClose,
+  SearchDialogContent,
+  SearchDialogFooter,
+  SearchDialogHeader,
+  SearchDialogIcon,
+  SearchDialogInput,
+  SearchDialogList,
+  SearchDialogOverlay,
+  type SharedProps,
+} from 'fumadocs-ui/components/dialog/search';
+import { useAlgoliaSearch } from 'fumadocs-core/search/client';
+import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+const appId = 'replace me';
+const apiKey = 'replace me';
+const algolia = liteClient(appId, apiKey);
+
+export default function CustomSearchDialog(props: SharedProps) {
+  const { locale } = useI18n(); // (optional) for i18n
+  const search = useAlgoliaSearch({
+    client: algolia,
+    indexName: 'document',
+    locale,
+  });
+
+  return (
+    <SearchDialog {...search} {...props}>
+      <SearchDialogOverlay />
+      <SearchDialogContent>
+        <SearchDialogHeader>
+          <SearchDialogIcon />
+          <SearchDialogInput />
+          <SearchDialogClose />
+        </SearchDialogHeader>
+        <SearchDialogList />
+        <SearchDialogFooter>
+          <a
+            href="https://algolia.com"
+            rel="noreferrer noopener"
+            className="ms-auto text-xs text-fd-muted-foreground"
+          >
+            Search powered by Algolia
+          </a>
+        </SearchDialogFooter>
+      </SearchDialogContent>
+    </SearchDialog>
+  );
+}
+```
+
+
+
+<Callout title="注意" className="mt-4">
+  `useAlgoliaSearch()` 并未使用 Algolia 官方的
+  JavaScript 用户端 instant search。
+</Callout>
+
+
+
+### 替换搜寻对话方块 [#replace-search-dialog]
+
+<show when={props.framework === 'next'}>
+  请将您的搜寻对话方块传入 [`<RootProvider />`](/docs/ui/layouts/root-provider)。由于根版面配置是伺服器元件，请先用用户端元件包装 provider：
+
+  ```tsx tab="components/provider.tsx"
+  'use client';
+  import { RootProvider } from 'fumadocs-ui/provider/next';
+  import SearchDialog from '@/components/search';
+  import type { ReactNode } from 'react';
+
+  export function Provider({ children }: { children: ReactNode }) {
+    return <RootProvider search={{ SearchDialog }}>{children}</RootProvider>;
+  }
+  ```
+
+  ```tsx tab="app/layout.tsx"
+  // [!code ++]
+  import { Provider } from '@/components/provider';
+  import type { ReactNode } from 'react';
+
+  export default function Layout({ children }: { children: ReactNode }) {
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body className="flex flex-col min-h-screen">
+          {/* [!code --] */}
+          <RootProvider>{children}</RootProvider>
+          {/* [!code ++] */}
+          <Provider>{children}</Provider>
+        </body>
+      </html>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  请在根版面配置中，将您的搜寻对话方块传入 [`<RootProvider />`](/docs/ui/layouts/root-provider)：
+
+  ```tsx title="app/root.tsx"
+  import { Links, Meta, Scripts, ScrollRestoration } from 'react-router';
+  import { RootProvider } from 'fumadocs-ui/provider/react-router';
+  // [!code ++]
+  import SearchDialog from '@/components/search';
+
+  export function Layout({ children }: { children: React.ReactNode }) {
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <Meta />
+          <Links />
+        </head>
+        <body className="flex flex-col min-h-screen">
+          {/* [!code highlight] */}
+          <RootProvider search={{ SearchDialog }}>{children}</RootProvider>
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  请在根路由中，将您的搜寻对话方块传入 [`<RootProvider />`](/docs/ui/layouts/root-provider)：
+
+  ```tsx title="src/routes/__root.tsx"
+  import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router';
+  import { RootProvider } from 'fumadocs-ui/provider/tanstack';
+  // [!code ++]
+  import SearchDialog from '@/components/search';
+
+  export const Route = createRootRoute({
+    component: RootComponent,
+  });
+
+  function RootComponent() {
+    return (
+      <html suppressHydrationWarning>
+        <head>
+          <HeadContent />
+        </head>
+        <body className="flex flex-col min-h-screen">
+          {/* [!code highlight] */}
+          <RootProvider search={{ SearchDialog }}>
+            <Outlet />
+          </RootProvider>
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  请在您的 provider 元件中，将搜寻对话方块传入 [`<RootProvider />`](/docs/ui/layouts/root-provider)：
+
+  ```tsx title="src/components/provider.tsx"
+  'use client';
+  import type { ReactNode } from 'react';
+  import { RootProvider } from 'fumadocs-ui/provider/waku';
+  // [!code ++]
+  import SearchDialog from '@/components/search';
+
+  export function Provider({ children }: { children: ReactNode }) {
+    // [!code highlight]
+    return <RootProvider search={{ SearchDialog }}>{children}</RootProvider>;
+  }
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  您的 provider 元件已会将 `src/components/search.tsx` 传入 [`<RootProvider />`](/docs/ui/layouts/root-provider)，因此只要替换该档案即可：
+
+  ```tsx title="src/components/provider.tsx"
+  import { navigate } from 'astro:transitions/client';
+  import type { ReactNode } from 'react';
+  import { RootProvider } from 'fumadocs-ui/provider/astro';
+  import SearchDialog from '@/components/search';
+
+  export interface ProviderProps {
+    pathname: string;
+    params: Record<string, string | undefined>;
+    children?: ReactNode;
+  }
+
+  export function Provider({ pathname, params, children }: ProviderProps) {
+    return (
+      <RootProvider
+        pathname={pathname}
+        params={params}
+        navigate={navigate}
+        // [!code highlight]
+        search={{ SearchDialog }}
+      >
+        {children}
+      </RootProvider>
+    );
+  }
+  ```
+</show>
+
+
+
+### 标签筛选 [#tag-filter]
+
+您也可以视需要加入依标签筛选结果的 UI。请在搜寻伺服器上设定[标签筛选](/docs/headless/search/algolia#tag-filter)，并加入以下内容：
+
+
+
+```tsx
+'use client';
+
+import {
+  SearchDialog,
+  SearchDialogContent,
+  SearchDialogFooter,
+  SearchDialogOverlay,
+  type SharedProps,
+  TagsList,
+  TagsListItem,
+} from 'fumadocs-ui/components/dialog/search';
+import { useState } from 'react';
+import { useFetchSearch } from 'fumadocs-core/search/client';
+
+export default function CustomSearchDialog(props: SharedProps) {
+  // [!code ++]
+  const [tag, setTag] = useState<string | undefined>();
+  const search = useFetchSearch({
+    tag, // [!code ++]
+  });
+
+  return (
+    <SearchDialog {...search} {...props}>
+      <SearchDialogOverlay />
+      <SearchDialogContent>
+        ...
+        <SearchDialogFooter className="flex flex-row">
+          {/* [!code ++:3] */}
+          <TagsList tag={tag} onTagChange={setTag}>
+            <TagsListItem value="my-value">My Value</TagsListItem>
+          </TagsList>
+        </SearchDialogFooter>
+      </SearchDialogContent>
+    </SearchDialog>
+  );
+}
+```
+
+

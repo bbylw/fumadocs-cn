@@ -1,0 +1,183 @@
+---
+title: Rehype Code
+description: 程式码语法突显器
+---
+
+[`@shikijs/rehype`](https://shiki.style/packages/rehype) 的封装，而 `@shikijs/rehype` 正是 Fumadocs 所使用的语法突显器。
+
+它会将原始的 `<pre />` 程式码区块转换为已套用语法突显的程式码区块：
+
+````md tab="Input"
+```ts
+console.log('Hello World');
+```
+````
+
+```html tab="Output"
+<pre>
+  <code>
+    <span class="line">
+      <span style="--shiki-light: #4C4F69; --shiki-dark: #CDD6F4;">console</span>...
+    </span>
+  </code>
+</pre>
+```
+Rehype Code 是一个 rehype 外挂，Fumadocs MDX 预设已启用。您可以透过 `rehypeCodeOptions` 传入选项：
+
+```ts tab="unified" title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    rehypeCodeOptions: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+    },
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: { compiler: 'satteri' },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    rehypeCodeOptions: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+    },
+  },
+});
+```
+此外挂使用 Shiki。若改用 `rehypeCodeFromHighlighter`，则可搭配其他[语法突显器](/docs/headless/utils/shiki) (例如 Highlights) ，并使用 Shiki 以外的选项。请传入一个函式，利用此外挂的 transformer 建立语法突显器。
+
+请停用预设外挂，再加入此外挂：
+
+```ts tab="unified" title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+import { rehypeCodeFromHighlighter } from 'fumadocs-core/mdx-plugins/rehype-code.core';
+import { highlighter } from './lib/highlighter';
+
+export default defineConfig({
+  mdxOptions: {
+    rehypeCodeOptions: false,
+    rehypePlugins: [
+      () =>
+        rehypeCodeFromHighlighter(({ transformers }) =>
+          highlighter.override({ shikiTransformers: transformers }),
+        ),
+    ],
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+import { rehypeCodeFromHighlighter } from '@fumadocs/satteri/rehype-code';
+import { highlighter } from './lib/highlighter';
+
+export const docs = defineDocs({
+  docs: { compiler: 'satteri' },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    rehypeCodeOptions: false,
+    hastPlugins: [
+      rehypeCodeFromHighlighter(({ transformers }) =>
+        highlighter.override({ shikiTransformers: transformers }),
+      ),
+    ],
+  },
+});
+```
+它会解析 `title` meta 字串，并将其以属性形式加到 `pre` 元素上。
+
+````mdx tab="Input"
+```js title="Title"
+console.log('Hello');
+```
+````
+
+```jsx tab="Output"
+<pre title="Title">...</pre>
+```
+
+您可以使用 `filterMetaString` 选项，在处理 meta 字串之前先进行筛选。
+
+### 行内程式码 [#inline-code]
+
+您可以透过 `inline` 选项启用此功能：
+
+```ts
+import { type RehypeCodeOptions } from 'fumadocs-core/mdx-plugins';
+
+const rehypeCodeOptions: RehypeCodeOptions = {
+  // [!code ++]
+  inline: 'tailing-curly-colon',
+};
+```
+
+```md title="Syntax"
+这是经过语法突显的行内程式码：`console.log("hello world"){:js}`.
+```
+
+这是经过语法突显的行内程式码：`console.log("hello world"){:js}`。
+
+### 图示 [#icon]
+
+此外挂会根据语言的 meta 字串自动加上 `icon` 属性。
+该属性为 HTML 字串，您可以透过 React 的 `dangerouslySetInnerHTML` 将其算绘出来。
+
+````md tab="Input"
+```ts
+console.log('This should shows the logo of TypeScript');
+```
+````
+
+```jsx tab="Output"
+<pre icon="<svg />">...</pre>
+```
+
+您可以透过 `icon` 选项停用或自订图示。
+
+### 未知语言 [#unknown-languages]
+
+若程式码区块使用了 Shiki 不支援的语言，会导致建置失败。若要改用其他语言进行语法突显，请设定 `fallbackLanguage`：
+
+```ts tab="unified" title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    rehypeCodeOptions: {
+      fallbackLanguage: 'plaintext',
+    },
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: { compiler: 'satteri' },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    rehypeCodeOptions: {
+      fallbackLanguage: 'plaintext',
+    },
+  },
+});
+```
+这些选项继承自 [Shiki](https://shiki.style)，其他选项请参阅 Shiki 的文件。

@@ -1,0 +1,136 @@
+---
+title: Spacious 版面配置
+description: 比文件版面配置更宽松的版本
+---
+
+这是 [``](/docs/ui/layouts/docs) 较为宽松的版本：页面位于侧边栏旁的内嵌面板中，页面层级的操作则置于面板顶端。
+
+
+<Callout title="仅限 Base UI">
+  Spacious 版面配置仅适用于 Base UI 版本的 Fumadocs UI (`@fumadocs/base-ui`) 。
+</Callout>
+
+## 使用方式 [#usage]
+
+请透过 `fumadocs-ui/layouts/spacious` 启用 Spacious 版面配置。
+
+```tsx title="layout.tsx"
+import { DocsLayout } from 'fumadocs-ui/layouts/spacious'; // [!code highlight]
+import { baseOptions } from '@/lib/layout.shared';
+import { source } from '@/lib/source';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <DocsLayout {...baseOptions()} tree={source.getPageTree()}>
+      {children}
+    </DocsLayout>
+  );
+}
+```
+
+请记得一并更新页面中的汇入：
+
+```tsx title="page.tsx"
+import { ... } from 'fumadocs-ui/layouts/docs/page'; // [!code --]
+import { ... } from 'fumadocs-ui/layouts/spacious/page'; // [!code ++]
+```
+与 Glass 版面配置相同，Spacious 版面配置的样式**不会**打包进 CSS 预设组合，因此只有在使用此版面配置时才会产生额外负担。请在您的 Tailwind CSS 档案中汇入这些样式：
+
+```css title="Tailwind CSS"
+@import 'tailwindcss';
+/* [!code ++] */
+@import 'fumadocs-ui/css/generated/spacious.css';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+```
+
+<Callout title="注意事项">
+  * Spacious 版面配置是**用户端元件**，因此您无法从伺服器元件传入无法序列化的 props。
+  * 在桌面版中，页面会在面板内卷动，而不是整个视窗卷动。
+</Callout>
+
+## 设定 [#configurations]
+
+这些选项继承自[文件版面配置](/docs/ui/layouts/docs)，但有些许差异：
+
+* `sidebar` 选项仅接受 `defaultOpenLevel` 与 `prefetch`，且侧边栏一律可收合。
+* 另有额外选项 (请见下方) 。
+
+### 版面配置页签 [#layout-tabs]
+
+使用 `tabs` prop 设定[版面配置页签](/docs/ui/layouts/docs#layout-tabs)，新增方式请参阅该连结文件。页签会以下拉选单的形式显示在侧边栏顶端。
+
+```tsx title="layout.tsx"
+import { DocsLayout } from 'fumadocs-ui/layouts/spacious';
+import { baseOptions } from '@/lib/layout.shared';
+import { source } from '@/lib/source';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <DocsLayout
+      {...baseOptions()}
+      tabs={
+        {
+          // 自订页签
+        }
+      }
+      tree={source.getPageTree()}
+    >
+      {children}
+    </DocsLayout>
+  );
+}
+```
+传入包含开启状态与变更处理函式的 `aiChat` 物件，即可在版面配置中显示**询问 AI**。
+
+使用 `panel` 选项时，版面配置会替您算绘聊天面板：在宽萤幕上，面板会固定在页面旁 (目录会移至页面的页首) ；在较小的萤幕上，则会浮动显示于页面上方。
+
+```tsx title="layout.tsx"
+'use client';
+import { DocsLayout } from 'fumadocs-ui/layouts/spacious';
+import { useState } from 'react';
+
+export function Layout({ children }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <DocsLayout
+      // [!code ++:5]
+      aiChat={{
+        open,
+        onOpenChange: setOpen,
+        panel: <MyChat />,
+      }}
+      // ...
+    >
+      {children}
+    </DocsLayout>
+  );
+}
+```
+除了共用的 slot (`navTitle`、`themeSwitch`、`searchTrigger`、`languageSelect`) 之外，Spacious 版面配置还提供 `slots` 选项，可用来覆写版面的各个部分。
+
+| Slot      | 说明                                               |
+| --------- | ------------------------------------------------ |
+| `header`  | 行动装置上的导览列。                                       |
+| `sidebar` | 侧边栏系统：`provider`、`main` (桌面版) 及 `drawer` (行动版) 。 |
+| `actions` | 页面右上角的操作按钮，例如语言切换器与选项选单。                         |
+
+```tsx title="layout.tsx"
+import { DocsLayout } from 'fumadocs-ui/layouts/spacious';
+
+<DocsLayout
+  slots={{
+    actions: MyActions, // [!code ++]
+  }}
+  // ...
+/>;
+```
+此页面元件与[文件页面](/docs/ui/layouts/page)类似，但有以下几点差异：
+
+* 目录预设使用 `block` 样式。
+* `tableOfContentPopover` 用于设定页面页首中的目录下拉选单，以及行动装置上的目录列。
+* `slots.toc` 接受 `dropdown` 元件，作为页面页首中的下拉选单。
+* 没有 `container` slot。

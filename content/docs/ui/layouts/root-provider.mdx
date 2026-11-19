@@ -1,0 +1,148 @@
+---
+title: Root Provider
+description: Fumadocs UI 的 Context Provider。
+---
+
+为所有元件提供 Context 的 Provider，其中包含 `next-themes` 与 [``](/docs/headless#installation)。请将它放在根版面配置中。
+
+## 使用方式 [#usage]
+
+请依您使用的 React.js 框架汇入：
+
+```jsx tab="Next.js"
+import { RootProvider } from 'fumadocs-ui/provider/next';
+
+export default function Layout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <RootProvider>{children}</RootProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+```jsx tab="React Router"
+import { RootProvider } from 'fumadocs-ui/provider/react-router';
+
+export function Layout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <RootProvider>{children}</RootProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+```jsx tab="TanStack Start"
+import {
+  HeadContent,
+  Scripts,
+} from '@tanstack/react-router';
+import { RootProvider } from 'fumadocs-ui/provider/tanstack';
+
+function RootDocument({ children }: { children: React.ReactNode }) {
+  return (
+    <html suppressHydrationWarning>
+      <head>
+        <HeadContent />
+      </head>
+      <body className="flex flex-col min-h-screen">
+        <RootProvider>{children}</RootProvider>
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
+```
+
+```jsx tab="Waku"
+import { RootProvider } from 'fumadocs-ui/provider/waku';
+
+export default function Layout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <RootProvider>{children}</RootProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+```jsx tab="Astro"
+import { navigate } from 'astro:transitions/client';
+import { RootProvider } from 'fumadocs-ui/provider/astro';
+
+// 此元件在 React island 中算绘，请从 Astro 页面传入 pathname 与 params。
+export function Provider({ pathname, params, children }) {
+  return (
+    <RootProvider pathname={pathname} params={params} navigate={navigate}>
+      {children}
+    </RootProvider>
+  );
+}
+```
+您可以透过 `search` 选项自订或停用搜寻对话方块。
+
+```jsx
+<RootProvider
+  search={{
+    enabled: false,
+  }}
+>
+  {children}
+</RootProvider>
+```
+
+详情请参阅[搜寻](/docs/ui/search)。
+
+### 主题 Provider [#theme-provider]
+
+Fumadocs 透过 [`next-themes`](https://github.com/pacocoursey/next-themes) 支援浅色／深色模式。
+您可以透过 `theme` 选项自订或停用此功能。
+
+```jsx
+<RootProvider
+  theme={{
+    enabled: false,
+  }}
+>
+  {children}
+</RootProvider>
+```
+
+您也可以自行安装 `next-themes`，并在程式码中引用它来管理主题。
+
+#### 快捷键 [#hotkey]
+
+按下 <kbd>D</kbd> 即可切换浅色与深色模式。
+当您正在可编辑的元素 (例如 `<input />`) 中输入内容，或已开启对话方块 (例如搜寻对话方块) 时，此快捷键不会生效。
+
+您可以将其他按键传入 `theme.hotKey`，或传入 `false` 来停用此快捷键。
+
+```jsx
+<RootProvider
+  theme={{
+    hotKey: false,
+  }}
+>
+  {children}
+</RootProvider>
+```
+
+也可以传入函式，以完全掌控要比对的按键组合。
+
+```jsx
+<RootProvider
+  theme={{
+    hotKey: (e) => e.shiftKey && e.key === 'D',
+  }}
+>
+  {children}
+</RootProvider>
+```

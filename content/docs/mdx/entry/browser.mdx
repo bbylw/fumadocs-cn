@@ -1,0 +1,160 @@
+---
+title: 浏览器入口
+description: 从浏览器／用户端环境存取集合。
+---
+
+<Callout title="使用 Macro API？">
+  巨集集合可直接在用户端汇入，无需用户端载入器。对应的用法请参阅 [Macro API](/docs/mdx/macro#browser)。
+</Callout>
+
+## 使用方式 [#usage]
+
+产生的输出已使用非同步汇入，针对浏览器环境进行最佳化。
+
+在浏览器中只能存取 doc/docs 集合。
+
+```tsx
+import browserCollections from 'collections/browser';
+
+// 尚未载入的项目
+console.log(browserCollections['collection name'].raw);
+
+// 定义用户端集合载入器
+const clientLoader = browserCollections['collection name'].createClientLoader({
+  component(
+    // 存取已编译的档案
+    { default: MDX },
+    // 定义 props（选用）
+    props: { myProp: string },
+  ) {
+    return (
+      <div>
+        <MDX />
+      </div>
+    );
+  },
+});
+
+// 由伺服器（静态产生器）回传路径
+async function serverLoader() {
+  return source.getPage(slugs)!.path;
+}
+
+async function loader() {
+  const path = await serverLoader();
+  // 预先载入此路径
+  await clientLoader.preload(path);
+  return { path };
+}
+
+function Page() {
+  const { path } = loader();
+
+  // 算绘内容
+  return clientLoader.useContent(path, {
+    myProp: 'hello world',
+  });
+}
+```
+若页面使用[路径参数](/docs/page-conventions#path-params)，请在路径后方传入对应的参数：
+
+```tsx
+async function serverLoader() {
+  const page = source.getPage(slugs)!;
+  return { path: page.path, params: page.params };
+}
+
+async function loader() {
+  const { path, params } = await serverLoader();
+  await clientLoader.preload(path, params);
+  return { path, params };
+}
+
+function Page() {
+  const { path, params } = loader();
+
+  return clientLoader.useContent(path, { myProp: 'hello world' }, params);
+}
+```
+以下范例适用于在 React Router 与 TanStack Start 上不使用 RSC 的情况。若使用 Next.js 或 Waku，建议改用 RSC 搭配 [server entry](/docs/mdx/entry/server)，以获得更好的用户端效能。
+
+我们储存库中的范例应用程式则改用 [Macro API](/docs/mdx/macro) 来处理这部分，很适合作为完整设定的参考。
+
+```tsx tab="React Router" title="app/routes/docs.tsx"
+import type { Route } from './+types/docs';
+import { source } from '@/lib/source';
+import browserCollections from 'collections/browser';
+
+export async function loader({ params }: Route.LoaderArgs) {
+  const slugs = params['*'].split('/').filter((v) => v.length > 0);
+  const page = source.getPage(slugs);
+  if (!page) throw new Response('Not found', { status: 404 });
+
+  return {
+    path: page.path,
+  };
+}
+
+const clientLoader = browserCollections.docs.createClientLoader({
+  component({ frontmatter, default: MDX }) {
+    return (
+      <div className="prose">
+        <h1>{frontmatter.title}</h1>
+        <MDX />
+      </div>
+    );
+  },
+});
+
+export default function Page(props: Route.ComponentProps) {
+  const { path } = props.loaderData;
+
+  return clientLoader.useContent(path);
+}
+```
+
+```tsx tab="TanStack Start" title="src/routes/docs/$.tsx"
+import { createFileRoute, notFound } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
+import { source } from '@/lib/source';
+import browserCollections from 'collections/browser';
+
+export const Route = createFileRoute('/docs/$')({
+  component: Page,
+  loader: async ({ params }) => {
+    const data = await loader({ data: params._splat?.split('/') ?? [] });
+    await clientLoader.preload(data.path);
+    return data;
+  },
+});
+
+const loader = createServerFn({
+  method: 'GET',
+})
+  .validator((slugs: string[]) => slugs)
+  .handler(async ({ data: slugs }) => {
+    const page = source.getPage(slugs);
+    if (!page) throw notFound();
+
+    return {
+      path: page.path,
+    };
+  });
+
+const clientLoader = browserCollections.docs.createClientLoader({
+  component({ frontmatter, default: MDX }) {
+    return (
+      <div className="prose">
+        <h1>{frontmatter.title}</h1>
+        <MDX />
+      </div>
+    );
+  },
+});
+
+function Page() {
+  const data = Route.useLoaderData();
+
+  return clientLoader.useContent(data.path);
+}
+```

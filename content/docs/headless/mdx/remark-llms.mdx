@@ -1,0 +1,104 @@
+---
+title: Remark LLMs
+description: 汇出文件的 Markdown，供 LLM 使用。
+---
+
+`remarkLLMs` 外挂会将文件的 Markdown 汇出为 `_markdown`，供 LLM 使用，并保留您原本撰写的 Markdown。产生方式请参阅[字串化](/docs/headless/mdx/stringification)。
+
+```mdx tab="Input"
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Getting Started
+
+<Callout>Hello **world**.</Callout>
+```
+
+```md tab="Output"
+## Getting Started [#getting-started]
+
+<Callout>Hello **world**.</Callout>
+```
+
+ESM 会被移除，标题会加上各自的 ID (请参阅 `headingIds`) ，而透过 Fumadocs MDX 引入的内容也会展开。
+
+## 使用方式 [#usage]
+
+`remarkLLMs` 是一个 remark 外挂。您可以在 Fumadocs MDX 中透过 `includeProcessedMarkdown` 启用它，unified 与 Sätteri 皆适用：
+
+```ts title="source.config.ts"
+import { defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: {
+    postprocess: {
+      // `true`，或 `remarkLLMs` 的选项
+      includeProcessedMarkdown: true,
+    },
+  },
+});
+```
+
+在页面中使用 `getText('processed')` 读取内容，它会搭配页面的 props 算绘 Markdown：
+
+```ts
+const markdown = await page.data.getText('processed');
+```
+与页面放在一起、由 [Remark Image](/docs/headless/mdx/remark-image) 汇入的图片，会使用打包工具提供这些图片时的 URL：
+
+```md tab="Input"
+![How a calculation flows](./flow.png)
+```
+
+```md tab="Output"
+![How a calculation flows](/assets/flow-Dxg6sAyC.png)
+```
+
+public 目录中的图片会保留原本的位址。小于 [`build.assetsInlineLimit`](https://vite.dev/config/build-options#build-assetsinlinelimit) 的图片会由 Vite 内嵌为 `data:` URL。
+
+## 输出 [#output]
+
+`output` 选项用于设定 `_markdown` 的形式：
+
+* `function`：`_markdown` 是一个元件，请使用 [`renderToMarkdown()`](/docs/headless/utils/markdown) 加以算绘。Markdown 会依据页面 props 产生：[`<show>`](/docs/markdown#show) 中未算绘的内容会被省略，表达式会替换为其值，JSX 元素则会替换为对应的 [Markdown 形式](#jsx-elements)。
+* `string`：`_markdown` 是一个字串。表达式与 JSX 元素会以原始文字保留，而包含 `<show>` 的文件则会编译失败。
+
+在 Fumadocs MDX 与 `@fumadocs/astro` 中，预设值为 `function`，其他情况则为 `string`。自订内容来源若使用[执行阶段输出](/docs/headless/source-api/source#runtime-outputs)，则会得到 `function`。
+
+## JSX 元素 [#jsx-elements]
+
+使用 [`output: 'function'`](#output) 时，元件的查找方式与 MDX 相同：先查找档案中的汇入与宣告，再查找[页面 props](/docs/headless/source-api#custom-props) 中的 MDX 元件。请透过 `getPage()` 将 MDX 元件传入页面：
+
+```ts
+const page = source.getPage(slugs, { props: { components } });
+```
+
+元件可透过 [`asMarkdown()`](/docs/headless/utils/markdown#asmarkdown) 定义其 Markdown 形式，未定义的元件则会保留为 JSX。若要移除元素，或改以其子元素取代，请使用 `filterElement` (Sätteri 不支援) 。
+
+### 预留位置 [#placeholders]
+
+若要自行算绘 JSX 元素，请将它们列为预留位置：
+
+```ts
+import type { LLMsOptions } from 'fumadocs-core/mdx-plugins/remark-llms';
+
+const llmsOptions: LLMsOptions = {
+  mdxAsPlaceholder: ['Callout'],
+};
+```
+
+接著将它们算绘出来，必要时可使用执行阶段的资料：
+
+```ts
+import { renderPlaceholder } from 'fumadocs-core/mdx-plugins/remark-llms.runtime';
+
+const markdown = await renderPlaceholder(await page.data.getText('processed'), {
+  // `children` 为元素内容的 Markdown
+  Callout: ({ attributes, children }) => `> **${attributes.title}**\n>\n> ${children}`,
+});
+```
+
+使用 Sätteri 时，无法使用 `mdxAsPlaceholder`。
+
+## 选项 [#options]
+
+<auto-type-table type="import('fumadocs-core/mdx-plugins/remark-llms').LLMsOptions" />

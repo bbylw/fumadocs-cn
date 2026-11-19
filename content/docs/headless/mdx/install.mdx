@@ -1,0 +1,92 @@
+---
+title: 套件安装
+description: 产生安装套件用的程式码区块
+---
+
+<Callout type="warn" title="已弃用">
+  请改用 [Remark NPM](/docs/headless/mdx/remark-npm)。它可以直接取代本功能，且在 Fumadocs MDX 中已预设启用。
+</Callout>
+
+## 使用方式 [#usage]
+
+```package-install
+fumadocs-docgen
+```
+
+`remarkInstall` 是 remark 外挂，目前没有 Sätteri 版本。请加入此外挂，并停用会抢先处理 `package-install` 程式码区块的 Remark NPM：
+
+```ts title="source.config.ts"
+import { remarkInstall } from 'fumadocs-docgen';
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    remarkNpmOptions: false,
+    remarkPlugins: [remarkInstall],
+  },
+});
+```
+
+定义所需的元件。
+
+```tsx title="components/mdx.tsx"
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import defaultComponents from 'fumadocs-ui/mdx';
+import type { MDXComponents } from 'mdx/types';
+
+export function getMDXComponents(components?: MDXComponents) {
+  return {
+    ...defaultComponents,
+    // [!code ++:2]
+    Tab,
+    Tabs,
+    ...components,
+  } satisfies MDXComponents;
+}
+```
+
+建立语言设为 `package-install` 的程式码区块。
+
+````mdx
+```package-install
+my-package
+```
+
+```package-install
+npm i my-package -D
+```
+````
+
+### 输出 [#output]
+
+```mdx
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">...</Tab>
+  <Tab value="pnpm">...</Tab>
+  <Tab value="yarn">...</Tab>
+  <Tab value="bun">...</Tab>
+</Tabs>
+```
+### 持久保存 [#persistent]
+
+搭配 Fumadocs UI 使用时，您可以透过 `persist` 选项启用持久保存。
+
+```ts title="source.config.ts"
+import { remarkInstall } from 'fumadocs-docgen';
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    remarkNpmOptions: false,
+    remarkPlugins: [[remarkInstall, { persist: { id: 'some-id' } }]],
+  },
+});
+```
+
+这样则会改为产生：
+
+```mdx
+<Tabs groupId="some-id" persist items={[...]}>
+  ...
+</Tabs>
+```

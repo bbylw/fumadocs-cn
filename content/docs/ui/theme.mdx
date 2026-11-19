@@ -1,16 +1,13 @@
 ---
 title: 主题
+description: 为 Fumadocs UI 新增主题
 ---
 
-为 Fumadocs UI 添加主题。
+Fumadocs UI 透过 Tailwind CSS preset 加入专属的色彩、动画与工具类别。
 
-## 概览
+### 设定 [#setup]
 
-Fumadocs UI 通过 Tailwind CSS preset 添加了自己的颜色、动画和工具类。
-
-## 设置
-
-仅支持 Tailwind CSS v4，该 preset 还会包含 Fumadocs UI 自身的源码：
+仅支援 Tailwind CSS v4，此 preset 也会一并将 Fumadocs UI 本身加入 source：
 
 ```css title="Tailwind CSS"
 @import 'tailwindcss';
@@ -18,7 +15,7 @@ Fumadocs UI 通过 Tailwind CSS preset 添加了自己的颜色、动画和工�
 @import 'fumadocs-ui/css/preset.css';
 ```
 
-对于 **Shadcn UI**，你可以使用 `shadcn` preset 替代。Fumadocs UI 将采用你 Shadcn UI 主题中的颜色。
+若您使用 **Shadcn UI**，可以改用 `shadcn` 预设样式，Fumadocs UI 会直接沿用您 Shadcn UI 主题的色彩。
 
 ```css
 @import 'tailwindcss';
@@ -26,23 +23,24 @@ Fumadocs UI 通过 Tailwind CSS preset 添加了自己的颜色、动画和工�
 @import 'fumadocs-ui/css/preset.css';
 ```
 
-详见 [颜色](#颜色)。
+详细资讯请参阅[色彩](#colors)。
 
-## Preflight 变更
+### Preflight 变更 [#preflight-changes]
 
-通过使用 Tailwind CSS 插件或预构建样式表，你的默认边框、文本和背景颜色会被更改。
+使用 Tailwind CSS 外挂或预先建置的样式表后，预设的边框、文字与背景
+颜色会随之改变。
 
-## 浅色/深色模式
+### 浅色／深色模式 [#lightdark-modes]
 
-Fumadocs 通过 [`next-themes`](https://github.com/pacocoursey/next-themes) 支持浅色/深色模式，它已包含在 Root Provider 中。
+Fumadocs 透过 [`next-themes`](https://github.com/pacocoursey/next-themes) 支援浅色／深色模式，此功能已内建于 Root Provider 中。
 
-详见 [Root Provider](https://fumadocs.dev/docs/ui/layouts/root-provider#theme-provider)。
+详情请参阅 [Root Provider](/docs/ui/layouts/root-provider#theme-provider)。
 
-## RTL 布局
+### RTL 版面配置 [#rtl-layout]
 
-支持 RTL（从右到左）布局。
+支援 RTL (由右至左) 版面配置。
 
-要启用 RTL，请在 body 和 root provider 中将 `dir` 属性设置为 `rtl`。
+若要启用 RTL，请将 body 与 root provider 的 `dir` prop 设为 `rtl`。
 
 ```tsx
 import { RootProvider } from 'fumadocs-ui/provider/<framework>';
@@ -58,29 +56,67 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   );
 }
 ```
-
-## 布局宽度
-
-通过 CSS 变量自定义文档布局的最大宽度。
+您可以使用 CSS 变数自订文件版面配置的最大宽度。
 
 ```css
 :root {
   --fd-layout-width: 1400px;
 }
 ```
-
-## 颜色
-
-它开箱即带有许多预设，你可以挑选喜欢的那个。
+Fumadocs 内建多种预设配色，您可以挑选喜欢的一款。
 
 ```css
 @import 'fumadocs-ui/css/<theme>.css';
 @import 'fumadocs-ui/css/preset.css';
 ```
 
-可用主题包括：`neutral`、`black`、`vitepress`、`dusk`、`catppuccin`、`ocean`、`purple`、`solar`、`emerald`、`ruby`、`aspen`。
+<Tabs items={['neutral', 'black', 'vitepress', 'dusk', 'catppuccin', 'ocean', 'purple', 'solar', 'emerald', 'ruby', 'aspen']}>
+  <Tab value="neutral">
+    ![Neutral](/themes/neutral.png)
+  </Tab>
 
-设计系统受 [Shadcn UI](https://ui.shadcn.com) 启发，你也可以使用 [CSS/主题变量](https://tailwindcss.com/docs/theme) 自定义颜色。
+  <Tab value="black">
+    ![Black](/themes/black.png)
+  </Tab>
+
+  <Tab value="vitepress">
+    ![Vitepress](/themes/vitepress.png)
+  </Tab>
+
+  <Tab value="dusk">
+    ![Dusk](/themes/dusk.png)
+  </Tab>
+
+  <Tab value="Catppuccin">
+    ![Catppuccin](/themes/catppuccin.png)
+  </Tab>
+
+  <Tab value="ocean">
+    ![Ocean](/themes/ocean.png)
+  </Tab>
+
+  <Tab value="purple">
+    ![Purple](/themes/purple.png)
+  </Tab>
+
+  <Tab value="solar">
+    ![Solar](/themes/solar.png)
+  </Tab>
+
+  <Tab value="emerald">
+    ![Emerald](/themes/emerald.png)
+  </Tab>
+
+  <Tab value="ruby">
+    ![Ruby](/themes/ruby.png)
+  </Tab>
+
+  <Tab value="aspen">
+    ![Aspen](/themes/aspen.png)
+  </Tab>
+</Tabs>
+
+此设计系统的灵感源自 [Shadcn UI](https://ui.shadcn.com)，您也可以透过 [CSS／主题变数](https://tailwindcss.com/docs/theme)自订色彩。
 
 ```css title="global.css"
 @theme {
@@ -121,19 +157,29 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   --color-fd-ring: hsl(0, 0%, 54.9%);
 }
 ```
+我们内建了一个从 [Tailwind CSS Typography](https://tailwindcss.com/docs/typography-plugin) 分支 (fork) 而来的外挂。
 
-## 排版
-
-我们有一个从 [Tailwind CSS Typography](https://tailwindcss.com/docs/typography-plugin) fork 来的内置插件。
-
-该插件添加了 `prose` 类及其变体来自定义它。
+此外挂提供 `prose` 类别，以及用来自订样式的各种变体。
 
 ```tsx
 <div className="prose">
-  <h1>好的标题</h1>
+  <h1>Good Heading</h1>
 </div>
 ```
 
-> 该插件应该与 Fumadocs UI 的 MDX 组件一起使用，它可能与 `@tailwindcss/typography` 冲突。
+将 `prose-sm` 或 `prose-xs` 与 `prose` 搭配使用，即可套用 `text-sm` 或 `text-xs` 的字型大小与行高，并搭配经过视觉校正的字重：
+
+```tsx
+<div className="prose prose-sm">...</div>
+```
+
+> 此外挂专为搭配 Fumadocs UI 的 MDX 元件而设计，因此可能会与 `@tailwindcss/typography` 发生冲突。
 >
-> 如果你需要使用 `@tailwindcss/typography` 替代默认插件，[设置一个 `className` 选项](https://github.com/tailwindlabs/tailwindcss-typography/blob/main/README.md#changing-the-default-class-name) 以避免冲突。
+> 若您需要改用 `@tailwindcss/typography` 取代预设外挂，请[设定 `className` 选项](https://github.com/tailwindlabs/tailwindcss-typography/blob/main/README.md#changing-the-default-class-name)以避免冲突。
+>
+> ```sass
+> @import 'tailwindcss';
+> @plugin "@tailwindcss/typography" {
+>   className: wysiwyg;
+> }
+> ```

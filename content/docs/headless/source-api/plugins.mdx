@@ -1,0 +1,97 @@
+---
+title: 载入器外挂
+description: 扩充载入器 API
+---
+
+载入器外挂可以扩充 `loader()`，以自订其输出结果。
+
+内建外挂清单：
+
+* **Lucide Icons**：使用 [Lucide React](https://lucide.dev) 提供的图示 (需先安装 `lucide-react`) 。
+
+  ```ts
+  import { loader } from 'fumadocs-core/source';
+  import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
+
+  export const source = loader({
+    // ...
+    plugins: [lucideIconsPlugin()],
+  });
+  ```
+每个外挂都是一个物件：
+
+```ts tab="Strictly Typed"
+import { loader } from 'fumadocs-core/source';
+
+export const source = loader({
+  plugins: ({ typedPlugin }) => [
+    typedPlugin({
+      // 外挂设定
+    }),
+  ],
+});
+```
+
+```ts tab="Simple"
+import { loader, type LoaderPlugin } from 'fumadocs-core/source';
+
+export const source = loader({
+  plugins: [myPlugin()],
+});
+
+function myPlugin(): LoaderPlugin {
+  return {
+    // 外挂设定
+  };
+}
+```
+
+<Callout title="小提示">
+  `typedPlugin` 会为外挂套用更精确的型别，包括您内容来源中的自订属性。
+
+  不过，若要让外挂能在不同的载入器之间重复使用，请改用 `LoaderPlugin` 型别。
+</Callout>
+
+### 储存空间 [#storage]
+
+在处理过程中，您输入的来源档案会被解析，并在记忆体中形成虚拟储存空间。
+
+若要在处理之前执行虚拟档案系统操作，您可以使用 `transformStorage` hook。
+
+```ts
+import { loader } from 'fumadocs-core/source';
+
+export const source = loader({
+  plugins: ({ typedPlugin }) => [
+    typedPlugin({
+      transformStorage({ storage }) {
+        storage.read('my/path');
+      },
+    }),
+  ],
+});
+```
+页面树会根据您的档案系统产生，并过滤掉部分不必要的资讯 (例如未使用的 frontmatter 属性) 。
+
+您可以透过 `transformPageTree` 自订页面树，例如为节点附加自订属性，或自订页面的显示名称。
+
+```tsx
+import { loader } from 'fumadocs-core/source';
+
+export const source = loader({
+  plugins: ({ typedPlugin }) => [
+    typedPlugin({
+      transformPageTree: {
+        file(node, file) {
+          // 存取原始（未经过滤的）档案资料
+          if (file) console.log(this.storage.read(file));
+
+          // 修改节点
+          node.name = <>Some JSX Nodes here</>;
+          return node;
+        },
+      },
+    }),
+  ],
+});
+```

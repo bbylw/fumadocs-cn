@@ -1,0 +1,300 @@
+---
+title: Notion
+description: 从 Notion 撷取页面，并以 Fumadocs 算绘。
+---
+
+`@fumadocs/notion` 可将 Notion 资料库转换为 Fumadocs 内容来源。它提供一个动态[内容来源](/docs/headless/source-api)，透过官方 Notion API 撷取页面；另外也提供伺服器端算绘器，以 Fumadocs UI 算绘 Notion 区块。
+
+它不包含用户端算绘器，也不会将内容转换为 MDX。区块一律在伺服器端算绘，因此不需要打包工具，也没有型别产生步骤。
+
+## 设定 [#setup]
+
+请安装此整合以及官方的 Notion 用户端：
+
+```package-install
+@fumadocs/notion @notionhq/client
+```
+
+请在 Fumadocs UI 样式之后，汇入算绘器的 Tailwind CSS 来源：
+
+```css title="Tailwind CSS"
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+/* [!code ++] */
+@import '@fumadocs/notion/css/preset.css';
+```
+1. [建立 Notion 整合](https://developers.notion.com/docs/getting-started)，并授予读取内容的权限。
+2. 将存放您页面的资料库连接至该整合。
+3. 将整合权杖与资料库的 **data source ID** 存放在仅限伺服器端存取的环境变数中。
+
+```ini title=".env.local"
+NOTION_TOKEN=ntn_...
+NOTION_DATA_SOURCE_ID=...
+```
+
+<Callout type="info">
+  请使用资料来源 (data source) ID，而非资料库 URL 中显示的资料库 ID。在目前的 Notion API 中，资料库是一个容器，
+  每次查询的对象都是其中一个资料来源。详情请参阅 Notion 的[资料来源升级指南](https://developers.notion.com/guides/get-started/upgrade-guide-2025-09-03)。
+</Callout>
+
+### Notion 整合 [step] [#notion-integration]
+
+整合只需建立一次，并由内容来源与档案路由共用。
+
+```ts title="lib/notion.ts"
+import { Client } from '@notionhq/client';
+import { createNotion } from '@fumadocs/notion';
+
+export const notion = createNotion({
+  client: new Client({ auth: process.env.NOTION_TOKEN }),
+  dataSourceId: process.env.NOTION_DATA_SOURCE_ID!,
+});
+```
+将 `notion.dynamicSource()` 传入 `dynamicLoader()`，并透过 `getSource()` 对外提供该载入器：
+
+```ts title="lib/source.ts"
+import { dynamicLoader } from 'fumadocs-core/source';
+import { notion } from '@/lib/notion';
+
+const source = dynamicLoader(
+  notion.dynamicSource({
+    // 将 Notion 属性对应到页面栏位
+    properties: {
+      title: 'Name',
+      slug: 'Slug',
+      description: 'Description',
+    },
+    // 筛选、排序或以其他方式自订查询条件
+    query: {
+      filter: {
+        property: 'Published',
+        checkbox: { equals: true },
+      },
+    },
+  }),
+  {
+    baseUrl: '/docs',
+  },
+);
+
+export async function getSource() {
+  return source.get();
+}
+```
+
+来源会分页走访所有符合条件的 data source 资料列，并延迟载入每个页面的巢状区块。在载入器失效之前，重复载入同一页面内容的呼叫都会经过去重处理。
+
+### 算绘页面 [step] [#render-pages]
+
+在版面配置中使用载入器建立页面树。载入页面的区块后，再以 `NotionRenderer` 算绘；目录则由 `blocksToTableOfContents()` 产生：
+
+
+  ```tsx tab="app/docs/layout.tsx"
+  import { getSource } from '@/lib/source';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+
+  export default async function Layout({ children }: LayoutProps<'/docs'>) {
+    const source = await getSource();
+
+    return <DocsLayout tree={source.getPageTree()}>{children}</DocsLayout>;
+  }
+  ```
+
+  ```tsx tab="app/docs/[[...slug]]/page.tsx"
+  import { notFound } from 'next/navigation';
+  import { getSource } from '@/lib/source';
+  import {
+    NotionRenderer,
+    blocksToTableOfContents,
+    createNotionFileUrlResolver,
+  } from '@fumadocs/notion';
+  import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+
+  export default async function Page({ params }: PageProps<'/docs/[[...slug]]'>) {
+    const { slug = [] } = await params;
+    const source = await getSource();
+
+    const page = source.getPage(slug);
+    if (!page) notFound();
+
+    // [!code highlight:2] 载入页面内容
+    const { blocks } = await page.data.load();
+
+    return (
+      <DocsPage toc={blocksToTableOfContents(blocks)}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsBody>
+          <NotionRenderer
+            blocks={blocks}
+            getFileUrl={createNotionFileUrlResolver({ pageId: page.data.id })}
+          />
+        </DocsBody>
+      </DocsPage>
+    );
+  }
+  ```
+
+
+
+  ```tsx tab="src/pages/docs/_layout.tsx"
+  import type { ReactNode } from 'react';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+  import { getSource } from '@/lib/source';
+
+  export default async function Layout({ children }: { children: ReactNode }) {
+    const source = await getSource();
+
+    return <DocsLayout tree={source.getPageTree()}>{children}</DocsLayout>;
+  }
+  ```
+
+  ```tsx tab="src/pages/docs/[...slugs].tsx"
+  import type { PageProps } from 'waku/router';
+  import { unstable_notFound } from 'waku/router/server';
+  import { getSource } from '@/lib/source';
+  import {
+    NotionRenderer,
+    blocksToTableOfContents,
+    createNotionFileUrlResolver,
+  } from '@fumadocs/notion';
+  import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+
+  export default async function Page({ slugs }: PageProps<'/docs/[...slugs]'>) {
+    const source = await getSource();
+
+    const page = source.getPage(slugs);
+    if (!page) unstable_notFound();
+
+    // [!code highlight:2] 载入页面内容
+    const { blocks } = await page.data.load();
+
+    return (
+      <DocsPage toc={blocksToTableOfContents(blocks)}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsBody>
+          <NotionRenderer
+            blocks={blocks}
+            getFileUrl={createNotionFileUrlResolver({ pageId: page.data.id })}
+          />
+        </DocsBody>
+      </DocsPage>
+    );
+  }
+
+  export const getConfig = async () => ({ render: 'dynamic' }) as const;
+  ```
+
+
+### Notion 档案 [step] [#notion-files]
+
+Notion 托管的档案 URL (图片、影片、PDF) 大约一小时后就会失效，因此无法直接嵌入经过快取或以静态方式提供的页面。
+
+`createNotionFileUrlResolver()` 会将这些内部资源转交给档案处理器，由它随需取得新的签署 URL。请使用 `createNotionFileHandler()` 挂载处理器，它会先验证所请求的区块是否属于您资料来源中的页面，再进行重新导向：
+
+
+  ```ts title="app/api/notion/file/route.ts"
+  import { createNotionFileHandler } from '@fumadocs/notion';
+  import { notion } from '@/lib/notion';
+
+  export const GET = createNotionFileHandler(notion);
+  ```
+
+
+
+  ```ts title="src/pages/_api/api/notion/file.ts"
+  import { createNotionFileHandler } from '@fumadocs/notion';
+  import { notion } from '@/lib/notion';
+
+  export const GET = createNotionFileHandler(notion);
+  ```
+
+
+预设路由为 `/api/notion/file`。若要挂载到其他位置，请将相同的 `path` 传入这两个函式：
+
+```ts
+createNotionFileUrlResolver({ pageId: page.data.id, path: '/notion/file' });
+```
+
+<Callout type="info">
+  若要进行静态汇出，请为您的资源使用可长期存取的外部 URL，并省略 `getFileUrl`，算绘器便会
+  直接连结 Notion 的 URL。档案处理器需要在动态执行阶段环境中运作。
+</Callout>
+
+### 完成 [step] [#done]
+
+将页面新增至资料库并标记为已发布后，这些页面就会显示在 docs 路由下。
+
+## 重新验证 [#revalidation]
+
+载入器会快取页面，直到您使快取失效为止。若要同步 Notion 上的编辑内容，请在受信任的 webhook 或重新验证路由中呼叫 `revalidate()`：
+
+```ts title="lib/source.ts"
+export function revalidateNotion() {
+  return source.revalidate();
+}
+```
+
+若您需要类似预览模式的设定，让每个请求都能反映最新内容，请在读取前先将快取失效：
+
+```ts title="lib/source.ts"
+export async function getSource() {
+  source.invalidate(); // [!code ++]
+  return source.get();
+}
+```
+`properties` 会将 Notion 属性对应到页面栏位。若省略此设定，来源将会：
+
+* 使用第一个 Notion `title` 属性作为页面标题；
+* 使用名为 `Slug` 的属性作为 URL，若没有此属性，则改用依标题产生的 slug；
+* 若有名为 `Description` 的属性，则使用该属性作为描述。
+
+slug 可包含 `/`，以建立巢状路由。若虚拟路径重复或不安全，会直接抛出说明明确的错误，而不会在未提示的情况下覆盖既有页面。
+
+## 查询与路径 [#query-and-paths]
+
+请透过 `query` 传入 Notion 的筛选与排序条件。您可以使用 `baseDir` 将虚拟页面放在指定目录下，或使用 `generatePath` 完整自订虚拟档案路径：
+
+```ts
+notion.dynamicSource({
+  baseDir: 'docs',
+  query: {
+    sorts: [{ timestamp: 'last_edited_time', direction: 'descending' }],
+  },
+  generatePath(page, info) {
+    return info.slugs.length > 0 ? `${info.slugs.join('/')}.mdx` : `${page.id}.mdx`;
+  },
+});
+```
+`NotionRenderer` 内建常见区块类型的算绘器。您可以传入 `components` 来新增或覆写这些算绘器，每个覆写的型别都会对应到其区块类型：
+
+```tsx
+import { NotionRenderer } from '@fumadocs/notion';
+
+<NotionRenderer
+  blocks={blocks}
+  components={{
+    callout({ block, children, renderRichText }) {
+      return (
+        <aside className="rounded-lg bg-fd-muted p-4">
+          {renderRichText(block.callout.rich_text)}
+          {children}
+        </aside>
+      );
+    },
+  }}
+/>;
+```
+
+程式码区块预设会在伺服器端透过 Shiki 进行语法突显。传入 `highlightCode={false}` 即可算绘未经语法突显的程式码；若要改用您自己的语法突显器，则可传入一个函式。
+
+## 仅汇入来源 [#source-only-import]
+
+若程式码只需要撷取 Notion 页面 (例如搜寻索引器或 `llms.txt` 路由) ，可以改从 `@fumadocs/notion/source` 汇入，以略过 React 算绘器的进入点：
+
+```ts
+import { createNotion } from '@fumadocs/notion/source';
+```
+
+此进入点会将 Notion SDK 保留为外部相依套件，且不含任何 React 汇入。此处同样提供 `blocksToPlainText()`、`blocksToStructuredData()` 与 `blocksToTableOfContents()`。

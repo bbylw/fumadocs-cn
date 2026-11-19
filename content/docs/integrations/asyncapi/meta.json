@@ -1,0 +1,10 @@
+{
+  "title": "AsyncAPI",
+  "pages": [
+    "index",
+    "api-page",
+    "generate-files",
+    "headless",
+    "server"
+  ]
+}

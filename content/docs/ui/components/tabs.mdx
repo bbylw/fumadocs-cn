@@ -1,0 +1,164 @@
+---
+title: 页签
+description: 以 Base UI 打造的 Tabs 元件，并提供持久保存、共用值等额外功能。
+---
+
+加入 MDX 元件。
+
+```tsx title="components/mdx.tsx"
+import defaultMdxComponents from 'fumadocs-ui/mdx';
+import * as TabsComponents from 'fumadocs-ui/components/tabs';
+import type { MDXComponents } from 'mdx/types';
+
+export function getMDXComponents(components?: MDXComponents) {
+  return {
+    ...defaultMdxComponents,
+    ...TabsComponents, // [!code ++]
+    ...components,
+  } satisfies MDXComponents;
+}
+```
+
+接著即可在 MDX 内容中使用：
+
+```mdx title="content.mdx"
+<Tabs items={['Javascript', 'Rust']}>
+  <Tab value="Javascript">Javascript is weird</Tab>
+  <Tab value="Rust">Rust is fast</Tab>
+</Tabs>
+```
+
+<Tabs items={['Javascript', 'Rust']}>
+  <Tab value="Javascript">Javascript 很奇怪</Tab>
+  <Tab value="Rust">Rust 很快</Tab>
+</Tabs>
+
+### 不使用 `value` [#without-value]
+
+若未提供 `value`，会依据 children 的索引来判断。请注意，这可能会在重新算绘时导致错误；若页签可能会变动，则不建议采用此方式。
+
+```mdx
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+<Tabs items={['Javascript', 'Rust']}>
+  <Tab>Javascript is weird</Tab>
+  <Tab>Rust is fast</Tab>
+</Tabs>
+```
+
+<Tabs items={['Javascript', 'Rust']}>
+  <Tab>Javascript 很古怪</Tab>
+  <Tab>Rust 很快</Tab>
+</Tabs>
+
+### 共用值 [#shared-value]
+
+只要传入 `groupId` 属性，即可让所有
+id 相同的页签共用同一个值。
+
+```mdx
+<Tabs groupId="language" items={['Javascript', 'Rust']}>
+  <Tab value="Javascript">Javascript is weird</Tab>
+  <Tab value="Rust">Rust is fast</Tab>
+</Tabs>
+```
+指定 `groupId` 时，选取的值会暂时储存在 `sessionStorage` 中。
+
+若要持久保存该值，您可以指定 `persist` prop。该值会
+储存在 `localStorage` 中，并以群组 ID 作为储存键。
+
+```mdx
+<Tabs groupId="language" items={['Javascript', 'Rust']} persist>
+  <Tab value="Javascript">Javascript is weird</Tab>
+  <Tab value="Rust">Rust is fast</Tab>
+</Tabs>
+```
+您可以传入 `defaultIndex` 来设定预设值。
+
+```mdx
+<Tabs items={['Javascript', 'Rust']} defaultIndex={1}>
+  <Tab value="Javascript">Javascript is weird</Tab>
+  <Tab value="Rust">Rust is fast</Tab>
+</Tabs>
+```
+使用 HTML 的 `id` 属性即可连结至特定页签。
+
+```mdx
+<Tabs items={['Javascript', 'Rust', 'C++']}>
+  <Tab value="Javascript">Javascript is weird</Tab>
+  <Tab value="Rust">Rust is fast</Tab>
+  <Tab id="tab-cpp" value="C++">
+    `Hello World`
+  </Tab>
+</Tabs>
+```
+
+您可以在 URL 加上杂凑 `#tab-cpp` 并重新载入页面，即可启用 C++ 页签。
+
+<Tabs items={['Javascript', 'Rust', 'C++']}>
+  <Tab value="Javascript">Javascript 很古怪</Tab>
+  <Tab value="Rust">Rust 很快</Tab>
+
+  <Tab id="tab-cpp" value="C++">
+    `Hello World`
+  </Tab>
+</Tabs>
+
+此外，您可以在 `Tabs` 元件中将 `updateAnchor` 属性设为 `true`，
+让每次选取新页签时自动更新 URL 杂凑：
+
+```mdx
+<Tabs items={['Javascript', 'Rust', 'C++']} updateAnchor>
+  <Tab id="tab-js" value="Javascript">
+    Javascript is weird
+  </Tab>
+  <Tab id="tab-rs" value="Rust">
+    Rust is fast
+  </Tab>
+  <Tab id="tab-cpp" value="C++">
+    `Hello World`
+  </Tab>
+</Tabs>
+```
+
+<Tabs items={['Hello', 'World']} updateAnchor>
+  <Tab id="tab-hello" value="Hello">
+    哈啰！
+  </Tab>
+
+  <Tab id="tab-world" value="World">
+    世界！
+  </Tab>
+</Tabs>
+
+## 进阶用法 [#advanced-usage]
+
+您也可以直接以底层方式使用：
+
+```mdx
+<Tabs defaultValue="npm">
+  <TabsList>
+    <TabsTrigger value="npm">
+      <NpmIcon />
+      npm
+    </TabsTrigger>
+  </TabsList>
+  <TabsContent value="npm">Hello World</TabsContent>
+</Tabs>
+```
+
+<Tabs defaultValue="npm">
+  <TabsList>
+    <TabsTrigger value="npm">
+      <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <title>npm</title>
+
+        <path fill="currentColor" d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z" />
+      </svg>
+
+      npm
+    </TabsTrigger>
+  </TabsList>
+
+  <TabsContent value="npm">Hello World</TabsContent>
+</Tabs>

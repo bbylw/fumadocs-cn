@@ -1,0 +1,276 @@
+---
+title: FlexSearch
+description: 快速且轻量的文件搜寻
+---
+
+```npm
+npm install flexsearch
+```
+
+```npm
+npm install @types/flexsearch -D
+```
+从来源物件建立伺服器。
+
+```ts tab="Next.js" title="app/api/search/route.ts"
+import { source } from '@/lib/source';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+
+export const { GET } = flexsearchFromSource(source);
+```
+
+```ts tab="React Router" title="app/routes/search.ts"
+import type { Route } from './+types/search';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+import { source } from '@/lib/source';
+
+const server = flexsearchFromSource(source);
+
+export async function loader({ request }: Route.LoaderArgs) {
+  return server.GET(request);
+}
+```
+
+```ts tab="TanStack Start" title="src/routes/api/search.ts"
+import { createFileRoute } from '@tanstack/react-router';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+import { source } from '@/lib/source';
+
+const server = flexsearchFromSource(source);
+
+export const Route = createFileRoute('/api/search')({
+  server: {
+    handlers: {
+      GET: async ({ request }) => server.GET(request),
+    },
+  },
+});
+```
+
+```ts tab="Waku" title="src/pages/_api/api/search.ts"
+import { source } from '@/lib/source';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+
+export const { GET } = flexsearchFromSource(source);
+```
+
+```ts tab="Astro" title="src/pages/api/search.ts"
+import type { APIRoute } from 'astro';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+import { source } from '@/lib/source';
+
+// 每次请求时算绘，需要转接器
+export const prerender = false;
+
+const server = flexsearchFromSource(source);
+
+export const GET: APIRoute = ({ request }) => server.GET(request);
+```
+从搜寻索引建立伺服器，每个索引都需要一个 `structuredData` 栏位。
+
+这个栏位通常由您的内容来源 (例如 Fumadocs MDX) 提供。您也可以使用 [Remark Structure](/docs/headless/mdx/structure) 外挂，从 Markdown/MDX 文件中撷取。
+
+在您的搜寻路由中改用此伺服器，取代 `flexsearchFromSource()`：
+
+```ts
+import { source } from '@/lib/source';
+import { flexsearch } from 'fumadocs-core/search/flexsearch';
+
+const server = flexsearch({
+  indexes: source.getPages().map((page) => ({
+    title: page.data.title!,
+    description: page.data.description,
+    url: page.url,
+    id: page.url,
+    structuredData: page.data.structuredData,
+  })),
+});
+```
+您可以透过以下方式搜寻文件：
+
+* **Fumadocs UI**：已内建支援，详情请参阅[搜寻 UI](/docs/search/flexsearch)。
+* **搜寻用户端**：
+
+```ts twoslash
+import { useFetchSearch } from 'fumadocs-core/search/client';
+
+const { search, onSearchChange, isLoading, data } = useFetchSearch();
+```
+
+<auto-type-table type="import(&#x22;fumadocs-core/search/client/fetch&#x22;).FetchOptions" />
+
+## 设定 [#configurations]
+
+### 标签筛选 [#tag-filter]
+
+支援依标签筛选结果，适合用来实作类似本文件网站的多文件架构。
+
+```ts
+import { source } from '@/lib/source';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+
+const server = flexsearchFromSource(source, {
+  buildIndex(page) {
+    return {
+      title: page.data.title!,
+      description: page.data.description,
+      url: page.url,
+      id: page.url,
+      structuredData: page.data.structuredData,
+      // 填入您需要的值，例如 page.slugs[0] [!code ++:2]
+      tag: '<value>',
+    };
+  },
+});
+```
+
+并更新您的搜寻用户端：
+
+* **Fumadocs UI**：在搜寻 UI 中设定[标签筛选](/docs/search/flexsearch#tag-filter)。
+* **搜寻用户端**：将标签传入 `useFetchSearch()`。
+
+```ts
+import { useFetchSearch } from 'fumadocs-core/search/client';
+
+const { search, onSearchChange, isLoading, data } = useFetchSearch({
+  tag: '<value>', // [!code ++]
+});
+```
+若要在静态网站中使用，请使用搜寻伺服器提供的 `staticGET`，并将路由设为静态或预先算绘。
+
+```ts tab="Next.js" title="app/api/search/route.ts"
+import { source } from '@/lib/source';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+
+// 静态快取 [!code highlight:3]
+export const revalidate = false;
+export const { staticGET: GET } = flexsearchFromSource(source);
+```
+
+```ts tab="React Router" title="app/routes/search.ts"
+// 请确认此路由已在 `react-router.config.ts` 中设定为预先算绘。
+export async function loader() {
+  // [!code highlight]
+  return server.staticGET();
+}
+```
+
+```ts tab="TanStack Start" title="src/routes/api/search.ts"
+import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/api/search')({
+  server: {
+    handlers: {
+      // [!code highlight]
+      GET: async () => server.staticGET(),
+    },
+  },
+});
+```
+
+```ts tab="TanStack Start" title="vite.config.ts"
+import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [
+    tanstackStart({
+      prerender: {
+        enabled: true,
+      },
+      // [!code ++:2] 预先算绘索引档案
+      pages: [{ path: '/api/search' }],
+    }),
+  ],
+});
+```
+
+```ts tab="Waku" title="src/pages/_api/api/search.ts"
+import { source } from '@/lib/source';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+
+// [!code highlight]
+export const { staticGET: GET } = flexsearchFromSource(source);
+
+// 静态快取 [!code highlight:4]
+export const getConfig = async () => ({
+  render: 'static',
+});
+```
+
+```ts tab="Astro" title="src/pages/api/search.ts"
+import type { APIRoute } from 'astro';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+import { source } from '@/lib/source';
+
+const server = flexsearchFromSource(source);
+
+// 预设会预先算绘 [!code highlight]
+export const GET: APIRoute = () => server.staticGET();
+```
+
+> `flexsearch()` 也提供 `staticGET`。
+
+接著更新您的搜寻用户端：
+
+* **Fumadocs UI**：在搜寻 UI 中使用[静态用户端](/docs/search/flexsearch#static)。
+
+* **搜寻用户端**：更换您的用户端转接器。
+
+  ```ts
+  import { useFlexsearchStatic } from 'fumadocs-core/search/client/flexsearch-static';
+
+  const { search, onSearchChange, isLoading, data } = useFlexsearchStatic({
+    // 选用：传入标签与语系
+    tag,
+  });
+  ```
+
+  <auto-type-table type="import(&#x22;fumadocs-core/search/client/flexsearch-static&#x22;).FlexsearchStaticOptions" />
+
+<Callout type="warn" title="请注意">
+  静态搜寻需要用户端下载汇出的搜寻索引。
+  对于大型文件网站而言，这可能会耗费大量资源。
+
+  遇到这类情况，建议您改用 Orama Cloud 或 Algolia 等云端解决方案。
+</Callout>
+
+## 国际化 [#internationalization]
+
+Flexsearch 不需要额外设定即可支援其他语言，但您可以为每个语系指定 Flexsearch 选项，让搜寻结果更准确。
+
+```ts tab="From Source"
+import { source } from '@/lib/source';
+import { flexsearchFromSource } from 'fumadocs-core/search/flexsearch';
+import { Charset } from 'flexsearch';
+
+const server = flexsearchFromSource(source, {
+  localeMap: {
+    // [locale]：Flexsearch 选项 [!code ++:2]
+    jp: { encoder: Charset.CJK },
+  },
+});
+```
+
+```ts tab="From Search Indexes"
+import { source } from '@/lib/source';
+import { flexsearchI18n } from 'fumadocs-core/search/flexsearch';
+import { i18n } from '@/lib/i18n';
+import { Charset } from 'flexsearch';
+
+const server = flexsearchI18n({
+  i18n, // [!code ++]
+  localeMap: {
+    // [locale]：Flexsearch 选项 [!code ++:2]
+    jp: { encoder: Charset.CJK },
+  },
+  indexes: source.getPages().map((page) => ({
+    title: page.data.title!,
+    description: page.data.description,
+    structuredData: page.data.structuredData,
+    id: page.url,
+    url: page.url,
+    locale: page.locale!,
+  })),
+});
+```

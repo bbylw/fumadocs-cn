@@ -1,4 +1,15 @@
 {
-  "title": "集成",
-  "pages": ["feedback", "llms", "openapi"]
+  "title": "Integrations",
+  "pages": [
+    "blog",
+    "changelog",
+    "feedback",
+    "llms",
+    "asyncapi",
+    "content",
+    "graphql",
+    "og",
+    "openapi",
+    "story"
+  ]
 }

@@ -5,14 +5,19 @@
     "what-is-fumadocs",
     "comparisons",
     "manual-installation",
-    "cli",
+    "upgrade",
     "page-conventions",
     "markdown",
     "navigation",
     "deploying",
     "internationalization",
     "search",
+    "editor",
+    "guides",
+    "integrations",
     "ui",
-    "integrations"
+    "cli",
+    "headless",
+    "mdx"
   ]
 }

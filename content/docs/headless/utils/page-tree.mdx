@@ -1,0 +1,40 @@
+---
+title: 页面树工具
+description: 用于操作页面树的常用工具函式。
+---
+
+如需进一步了解页面树，请参阅[定义](/docs/headless/page-tree)。
+
+```ts
+import {
+  findNeighbour,
+  findSiblings,
+  getPageTreeRoots,
+  findParent,
+  findPath,
+  type Root,
+} from 'fumadocs-core/page-tree';
+
+const pageTree: Root = {
+  // ...页面树的根节点
+};
+
+// 取得页面的相邻页面
+const neighbours = findNeighbour(pageTree, '/url/to/page');
+
+// 取得根资料夹清单
+const roots = getPageTreeRoots(pageTree);
+
+// 取得页面的同层节点
+const siblings = findSiblings(pageTree, '/url/to/page');
+
+// 取得页面的父节点
+const parent = findParent(pageTree, '/url/to/page');
+
+// 寻找通往第一个符合条件节点的路径
+const path = findPath(
+  pageTree.children,
+  // 比对函式
+  (node) => node.type === 'page' && node.url === '/url/to/page',
+);
+```

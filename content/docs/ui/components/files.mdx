@@ -1,0 +1,89 @@
+---
+title: 档案
+description: 在您的文件中呈现档案结构
+---
+
+请用 `Files` 包裹档案元件。您可以在 MDX 内容中使用它，也可以把它当成一般的 React.js 元件使用。
+
+```mdx title="content.mdx"
+import { File, Folder, Files } from 'fumadocs-ui/components/files';
+
+<Files>
+  <Folder name="app" defaultOpen>
+    <File name="layout.tsx" />
+    <File name="page.tsx" />
+    <File name="global.css" />
+  </Folder>
+  <Folder name="components">
+    <File name="button.tsx" />
+    <File name="tabs.tsx" />
+    <File name="dialog.tsx" />
+  </Folder>
+  <File name="package.json" />
+</Files>
+```
+<auto-type-table cwd path="content/docs/ui/props.ts" name="FileProps" />
+
+### 资料夹 [#folder]
+
+<auto-type-table cwd path="content/docs/ui/props.ts" name="FolderProps" />
+
+## Remark 外挂 [#remark-plugin]
+
+[`remark-mdx-files`](/docs/headless/mdx/remark-mdx-files) 是一个 remark 外挂，可提供额外的功能与语法。
+
+```ts tab="unified" title="source.config.ts"
+import { remarkMdxFiles } from 'fumadocs-core/mdx-plugins/remark-mdx-files';
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    // [!code ++]
+    remarkPlugins: [remarkMdxFiles],
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { remarkMdxFiles } from '@fumadocs/satteri/remark-mdx-files';
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: {
+    compiler: 'satteri',
+  },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    // [!code ++]
+    mdastPlugins: [remarkMdxFiles()],
+  },
+});
+```
+它会将 `files` 程式码区块转换为 `<Files />` 元件，例如：
+
+````md title="content.md"
+```files
+project
+├── src
+│   ├── index.js
+│   └── utils
+│       └── helper.js
+├── package.json
+```
+````
+
+### `<auto-files>` [#auto-files]
+
+根据 glob 模式产生 `<Files />` 元件。
+
+```mdx title="content.mdx"
+<auto-files dir="./my-dir" pattern="**/*.{ts,tsx}" />
+
+<auto-files dir="./my-dir" pattern="**/*.{ts,tsx}" defaultOpenAll />
+```
+
+<Callout type="warn">
+  请勿将不受信任的值传入 `dir`，因为它能列出您电脑上任何目录中的档案。
+</Callout>

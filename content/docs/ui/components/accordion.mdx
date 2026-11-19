@@ -1,0 +1,56 @@
+---
+title: 手风琴
+description: 在您的文件中加入手风琴元件
+---
+
+以
+[Base UI Accordion](https://base-ui.com/react/components/accordion) 为基础，适合用于常见问题 (FAQ) 区块。
+
+> 若使用 Radix UI 套件，则改以 [Radix UI Accordion](https://www.radix-ui.com/primitives/docs/components/accordion) 为基础。
+
+您可以在 MDX 档案中使用，也可以将其当作一般的 React 元件使用。
+
+```mdx tab="MDX"
+---
+title: Hello World
+---
+
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+<Accordions type="single">
+  <Accordion title="My Title">My Content</Accordion>
+</Accordions>
+```
+
+```tsx tab="React.js"
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+export default function Page() {
+  return (
+    <Accordions type="single">
+      <Accordion title="My Title">My Content</Accordion>
+    </Accordions>
+  );
+}
+```
+<auto-type-table cwd path="content/docs/ui/props.ts" name="AccordionsProps" />
+
+### 手风琴 [#accordion]
+
+<auto-type-table cwd path="content/docs/ui/props.ts" name="AccordionProps" />
+
+### 连结至手风琴 [#linking-to-accordion]
+
+您可以为手风琴指定 `id`。当使用者前往该页面，且网址 hash 参数带有指定的 `id` 时，手风琴会自动展开。
+
+```mdx
+<Accordions>
+<Accordion title="My Title" id="my-title">
+
+My Content
+
+</Accordion>
+</Accordions>
+```
+
+> 手风琴的值预设与标题相同。若有指定 id，则会改以 id 作为值。

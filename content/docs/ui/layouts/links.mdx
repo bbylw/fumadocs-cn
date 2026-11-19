@@ -1,0 +1,219 @@
+---
+title: 版面配置连结
+description: 适用于所有版面配置的导览设定。
+---
+
+Fumadocs 可让您透过 `links` prop 在版面配置中加入导览连结，例如连结到您的「展示」页面。
+
+<div className="not-prose grid gap-2 *:border max-sm:*:last:hidden sm:grid-cols-[2fr_1fr]">
+  <>![导览](/docs/nav-layout-home.png)</>
+
+  <>![导览](/docs/nav-layout-docs.png)</>
+</div>
+
+```tsx tab="All" title="lib/layout.shared.tsx"
+import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+export function baseOptions(): BaseLayoutProps {
+  return {
+    links: [], // [!code ++]
+  };
+}
+```
+
+```tsx tab="Docs Layout" title="app/docs/layout.tsx"
+import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import { baseOptions } from '@/lib/layout.shared';
+import { source } from '@/lib/source';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <DocsLayout
+      {...baseOptions()}
+      tree={source.getPageTree()}
+      links={[]} // [!code highlight]
+    >
+      {children}
+    </DocsLayout>
+  );
+}
+```
+
+```tsx tab="Home Layout" title="app/(home)/layout.tsx"
+import { HomeLayout } from 'fumadocs-ui/layouts/home';
+import { baseOptions } from '@/lib/layout.shared';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <HomeLayout
+      {...baseOptions()}
+      links={[]} // [!code highlight]
+    >
+      {children}
+    </HomeLayout>
+  );
+}
+```
+
+所有支援的项目如下：
+
+### 连结项目 [#link-item]
+
+用于前往某个 URL/href 的连结，也可以是外部连结。
+
+```tsx title="lib/layout.shared.tsx"
+import { BookIcon } from 'lucide-react';
+import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+export function baseOptions(): BaseLayoutProps {
+  return {
+    links: [
+      {
+        icon: <BookIcon />,
+        text: 'Blog',
+        url: '/blog',
+        // 次要项目在导览列上会以不同方式显示
+        secondary: false,
+      },
+    ],
+  };
+}
+```
+连结项目被标示为启用状态的条件。
+
+| 模式           | 说明                                |
+| ------------ | --------------------------------- |
+| `url`        | 浏览指定的 URL 时                       |
+| `nested-url` | 浏览该 URL 及其子页面 (例如 `/blog/post`) 时 |
+| `none`       | 永不启用                              |
+
+```tsx title="lib/layout.shared.tsx"
+import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+export function baseOptions(): BaseLayoutProps {
+  return {
+    links: [
+      {
+        text: 'Blog',
+        url: '/blog',
+        active: 'nested-url',
+      },
+    ],
+  };
+}
+```
+与连结项目相同，但会显示为图示按钮。
+图示项目预设为次要项目。
+
+```tsx title="lib/layout.shared.tsx"
+import { BookIcon } from 'lucide-react';
+import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+export function baseOptions(): BaseLayoutProps {
+  return {
+    links: [
+      {
+        type: 'icon',
+        label: 'Visit Blog', // `aria-label`
+        icon: <BookIcon />,
+        text: 'Blog',
+        url: '/blog',
+      },
+    ],
+  };
+}
+```
+显示自订元件。
+
+```tsx title="lib/layout.shared.tsx"
+import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+export function baseOptions(): BaseLayoutProps {
+  return {
+    links: [
+      {
+        type: 'custom',
+        children: <Button variant="primary">Login</Button>,
+        secondary: true,
+      },
+    ],
+  };
+}
+```
+此外，也提供了快速新增 GitHub 储存库连结项目的捷径。
+
+```tsx twoslash title="lib/layout.shared.tsx"
+import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+export function baseOptions(): BaseLayoutProps {
+  return {
+    githubUrl: 'https://github.com',
+  };
+}
+```
+包含多个连结项目的选单。
+
+```tsx title="lib/layout.shared.tsx"
+import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+export function baseOptions(): BaseLayoutProps {
+  return {
+    links: [
+      {
+        type: 'menu',
+        text: 'Guide',
+        items: [
+          {
+            text: 'Getting Started',
+            description: 'Learn to use Fumadocs',
+            url: '/docs',
+          },
+        ],
+      },
+    ],
+  };
+}
+```
+在首页版面配置中，您可以在导览列加入导览选单 (附完整动画效果) 。
+
+![Nav](/docs/nav-layout-menu.png)
+
+```tsx title="app/(home)/layout.tsx"
+import { baseOptions } from '@/lib/layout.shared';
+import type { ReactNode } from 'react';
+import { HomeLayout } from 'fumadocs-ui/layouts/home';
+import {
+  NavbarMenu,
+  NavbarMenuContent,
+  NavbarMenuLink,
+  NavbarMenuTrigger,
+} from 'fumadocs-ui/layouts/home/navbar';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <HomeLayout
+      {...baseOptions()}
+      links={[
+        {
+          type: 'custom',
+          // 仅显示于导览列，不会出现在行动版选单
+          on: 'nav',
+          children: (
+            <NavbarMenu>
+              <NavbarMenuTrigger>Documentation</NavbarMenuTrigger>
+              <NavbarMenuContent>
+                <NavbarMenuLink href="/docs">Hello World</NavbarMenuLink>
+              </NavbarMenuContent>
+            </NavbarMenu>
+          ),
+        },
+        // 其他项目
+      ]}
+    >
+      {children}
+    </HomeLayout>
+  );
+}
+```

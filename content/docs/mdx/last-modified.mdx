@@ -1,0 +1,35 @@
+---
+title: 最后修改时间
+description: 输出文件的最后修改时间
+---
+
+您可以在设定档中加入此外挂。
+
+<Callout type="warning" title="预设使用 Git">
+  请确认您的电脑已安装 Git，且**储存库并非透过浅层复制 (shallow
+  clone) 取得**，因为此功能需要读取您本机的 Git 历史纪录。
+</Callout>
+
+```ts title="source.config.ts"
+import { defineConfig } from 'fumadocs-mdx/config';
+import lastModified from 'fumadocs-mdx/plugins/last-modified';
+
+export default defineConfig({
+  // [!code ++]
+  plugins: [lastModified()],
+});
+```
+完成后，每份文件都会汇出 `lastModified` 属性 (型别为 `Date`) 。
+
+```ts
+import { source } from '@/lib/source';
+
+const page = source.getPage(['...']);
+
+console.log(page.data.lastModified);
+// 或使用延迟载入
+const { lastModified } = await page.data.load();
+console.log(lastModified);
+```
+
+您可以透过 [``](/docs/ui/layouts/page#last-updated-time) 等 UI 元件来显示此资讯

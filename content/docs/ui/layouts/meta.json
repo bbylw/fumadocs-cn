@@ -1,0 +1,16 @@
+{
+  "title": "版面配置",
+  "pages": [
+    "index",
+    "docs",
+    "flux",
+    "glass",
+    "home-layout",
+    "links",
+    "nav",
+    "notebook",
+    "page",
+    "root-provider",
+    "spacious"
+  ]
+}

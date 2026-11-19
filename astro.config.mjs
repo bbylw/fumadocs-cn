@@ -13,5 +13,6 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    resolve: { noExternal: ['fumadocs-ui'] },
   },
 });

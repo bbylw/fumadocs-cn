@@ -1,0 +1,46 @@
+---
+title: 关联图检视
+description: 呈现所有页面的关联图。
+---
+
+您可以透过 CLI 安装：
+
+```npm
+npx @fumadocs/cli add graph-view
+```
+
+若使用 TypeScript，请一并安装其型别定义：
+
+```npm
+npm i -D @types/d3-force
+```
+
+请在您的内容来源中启用 `extractLinkReferences`。
+
+```ts title="source.config.ts"
+import { defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: {
+    postprocess: {
+      // [!code ++]
+      extractLinkReferences: true,
+    },
+  },
+});
+```
+您可以在 MDX 档案或版面配置元件中使用它 (例如 `page.tsx`) ：
+
+```tsx title="page.tsx"
+import { GraphView } from '@/components/graph-view';
+import { buildGraph } from '@/lib/build-graph';
+
+export function PageBody() {
+  return (
+    <div>
+      <GraphView graph={buildGraph()} />
+      {/* ... */}
+    </div>
+  );
+}
+```

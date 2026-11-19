@@ -1,0 +1,50 @@
+---
+title: 最后修改时间
+description: 取得 GitHub 储存库中档案的最后编辑时间
+---
+
+请传入您的储存库名称及档案路径。
+
+```ts
+import { getGithubLastEdit } from 'fumadocs-core/content/github';
+
+const time = await getGithubLastEdit({
+  owner: 'fuma-nama',
+  repo: 'fumadocs',
+  // 范例："content/docs/index.mdx"
+  path: `content/docs/${page.path}`,
+});
+```
+请注意，在开发模式下很容易就会达到速率限制，因此建议您传入 Github token，以取得较高的速率限制。
+
+进一步了解
+[向 REST API 进行验证](https://docs.github.com/en/rest/overview/authenticating-to-the-rest-api)。
+
+```ts
+import { getGithubLastEdit } from 'fumadocs-core/content/github'
+
+ const time = await getGithubLastEdit({
+    ...,
+    token: `Bearer ${process.env.GIT_TOKEN}`
+  })
+```
+
+此外，若您在开发模式下不需要此功能，也可以略过这个步骤。
+
+```ts
+process.env.NODE_ENV === 'development'? null : getGithubLastEdit(...)
+```
+如果您需要存取的 GitHub 执行个体位于 `https://api.github.com` 以外的 URL，可以覆写基础 URL：
+
+```ts
+import { getGithubLastEdit } from 'fumadocs-core/content/github';
+
+const time = await getGithubLastEdit({
+  owner: 'your-org',
+  repo: 'your-repo',
+  path: `content/docs/${page.path}`,
+  baseUrl: 'https://api.octocorp.ghe.com', // 您的自订 GitHub API URL
+});
+```
+
+若未指定，`baseUrl` 参数的预设值为 `'https://api.github.com'`。

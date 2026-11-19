@@ -1,0 +1,160 @@
+---
+title: 引入
+description: 重复使用其他档案的内容。
+---
+
+无论使用 unified 或 Sätteri，Fumadocs MDX 都会预设启用 [Remark 引入](/docs/headless/mdx/remark-include)。
+
+### 内容 [#content]
+
+若要显示另一个 Markdown/MDX 档案的内容，请在 `<include>` 标签中指定该档案相对于目前档案的路径。
+
+```mdx tab="MDX"
+<include>./another.mdx</include>
+```
+
+```md tab="Markdown"
+::include[./another.mdx]
+```
+
+<Callout type="warn">
+  请勿将不受信任的路径传给 `<include>`，因为它可以嵌入您电脑上的任何档案，例如 `.env`。
+</Callout>
+
+<Callout title="Markdown 的用法">
+  Markdown (`.md`) 档案不支援 JSX 语法，请改用指令 (directive) 语法。
+  Sätteri 预设会解析指令；若使用 unified，请加入 `remark-directive` 这个 remark 外挂：
+
+  ```ts title="source.config.ts"
+  import { defineConfig } from 'fumadocs-mdx/config';
+  import remarkDirective from 'remark-directive';
+
+  export default defineConfig({
+    mdxOptions: {
+      // [!code ++]
+      remarkPlugins: [remarkDirective],
+    },
+  });
+  ```
+
+  若要处理 HTML 注解与内容，您可能还需要 `rehype-raw`。
+</Callout>
+
+### CodeBlock [#codeblock]
+
+其他类型的档案则会转换为程式码区块：
+
+```mdx tab="MDX"
+<include>./script.ts</include>
+
+<include lang="md" meta='title="lib.md"'>
+  page.md
+</include>
+```
+
+```md tab="Markdown"
+::include[./script.ts]
+
+::include[page.md]{lang=md meta='title="lib.md"'}
+```
+
+您也可以只引入内容中的特定区段：
+
+```ts title="code.ts"
+export function fn() {
+  //#region a
+  console.log('one');
+  //#endregion
+}
+```
+
+```mdx tab="MDX"
+<include>./code.ts#a</include>
+```
+
+```md tab="Markdown"
+::include[./code.ts#a]
+```
+以 cwd 为基准解析相对路径，而非以目前档案为基准：
+
+```mdx tab="MDX"
+<include cwd lang="tsx" meta='title="lib.ts"'>
+  ./script.ts
+</include>
+```
+
+```md tab="Markdown"
+::include[./script.ts]{cwd lang=tsx meta='title="lib.ts"'}
+```
+引用内容档案时，您可以只引入文件中的特定部分。
+
+### Section [#section]
+
+以 `<section />` 标签包覆：
+
+```mdx tab="a.mdx"
+## Hello World
+
+<section id="test">This is included</section>
+
+This is not included.
+```
+
+```mdx tab="b.mdx"
+引入 `a.mdx` 的内容：
+
+<include>a.mdx#test</include>
+```
+
+在 Markdown 中：
+
+```md tab="a.md"
+## Hello World
+
+:::section{#test}
+This is included
+:::
+
+This is not included.
+```
+
+```md tab="b.md"
+引入 `a.mdx` 的内容：
+
+::include[a.md#test]
+```
+引入特定标题下的内容。
+
+```mdx tab="a.mdx"
+## Included Section
+
+I'm here!
+
+## Not Included
+
+Some random text.
+```
+
+```mdx tab="b.mdx"
+该标题下的内容：
+
+<include>a.mdx#included-section</include>
+```
+
+在 Markdown 中：
+
+```md tab="a.md"
+## Included Section
+
+I'm here!
+
+## Not Included
+
+Some random text.
+```
+
+```md tab="b.md"
+该标题下的内容：
+
+::include[a.mdx#included-section]
+```

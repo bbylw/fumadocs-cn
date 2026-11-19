@@ -18,6 +18,7 @@
         "@types/mdx": "^2.0.14",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
+        "opencc": "^1.4.2",
         "tailwindcss": "^4.3.5",
         "typescript": "^5.9.2",
       },
@@ -193,6 +194,16 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "https://registry.npmmirror.com/@jridgewell/trace-mapping/-/trace-mapping-0.3.31.tgz", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.2.7", "https://registry.npmmirror.com/@napi-rs/wasm-runtime/-/wasm-runtime-1.2.7.tgz", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1 || 2.0.0-beta.2 || 2.0.0-beta.3", "@emnapi/runtime": "^1.7.1 || 2.0.0-beta.2 || 2.0.0-beta.3" } }, "sha512-zJccwplOAbgfZju95IUHazLnx9RAPtPN2YGJXI6UbrgeaR9QfPjGrQL6ERkSAtnVCA4Q+83ApGyaX5zdpCaKkQ=="],
+
+    "@opencc/opencc-darwin-arm64": ["@opencc/opencc-darwin-arm64@1.4.2", "https://registry.npmmirror.com/@opencc/opencc-darwin-arm64/-/opencc-darwin-arm64-1.4.2.tgz", { "os": "darwin", "cpu": "arm64" }, "sha512-H1MQiCTdXwdL0KIN4IS2tnuIFUsrY9f9Y99jqwfquPehGNk7agdDdIVSbiJMxBFFAI7m8l2gYutWk4n8QOx6wA=="],
+
+    "@opencc/opencc-darwin-x64": ["@opencc/opencc-darwin-x64@1.4.2", "https://registry.npmmirror.com/@opencc/opencc-darwin-x64/-/opencc-darwin-x64-1.4.2.tgz", { "os": "darwin", "cpu": "x64" }, "sha512-+VYjd2cUoTh/Ye4JsHV2Lq+G1jDl3zfJc+Juev0s3/RJb1xXuxBXJ1NXWtLVOPpJ3rqJxbSn8qLCiSryX4gzZg=="],
+
+    "@opencc/opencc-linux-arm64": ["@opencc/opencc-linux-arm64@1.4.2", "https://registry.npmmirror.com/@opencc/opencc-linux-arm64/-/opencc-linux-arm64-1.4.2.tgz", { "os": "linux", "cpu": "arm64" }, "sha512-4BkuY+BLbD/EGH4dgMrFJma+RgS1SgHG6drIcbxSJtq2LzXG1IYoelltOy7IRCPyUgCY/ZzNW2PWyDrXsIwM+Q=="],
+
+    "@opencc/opencc-linux-x64": ["@opencc/opencc-linux-x64@1.4.2", "https://registry.npmmirror.com/@opencc/opencc-linux-x64/-/opencc-linux-x64-1.4.2.tgz", { "os": "linux", "cpu": "x64" }, "sha512-Mg/y2odg+3Lp78wdH8/se+YAvEmdbICb/rLisU9eDGweB0baPjaEwlSpoiRgBy3uIRRsTaiNOzvJurW1EMTlPw=="],
+
+    "@opencc/opencc-win32-x64": ["@opencc/opencc-win32-x64@1.4.2", "https://registry.npmmirror.com/@opencc/opencc-win32-x64/-/opencc-win32-x64-1.4.2.tgz", { "os": "win32", "cpu": "x64" }, "sha512-oLOAfSEm87TRLQr8fXHoK0OXYHvyr3E7DkIIBRfS4FqOWlim04ZI66saMZSuTyUtvD8c93ICVKvMR1E5MblmWA=="],
 
     "@oslojs/encoding": ["@oslojs/encoding@1.1.0", "https://registry.npmmirror.com/@oslojs/encoding/-/encoding-1.1.0.tgz", {}, "sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ=="],
 
@@ -799,6 +810,8 @@
     "oniguruma-parser": ["oniguruma-parser@0.12.2", "https://registry.npmmirror.com/oniguruma-parser/-/oniguruma-parser-0.12.2.tgz", {}, "sha512-6HVa5oIrgMC6aA6WF6XyyqbhRPJrKR02L20+2+zpDtO5QAzGHAUGw5TKQvwi5vctNnRHkJYmjAhRVQF2EKdTQw=="],
 
     "oniguruma-to-es": ["oniguruma-to-es@4.3.6", "https://registry.npmmirror.com/oniguruma-to-es/-/oniguruma-to-es-4.3.6.tgz", { "dependencies": { "oniguruma-parser": "^0.12.2", "regex": "^6.1.0", "regex-recursion": "^6.0.2" } }, "sha512-csuQ9x3Yr0cEIs/Zgx/OEt9iBw9vqIunAPQkx19R/fiMq2oGVTgcMqO/V3Ybqefr1TBvosI6jU539ksaBULJyA=="],
+
+    "opencc": ["opencc@1.4.2", "https://registry.npmmirror.com/opencc/-/opencc-1.4.2.tgz", { "optionalDependencies": { "@opencc/opencc-darwin-arm64": "1.4.2", "@opencc/opencc-darwin-x64": "1.4.2", "@opencc/opencc-linux-arm64": "1.4.2", "@opencc/opencc-linux-x64": "1.4.2", "@opencc/opencc-win32-x64": "1.4.2" }, "hasInstallScript": true, "bin": { "opencc": "node/cli.js" } }, "sha512-fAo8GJy0XhFyw9zIsEHmEVKL+qK8qbw0hcCjqKN5cn2UA7FPOU6b13xpqpSUf8mLNLhBMmIVZu6J+fEjJ2KcyQ=="],
 
     "p-limit": ["p-limit@7.3.3", "https://registry.npmmirror.com/p-limit/-/p-limit-7.3.3.tgz", { "dependencies": { "yocto-queue": "^1.2.1" } }, "sha512-SKgVvDU5TNIxQ4r30U75BNLC6a+6GOEjngrk/ysM5+Zu3oJuk1SC5ApzIzY/7PjCEjoVPMWJ0zho/4QUiEB7TQ=="],
 

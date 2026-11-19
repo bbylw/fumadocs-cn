@@ -1,0 +1,70 @@
+---
+title: 效能
+description: Fumadocs MDX 的效能
+---
+
+Fumadocs MDX 是一个打包工具外挂，换句话说，它的效能上限较高，实际瓶颈取决于底层的打包工具。
+
+以 Turbopack 和 Vite 等常见的打包工具来说，它足以应付拥有将近 500+ 个 MDX 档案的大型文件网站，几乎能满足所有使用情境。
+
+由于 Fumadocs MDX 与您的打包工具搭配运作，您可以在 MDX 档案中汇入任何档案，包括用户端元件。
+这带来了极高的弹性，并确保所有内容预设都经过最佳化。
+
+### 开发伺服器 [#development-server]
+
+分为两种类型：
+
+* **Lazy**：Vite 等打包工具，以及 Node.js 和 Bun 等执行阶段端的载入器，可以在请求模组时 (例如呼叫 `await import()` 时) 按需编译 MDX 档案，因此开发伺服器的效能不太会受到 MDX 档案数量影响。
+
+  不过，请务必启用[延迟载入](/docs/mdx/async)，延迟编译才会生效。
+
+* **Precompiled**：Webpack 和 Turbopack 在开发模式下不支援延迟编译，所有 MDX 档案都必须事先编译。视需要预先编译的 MDX 档案数量而定，开发伺服器可能会变慢。
+
+  虽然这是打包工具层级的限制，但如果您在意速度问题，我们建议改用[本机 Markdown](/docs/integrations/content/local-md)。它会略过打包工具层，在执行阶段载入并编译 MDX 档案。详情请参阅连结中的介绍。
+
+### 图片最佳化 [#image-optimization]
+
+Fumadocs MDX 会透过 [Remark Image](/docs/headless/mdx/remark-image) 将图片解析为静态汇入。
+因此，图片会依您所使用的 React 框架自动进行最佳化 (例如 Next.js Image API) 。
+
+```mdx
+![Hello](./hello.png)
+
+或放在 public 资料夹中
+
+![Hello](/hello.png)
+```
+
+输出结果：
+
+```mdx
+import HelloImage from './hello.png';
+
+<img alt="Hello" src={HelloImage} />
+```
+
+![横幅](/banner.png)
+
+### 正式环境建置 [#production-build]
+
+在正式环境建置中，最耗时的部分通常是 TypeScript docgen (没有 tsgo 时，TypeScript 编译器相当缓慢) ，以及所有 MDX 档案各自零碎的处理工作累加起来的开销。
+
+在没有快取的情况下，大量 MDX 档案可能会在建置期间造成极高的记忆体用量，原因如下：
+
+* MDX 档案编译成 JavaScript 之后，打包工具还得再打包输出的 JavaScript 档案。
+* 即使单一 MDX 档案的编译时间微不足道，累加起来仍可能相当可观。例如约 2500 个档案，假设每个档案需要 25ms，冷建置最多将耗时 62.5 秒。
+
+主要的解决方式是改为随需编译，让内容只在收到请求时才载入。
+
+#### 本机 Markdown [#local-markdown]
+
+如开发伺服器一节所建议，[本机 Markdown](/docs/integrations/content/local-md) 是不错的替代方案：它完全在执行阶段运作，不需要额外的编译步骤。
+
+#### 远端来源 [#remote-source]
+
+建立自订的内容来源，并以远端方式载入内容。
+
+如果您的内容来源不需要预先编译内容档案，便可透过 SSG 依需求处理这些档案，进而**提升建置速度。**
+不过，这样就无法运用建置时期的最佳化 (例如打包) 。
+
+如需实作自订来源，请参阅[自订来源](/docs/integrations/content/custom)。

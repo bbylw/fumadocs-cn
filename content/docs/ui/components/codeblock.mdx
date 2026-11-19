@@ -1,0 +1,70 @@
+---
+title: 程式码区块
+description: 显示经 Shiki 语法突显的程式码区块
+---
+
+  <div className="bg-fd-background rounded-lg prose-no-margin">
+    ```js title="config.js"
+    import createMDX from 'fumadocs-mdx/config';
+
+    const withMDX = createMDX();
+
+    // [!code word:config]
+    /** @type {import('next').NextConfig} */
+    const config = {
+      // [!code highlight]
+      reactStrictMode: true, // [!code highlight]
+    }; // [!code highlight]
+
+    export default withMDX(config);
+    ```
+  </div>
+
+这是一个 **MDX 元件**，需搭配 [Rehype Code](/docs/headless/mdx/rehype-code) 使用，用来显示经语法突显的程式码区块。
+程式码区块的撰写语法请参考 [Markdown](/docs/markdown#codeblock)。
+
+支援的功能：
+
+* 复制按钮
+* 自订标题与图示
+
+> 如果您需要可在执行阶段进行语法突显的对应元件，请参阅 [Dynamic Code Block](/docs/ui/components/dynamic-codeblock)。
+
+## 使用方式 [#usage]
+
+请将 pre 元素包在 `` 中，作为程式码区块的外层容器。
+
+```tsx title="components/mdx.tsx"
+import defaultComponents from 'fumadocs-ui/mdx';
+import type { MDXComponents } from 'mdx/types';
+import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
+
+export function getMDXComponents(components?: MDXComponents) {
+  return {
+    ...defaultComponents,
+    // HTML 的 `ref` 属性会与 `forwardRef` 冲突
+    pre: ({ ref: _ref, ...props }) => (
+      <CodeBlock {...props}>
+        <Pre>{props.children}</Pre> {/* [!code highlight] */}
+      </CodeBlock>
+    ),
+    ...components,
+  } satisfies MDXComponents;
+}
+```
+使用 Shiki 产生的背景色。
+
+```tsx
+import { Pre, CodeBlock } from 'fumadocs-ui/components/codeblock';
+
+<CodeBlock keepBackground {...props}>
+  <Pre>{props.children}</Pre>
+</CodeBlock>;
+```
+若要指定自订图示，请将 `icon` prop 传入 `CodeBlock` 元件。
+
+预设情况下，图示会由自订的 Shiki transformer 注入。
+
+```js title="config.js"
+console.log('js');
+```

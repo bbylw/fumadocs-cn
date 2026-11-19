@@ -1,0 +1,19 @@
+{
+  "title": "元件",
+  "pages": [
+    "index",
+    "accordion",
+    "auto-type-table",
+    "banner",
+    "codeblock",
+    "dynamic-codeblock",
+    "files",
+    "github-info",
+    "graph-view",
+    "image-zoom",
+    "inline-toc",
+    "steps",
+    "tabs",
+    "type-table"
+  ]
+}

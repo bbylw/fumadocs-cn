@@ -1,0 +1,14 @@
+{
+  "title": "搜寻",
+  "pages": [
+    "index",
+    "algolia",
+    "custom",
+    "flexsearch",
+    "meilisearch",
+    "mixedbread",
+    "orama",
+    "orama-cloud",
+    "typesense"
+  ]
+}

@@ -1,0 +1,29 @@
+---
+title: 中介软体
+description: 用于实作 i18n 路由的 Next.js Proxy
+---
+
+此功能会将使用者重新导向至适当的语系，您可以在 `i18n.ts` 设定档中自订。
+
+此功能透过 Next.js 的 Proxy 实作。若要在 React Router、TanStack Start、Waku 与 Astro 中进行设定，请参阅[国际化](/docs/internationalization)。
+
+
+
+
+```ts title="proxy.ts"
+import { createI18nMiddleware } from 'fumadocs-core/i18n/middleware';
+import { i18n } from '@/lib/i18n';
+
+export default createI18nMiddleware(i18n);
+
+export const config = {
+  // Matcher ignoring `/_next/` and `/api/`
+  // You may need to adjust it to ignore static assets in `/public` folder
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+};
+```
+
+
+
+
+> 启用 `hideLocale` 时，会使用 `NextResponse.rewrite` 隐藏语系前缀。

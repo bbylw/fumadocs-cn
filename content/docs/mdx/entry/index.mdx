@@ -1,0 +1,26 @@
+---
+title: 存取集合
+description: 透过进入点档案存取集合的输出内容。
+---
+
+在设定档中定义集合后，集合项目会编译成应用程式可存取的 JavaScript 档案。
+
+编译工作虽然由 Fumadocs MDX 的打包工具／执行阶段外挂负责，但它也会产生**进入点档案**，让您存取集合的输出内容。
+
+如果您偏好在应用程式模组中定义集合，请参阅 [Macro API](/docs/mdx/macro)。
+
+### 进入点档案 [#entry-files]
+
+集合的输出会产生在输出目录中，您可以透过进入点档案存取。
+
+<Files>
+  <Folder name=".source" defaultOpen>
+    <File name="server.ts" />
+
+    <File name="browser.ts" />
+
+    <File name="dynamic.ts" />
+  </Folder>
+</Files>
+
+以下列出可用来存取输出的各种方式。

@@ -1,0 +1,11 @@
+{
+  "title": "OpenAPI",
+  "pages": [
+    "index",
+    "api-page",
+    "generate-files",
+    "headless",
+    "server",
+    "standalone"
+  ]
+}

@@ -1,0 +1,33 @@
+---
+title: 升级
+description: 将 Fumadocs 套件更新至最新版本。
+---
+
+请一并升级所有 Fumadocs 套件。Fumadocs UI 将 `fumadocs-core` 设为 peer dependency，且版本必须与其发布时所搭配的版本完全一致。
+
+以下指令会升级所有 `fumadocs-*` 与 `@fumadocs/*` 套件，并保留范本所使用的 `fumadocs-ui` 别名 (指向 `@fumadocs/base-ui`) ：
+
+```bash tab="npm"
+npx npm-check-updates -u "fumadocs-*" "@fumadocs/*" && npm install
+```
+
+```bash tab="pnpm"
+pnpm update --latest "fumadocs-*" "@fumadocs/*"
+```
+
+```bash tab="yarn"
+npx npm-check-updates -u "fumadocs-*" "@fumadocs/*" && yarn install
+```
+
+```bash tab="bun"
+bun update --latest "fumadocs-*" "@fumadocs/*"
+```
+
+Yarn 指令改用 npm-check-updates，因为 `yarn up` 会把别名替换成 Radix UI 版本的 `fumadocs-ui`。
+
+## 主要版本 [#major-versions]
+
+升级跨越主要版本时，请阅读该版本的发行说明：
+
+* [Fumadocs 16](/blog/v16)：移除自 15.2 起已弃用的 API，将 `fumadocs-core/server` 的汇出移至各自对应的模组，并需要 React 19.2。
+* [Fumadocs 15](/blog/v15)：将样式迁移至 Tailwind CSS v4。

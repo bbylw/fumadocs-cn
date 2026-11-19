@@ -1,54 +1,946 @@
 ---
 title: 国际化
+description: 让您的 Astro 文件支援多种语言。
 ---
 
-在你的文档中支持多种语言。
+<Callout title="Fumadocs CLI">
+  执行 `npx @fumadocs/cli init --i18n` 即可建立支援 i18n 的新文件网站，您也可以依照下方说明手动设定。
+</Callout>
 
-## 概览
+## 概览 [#overview]
 
-你需要在 React 框架和 Fumadocs 上配置 i18n 路由。
+请在 Astro 与 Fumadocs 两端设定 i18n 路由。
 
-Fumadocs 并不是一个功能完备的 i18n 库，国际化应用其余部分由你自己决定。你也可以将其他库与 Fumadocs 一起使用，例如在 Next.js 上使用 [next-intl](https://github.com/amannn/next-intl)。
+Fumadocs 会负责文件内容与侧边栏的 i18n。应用程式的其他部分，请透过您自己的 i18n 设定来进行国际化。
 
-## i18n 路由约定
+## 设定 [#setup]
 
-你可以为 i18n 路由定义不同的风格。
+请在一个档案中定义 i18n 设定。本指南会以 `@/lib/i18n` 汇入该设定。
 
-```ts title="lib/i18n.ts"
-import type { I18nConfig } from 'fumadocs-core/i18n';
 
-export const i18n: I18nConfig = {
-  // 默认
-  parser: 'dot',
-  // 或
-  parser: 'dir',
-};
-```
+  ```ts title="app/lib/i18n.ts"
+  import { defineI18n } from 'fumadocs-core/i18n';
 
-### dot 风格
+  export const i18n = defineI18n({
+    defaultLanguage: 'en',
+    languages: ['cn', 'en'],
+  });
+  ```
 
-通过给文件名附加 `.{locale}` 来为不同语言添加 Markdown/meta 文件，例如：
 
-```
-content/docs/
-├── meta.json
-├── meta.cn.json
-├── get-started.mdx
-└── get-started.cn.mdx
-```
 
-对于默认语言环境，语言代码是可选的。
+  ```ts title="src/lib/i18n.ts"
+  import { defineI18n } from 'fumadocs-core/i18n';
 
-### dir 风格
+  export const i18n = defineI18n({
+    defaultLanguage: 'en',
+    languages: ['cn', 'en'],
+  });
+  ```
 
-所有内容文件按语言文件夹分组：
 
-```
-content/docs/
-├── en/
-│   ├── meta.json
-│   └── get-started.mdx
-└── cn/
-    ├── meta.json
-    └── get-started.mdx
-```
+> i18n 设定的可用选项请参阅[这里](/docs/headless/internationalization/config)。
+
+### 路由 [#routing]
+
+
+  为您的页面加上 `:lang` 前缀：
+
+  ```ts title="app/routes.ts"
+  import { index, route, type RouteConfig } from '@react-router/dev/routes'; // [!code --]
+  import { route, type RouteConfig } from '@react-router/dev/routes'; // [!code ++]
+
+  export default [
+    index('routes/home.tsx'), // [!code --]
+    route('docs/*', 'routes/docs.tsx'), // [!code --]
+    // [!code ++:2]
+    route(':lang', 'routes/home.tsx'),
+    route(':lang/docs/*', 'routes/docs.tsx'),
+    route('api/search', 'routes/search.ts'),
+  ] satisfies RouteConfig;
+  ```
+
+  若要让预设语言不带前缀 (例如 `/docs`) ，请将参数设为选用，并启用 `hideLocale`：
+
+  ```ts tab="app/routes.ts"
+  export default [
+    // [!code highlight:2]
+    route(':lang?', 'routes/home.tsx'),
+    route(':lang?/docs/*', 'routes/docs.tsx'),
+    route('api/search', 'routes/search.ts'),
+  ] satisfies RouteConfig;
+  ```
+
+  ```ts tab="app/lib/i18n.ts"
+  export const i18n = defineI18n({
+    defaultLanguage: 'en',
+    languages: ['cn', 'en'],
+    hideLocale: 'default-locale', // [!code ++]
+  });
+  ```
+
+
+
+  为您的页面加上 `[...lang]` 前缀。透过 rest 参数，预设语言可以不带前缀 (例如 `/docs`) 。
+
+  <Files>
+    <Folder name="src/pages" defaultOpen>
+      <Folder name="[...lang]" defaultOpen>
+        <File name="index.astro" />
+
+        <Folder name="docs" defaultOpen>
+          <File name="[...slug].astro" />
+        </Folder>
+      </Folder>
+
+      <Folder name="api" defaultOpen>
+        <File name="search.ts" />
+      </Folder>
+    </Folder>
+  </Files>
+
+  启用 `hideLocale`，让 Fumadocs 产生的 URL 与这些路由一致：
+
+  ```ts title="src/lib/i18n.ts"
+  export const i18n = defineI18n({
+    defaultLanguage: 'en',
+    languages: ['cn', 'en'],
+    hideLocale: 'default-locale', // [!code ++]
+  });
+  ```
+
+
+### 翻译 [#translations]
+
+请在 `lib/layout.shared.tsx` 中定义您的翻译。详细资讯 (包括官方语言包) 请参阅[翻译](/docs/ui/translations)。
+
+您也可以为 `baseOptions()` 加上 `locale` 参数，以提供依语系调整的版面配置选项：
+
+
+  ```tsx title="lib/layout.shared.tsx"
+  // [!code ++:2]
+  import { i18n } from '@/lib/i18n';
+  import { uiTranslations } from 'fumadocs-ui/i18n';
+  import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+  // [!code ++:11]
+  export const translations = i18n
+    .translations()
+    .extend(uiTranslations())
+    .add({
+      en: {
+        displayName: 'English',
+      },
+      cn: {
+        displayName: 'Chinese',
+      },
+    });
+
+  export function baseOptions(): BaseLayoutProps { // [!code --]
+  export function baseOptions(locale: string): BaseLayoutProps { // [!code ++]
+    return {
+      // 根据 `locale` 提供不同的 props
+    };
+  }
+  ```
+
+  将翻译传入 ``：
+
+  ```tsx title="app/[lang]/layout.tsx"
+  import { RootProvider } from 'fumadocs-ui/provider/next';
+  // [!code ++:2]
+  import { i18nProvider } from 'fumadocs-ui/i18n';
+  import { translations } from '@/lib/layout.shared';
+
+  export default function Layout({ children }: LayoutProps<'/'>) { // [!code --]
+  // [!code ++:2]
+  export default async function Layout({ params, children }: LayoutProps<'/[lang]'>) {
+    const { lang } = await params;
+
+    return (
+      // [!code highlight]
+      <html lang={lang} suppressHydrationWarning>
+        <body className="flex flex-col min-h-screen">
+          <RootProvider
+            // [!code ++]
+            i18n={i18nProvider(translations, lang)}
+          >
+            {children}
+          </RootProvider>
+        </body>
+      </html>
+    );
+  }
+  ```
+
+
+
+  ```tsx title="app/lib/layout.shared.tsx"
+  // [!code ++:2]
+  import { i18n } from '@/lib/i18n';
+  import { uiTranslations } from 'fumadocs-ui/i18n';
+  import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+  // [!code ++:11]
+  export const translations = i18n
+    .translations()
+    .extend(uiTranslations())
+    .add({
+      en: {
+        displayName: 'English',
+      },
+      cn: {
+        displayName: 'Chinese',
+      },
+    });
+
+  export function baseOptions(): BaseLayoutProps { // [!code --]
+  export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutProps { // [!code ++]
+    return {
+      // 根据 `locale` 提供不同的 props
+    };
+  }
+  ```
+
+  将翻译传入 ``：
+
+  ```tsx title="app/root.tsx"
+  import {
+    isRouteErrorResponse,
+    Links,
+    Meta,
+    Outlet,
+    Scripts,
+    ScrollRestoration,
+    useParams, // [!code ++]
+  } from 'react-router';
+  import { RootProvider } from 'fumadocs-ui/provider/react-router';
+  // [!code ++:3]
+  import { i18nProvider } from 'fumadocs-ui/i18n';
+  import { i18n } from '@/lib/i18n';
+  import { translations } from '@/lib/layout.shared';
+
+  export function Layout({ children }: { children: React.ReactNode }) {
+    const { lang = i18n.defaultLanguage } = useParams(); // [!code ++]
+
+    return (
+      // [!code highlight]
+      <html lang={lang} suppressHydrationWarning>
+        <head>{/* ... */}</head>
+        <body className="flex flex-col min-h-screen">
+          <RootProvider
+            // [!code ++]
+            i18n={i18nProvider(translations, lang)}
+          >
+            {children}
+          </RootProvider>
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
+  ```
+
+
+
+  ```tsx title="src/lib/layout.shared.tsx"
+  // [!code ++:2]
+  import { i18n } from '@/lib/i18n';
+  import { uiTranslations } from 'fumadocs-ui/i18n';
+  import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+  // [!code ++:11]
+  export const translations = i18n
+    .translations()
+    .extend(uiTranslations())
+    .add({
+      en: {
+        displayName: 'English',
+      },
+      cn: {
+        displayName: 'Chinese',
+      },
+    });
+
+  export function baseOptions(): BaseLayoutProps { // [!code --]
+  export function baseOptions(locale: string): BaseLayoutProps { // [!code ++]
+    return {
+      // 根据 `locale` 回传不同的 props
+    };
+  }
+  ```
+
+  将翻译传入 ``：
+
+  ```tsx title="src/routes/__root.tsx"
+  import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'; // [!code --]
+  import { createRootRoute, HeadContent, Outlet, Scripts, useParams } from '@tanstack/react-router'; // [!code ++]
+  import { RootProvider } from 'fumadocs-ui/provider/tanstack';
+  // [!code ++:3]
+  import { i18nProvider } from 'fumadocs-ui/i18n';
+  import { i18n } from '@/lib/i18n';
+  import { translations } from '@/lib/layout.shared';
+
+  // ...
+
+  function RootComponent() {
+    const { lang = i18n.defaultLanguage } = useParams({ strict: false }); // [!code ++]
+
+    return (
+      // [!code highlight]
+      <html lang={lang} suppressHydrationWarning>
+        <head>
+          <HeadContent />
+        </head>
+        <body className="flex flex-col min-h-screen">
+          <RootProvider
+            // [!code ++]
+            i18n={i18nProvider(translations, lang)}
+          >
+            <Outlet />
+          </RootProvider>
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
+  ```
+
+
+
+  ```tsx title="src/lib/layout.shared.tsx"
+  // [!code ++:2]
+  import { i18n } from '@/lib/i18n';
+  import { uiTranslations } from 'fumadocs-ui/i18n';
+  import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+  // [!code ++:11]
+  export const translations = i18n
+    .translations()
+    .extend(uiTranslations())
+    .add({
+      en: {
+        displayName: 'English',
+      },
+      cn: {
+        displayName: 'Chinese',
+      },
+    });
+
+  export function baseOptions(): BaseLayoutProps { // [!code --]
+  export function baseOptions(locale: string): BaseLayoutProps { // [!code ++]
+    return {
+      nav: {
+        title: 'My App',
+        url: `/${locale}`, // [!code ++]
+      },
+    };
+  }
+  ```
+
+  将翻译传入 ``：
+
+  ```tsx title="src/components/provider.tsx"
+  'use client';
+  import type { ReactNode } from 'react';
+  import { RootProvider } from 'fumadocs-ui/provider/waku';
+  // [!code ++:4]
+  import { i18nProvider } from 'fumadocs-ui/i18n';
+  import { useRouter } from 'waku/router/client';
+  import { i18n } from '@/lib/i18n';
+  import { translations } from '@/lib/layout.shared';
+
+  export function Provider({ children }: { children: ReactNode }) {
+    // 路径的第一个区段 [!code ++:2]
+    const lang = useRouter().path.split('/')[1] || i18n.defaultLanguage;
+
+    return <RootProvider>{children}</RootProvider>; // [!code --]
+    return <RootProvider i18n={i18nProvider(translations, lang)}>{children}</RootProvider>; // [!code ++]
+  }
+  ```
+
+
+
+  ```tsx title="src/lib/layout.shared.tsx"
+  // [!code ++:2]
+  import { i18n } from '@/lib/i18n';
+  import { uiTranslations } from 'fumadocs-ui/i18n';
+  import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+
+  // [!code ++:3]
+  export const translations = i18n
+    .translations()
+    .extend(uiTranslations());
+
+  export function baseOptions(): BaseLayoutProps { // [!code --]
+  export function baseOptions(locale: string): BaseLayoutProps { // [!code ++]
+    return {
+      nav: {
+        title: 'My App',
+        url: locale === i18n.defaultLanguage ? '/' : `/${locale}`, // [!code ++]
+      },
+    };
+  }
+  ```
+
+  将翻译传入 ``。由于 MDX 内容自成一个独立的 island，因此也需要提供 provider：
+
+  ```tsx tab="src/components/provider.tsx"
+  import { navigate } from 'astro:transitions/client';
+  import type { ReactNode } from 'react';
+  import { RootProvider } from 'fumadocs-ui/provider/astro';
+  // [!code ++:2]
+  import { i18nProvider } from 'fumadocs-ui/i18n';
+  import { translations } from '@/lib/layout.shared';
+  import SearchDialog from '@/components/search';
+
+  export interface ProviderProps {
+    lang: string; // [!code ++]
+    pathname: string;
+    params: Record<string, string | undefined>;
+    children?: ReactNode;
+  }
+
+  export function Provider({ lang, pathname, params, children }: ProviderProps) {
+    return (
+      <RootProvider
+        pathname={pathname}
+        params={params}
+        navigate={navigate}
+        // [!code ++]
+        i18n={i18nProvider(translations, lang)}
+        search={{ SearchDialog }}
+      >
+        {children}
+      </RootProvider>
+    );
+  }
+
+  // [!code ++:16]
+  /**
+   * 供 MDX 内容使用，因为它自成一个独立的 island。
+   */
+  export function ContentProvider({ lang, pathname, params, children }: ProviderProps) {
+    return (
+      <RootProvider
+        pathname={pathname}
+        params={params}
+        navigate={navigate}
+        i18n={i18nProvider(translations, lang)}
+        theme={{ enabled: false }}
+        search={{ enabled: false }}
+      >
+        {children}
+      </RootProvider>
+    );
+  }
+  ```
+
+  ```tsx tab="src/components/mdx.tsx"
+  import defaultMdxComponents from 'fumadocs-ui/mdx';
+  import { DocsBody } from 'fumadocs-ui/layouts/docs/page';
+  import type { MDXComponents } from 'mdx/types';
+  import { ContentProvider, type ProviderProps } from '@/components/provider'; // [!code ++]
+
+  export function getMDXComponents(components?: MDXComponents) {
+    return {
+      ...defaultMdxComponents,
+      ...components,
+    } satisfies MDXComponents;
+  }
+
+  // 在 Fumadocs 整合中，`wrapper` 会接收 `<Content />` 的 props
+  export default getMDXComponents({
+    wrapper: DocsBody, // [!code --]
+    // [!code ++:5]
+    wrapper: ({ children, ...props }: ProviderProps) => (
+      <ContentProvider {...props}>
+        <DocsBody>{children}</DocsBody>
+      </ContentProvider>
+    ),
+  });
+  ```
+
+
+### 传入语系 [#pass-locale]
+
+
+  ```ts tab="lib/source.ts"
+  import { i18n } from '@/lib/i18n'; // [!code ++]
+  import { loader } from 'fumadocs-core/source';
+
+  export const source = loader({
+    i18n, // [!code ++]
+    // 其他选项
+  });
+  ```
+
+  ```tsx tab="首页版面配置" title="app/[lang]/(home)/layout.tsx"
+  export default function Layout({ children }: LayoutProps<'/'>) { // [!code --]
+  // [!code ++:2]
+  export default async function Layout({ params, children }: LayoutProps<'/[lang]'>) {
+    const { lang } = await params;
+
+    return <HomeLayout {...baseOptions(lang)}>{children}</HomeLayout>; // [!code highlight]
+  }
+  ```
+
+  ```tsx tab="文件版面配置" title="app/[lang]/docs/layout.tsx"
+  export default function Layout({ children }: LayoutProps<'/docs'>) { // [!code --]
+  // [!code ++:2]
+  export default async function Layout({ params, children }: LayoutProps<'/[lang]/docs'>) {
+    const { lang } = await params;
+
+    return (
+      // [!code highlight]
+      <DocsLayout {...baseOptions(lang)} tree={source.getPageTree(lang)}>
+        {children}
+      </DocsLayout>
+    );
+  }
+  ```
+
+  ```tsx tab="文件页面" title="app/[lang]/docs/[[...slug]]/page.tsx"
+  export default async function Page(props: PageProps<'/docs/[[...slug]]'>) { // [!code --]
+  export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>) { // [!code ++]
+    const params = await props.params;
+    const page = source.getPage(params.slug); // [!code --]
+    const page = source.getPage(params.slug, params.lang); // [!code ++]
+    if (!page) notFound();
+
+    // ...
+  }
+  ```
+
+  <Callout title={<><code>lang</code> 动态区段使用了其他名称？</>}>
+    若您使用其他名称 (例如 `app/[locale]`) ，也需要一并更新文件页面中的 `generateStaticParams()`：
+
+    ```tsx
+    export function generateStaticParams() {
+      return source.generateParams(); // [!code --]
+      return source.generateParams('slug', 'locale'); // [!code ++]
+    }
+    ```
+  </Callout>
+
+
+
+  ```ts tab="app/lib/source.ts"
+  import { i18n } from '@/lib/i18n'; // [!code ++]
+
+  export const source = loader({
+    source: docs.toFumadocsSource(),
+    baseUrl: '/docs',
+    i18n, // [!code ++]
+  });
+  ```
+
+  ```tsx tab="首页" title="app/routes/home.tsx"
+  export default function Home() { // [!code --]
+  export default function Home({ params }: Route.ComponentProps) { // [!code ++]
+    return (
+      // [!code highlight]
+      <HomeLayout {...baseOptions(params.lang)}>
+        {/* ... */}
+      </HomeLayout>
+    );
+  }
+  ```
+
+  ```tsx tab="文件页面" title="app/routes/docs.tsx"
+  export async function loader({ params }: Route.LoaderArgs) {
+    const slugs = params['*'].split('/').filter((v) => v.length > 0);
+    const page = source.getPage(slugs); // [!code --]
+    const page = source.getPage(slugs, params.lang); // [!code ++]
+    if (!page) throw new Response('Not found', { status: 404 });
+
+    return {
+      path: page.path,
+      pageTree: await source.serializePageTree(source.getPageTree()), // [!code --]
+      pageTree: await source.serializePageTree(source.getPageTree(params.lang)), // [!code ++]
+    };
+  }
+
+  export default function Page({ loaderData }: Route.ComponentProps) { // [!code --]
+  export default function Page({ loaderData, params }: Route.ComponentProps) { // [!code ++]
+    const { path, pageTree } = useFumadocsLoader(loaderData);
+
+    return (
+      // [!code highlight]
+      <DocsLayout {...baseOptions(params.lang)} tree={pageTree}>
+        <Content path={path} />
+      </DocsLayout>
+    );
+  }
+  ```
+
+
+
+  ```ts tab="src/lib/source.ts"
+  import { i18n } from '@/lib/i18n'; // [!code ++]
+
+  export const source = loader({
+    source: docs.toFumadocsSource(),
+    baseUrl: '/docs',
+    i18n, // [!code ++]
+  });
+  ```
+
+
+
+  ```tsx tab="首页" title="src/routes/$lang/index.tsx"
+  export const Route = createFileRoute('/')({ // [!code --]
+  export const Route = createFileRoute('/$lang/')({ // [!code ++]
+    component: Home,
+  });
+
+  function Home() {
+    const { lang } = Route.useParams(); // [!code ++]
+
+    return (
+      // [!code highlight]
+      <HomeLayout {...baseOptions(lang)}>
+        {/* ... */}
+      </HomeLayout>
+    );
+  }
+  ```
+
+  ```tsx tab="文件页面" title="src/routes/$lang/docs/$.tsx"
+  export const Route = createFileRoute('/docs/$')({ // [!code --]
+  export const Route = createFileRoute('/$lang/docs/$')({ // [!code ++]
+    component: Page,
+    loader: async ({ params }) => {
+      const slugs = params._splat?.split('/') ?? [];
+      const data = await serverLoader({ data: slugs }); // [!code --]
+      const data = await serverLoader({ data: { slugs, lang: params.lang } }); // [!code ++]
+      await docs.getPage(data.path)?.preload();
+      return data;
+    },
+  });
+
+  const serverLoader = createServerFn({
+    method: 'GET',
+  })
+    .validator((slugs: string[]) => slugs) // [!code --]
+    .handler(async ({ data: slugs }) => { // [!code --]
+    .validator((data: { slugs: string[]; lang: string }) => data) // [!code ++]
+    .handler(async ({ data: { slugs, lang } }) => { // [!code ++]
+      const page = source.getPage(slugs); // [!code --]
+      const page = source.getPage(slugs, lang); // [!code ++]
+      if (!page) throw notFound();
+
+      return {
+        path: page.path,
+        pageTree: await source.serializePageTree(source.getPageTree()), // [!code --]
+        pageTree: await source.serializePageTree(source.getPageTree(lang)), // [!code ++]
+      };
+    });
+
+  function Page() {
+    const { lang } = Route.useParams(); // [!code ++]
+    const data = useFumadocsLoader(Route.useLoaderData());
+
+    return (
+      // [!code highlight]
+      <DocsLayout {...baseOptions(lang)} tree={data.pageTree}>
+        <Suspense>
+          <Content path={data.path} />
+        </Suspense>
+      </DocsLayout>
+    );
+  }
+  ```
+
+
+
+  ```tsx tab="首页版面配置" title="src/pages/[lang]/(home)/_layout.tsx"
+  export default function Layout({ children }: { children: ReactNode }) { // [!code --]
+  export default function Layout({ lang, children }: { lang: string; children: ReactNode }) { // [!code ++]
+    return <HomeLayout {...baseOptions()}>{children}</HomeLayout>; // [!code --]
+    return <HomeLayout {...baseOptions(lang)}>{children}</HomeLayout>; // [!code ++]
+  }
+  ```
+
+  ```tsx tab="首页" title="src/pages/[lang]/(home)/index.tsx"
+  import { i18n } from '@/lib/i18n'; // [!code ++]
+
+  // ...
+
+  export async function getConfig() {
+    return {
+      render: 'static',
+      staticPaths: i18n.languages, // [!code ++]
+    };
+  }
+  ```
+
+  ```tsx tab="文件版面配置" title="src/pages/[lang]/docs/_layout.tsx"
+  export default function Layout({ children }: { children: ReactNode }) { // [!code --]
+  export default function Layout({ lang, children }: { lang: string; children: ReactNode }) { // [!code ++]
+    return (
+      // [!code highlight]
+      <DocsLayout {...baseOptions(lang)} tree={source.getPageTree(lang)}>
+        {children}
+      </DocsLayout>
+    );
+  }
+  ```
+
+  ```tsx tab="文件页面" title="src/pages/[lang]/docs/[...slugs].tsx"
+  export default function Page({ slugs }: PageProps<'/docs/[...slugs]'>) { // [!code --]
+  export default function Page({ lang, slugs }: PageProps<'/[lang]/docs/[...slugs]'>) { // [!code ++]
+    const page = source.getPage(slugs); // [!code --]
+    const page = source.getPage(slugs, lang); // [!code ++]
+    if (!page) unstable_notFound();
+
+    // ...
+  }
+
+  export async function getConfig() {
+    const pages = source
+      .generateParams()
+      .map((item) => (item.lang ? [item.lang, ...item.slug] : item.slug)); // [!code highlight]
+
+    return {
+      render: 'static',
+      staticPaths: pages,
+    } as const;
+  }
+  ```
+
+
+
+  ```ts tab="src/lib/source.ts"
+  import { i18n } from '@/lib/i18n'; // [!code ++]
+
+  export const source = loader({
+    source: toFumadocsSource(await getCollection('docs'), await getCollection('meta')),
+    baseUrl: '/docs',
+    i18n, // [!code ++]
+  });
+  ```
+
+  ```tsx tab="src/components/docs.tsx"
+  export function Docs({ tree, title, description, toc, children, ...props }: DocsProps) {
+    const data = useFumadocsLoader({ tree });
+
+    return (
+      <Provider {...props}>
+        {/* [!code highlight] */}
+        <DocsLayout {...baseOptions(props.lang)} tree={data.tree}>
+          {/* ... */}
+        </DocsLayout>
+      </Provider>
+    );
+  }
+  ```
+
+  ```astro tab="src/layouts/Layout.astro"
+  ---
+  interface Props {
+    lang: string; // [!code ++]
+    title: string;
+    description?: string;
+  }
+
+  const { lang, title, description } = Astro.props;
+  ---
+
+  <html lang={lang} transition:animate="none">
+    {/* ... */}
+  </html>
+  ```
+
+  ```astro tab="文件页面" title="src/pages/[...lang]/docs/[...slug].astro"
+  ---
+  import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+  import Layout from '@/layouts/Layout.astro';
+  import { Docs } from '@/components/docs';
+  import { i18n } from '@/lib/i18n';
+  import { source } from '@/lib/source';
+
+  export const prerender = true;
+
+  export const getStaticPaths = (() => {
+    const paths = [];
+    for (const { language, pages } of source.getLanguages()) {
+      for (const page of pages) {
+        paths.push({
+          params: {
+            lang: language === i18n.defaultLanguage ? undefined : language,
+            slug: decodeURI(page.slugs.join('/')) || undefined,
+          },
+          props: { lang: language, page },
+        });
+      }
+    }
+    return paths;
+  }) satisfies GetStaticPaths;
+
+  type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+  const { lang, page } = Astro.props;
+  const { body: Content, toc } = await page.data.load();
+  const pageTree = await source.serializePageTree(source.getPageTree(lang));
+  const provider = { lang, pathname: Astro.url.pathname, params: Astro.params };
+  ---
+
+  <Layout lang={lang} title={page.data.title} description={page.data.description}>
+    <Docs
+      client:load
+      transition:persist="docs"
+      {...provider}
+      tree={pageTree}
+      title={page.data.title}
+      description={page.data.description}
+      toc={toc}
+    >
+      <Content {...provider} />
+    </Docs>
+  </Layout>
+  ```
+
+  ```astro tab="首页" title="src/pages/[...lang]/index.astro"
+  ---
+  import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+  import Layout from '@/layouts/Layout.astro';
+  import { i18n } from '@/lib/i18n';
+
+  export const prerender = true;
+
+  export const getStaticPaths = (() => {
+    return i18n.languages.map((lang) => ({
+      params: { lang: lang === i18n.defaultLanguage ? undefined : lang },
+      props: { lang },
+    }));
+  }) satisfies GetStaticPaths;
+
+  type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+  const { lang } = Astro.props;
+  ---
+
+  <Layout lang={lang} title="My App">
+    <a href={lang === i18n.defaultLanguage ? '/docs' : `/${lang}/docs`}>
+      Open Docs
+    </a>
+  </Layout>
+  ```
+
+
+### 搜寻 [#search]
+
+请在您使用的搜寻方案中设定 i18n。
+
+* **内建搜寻：** 请参阅[国际化](/docs/headless/search/orama#internationalization)。
+* **云端方案 (例如 Algolia) ：** 这类方案通常有官方的多语系支援。
+
+## 撰写文件 [#writing-documents]
+
+请参阅 [i18n 路由](/docs/page-conventions#i18n-routing)，了解如何为特定语系建立页面。
+
+### 导览 [#navigation]
+
+Fumadocs 只会处理其自身版面配置 (例如侧边栏) 中的导览。
+
+
+  至于其他地方，请使用 `useParams` hook 从 URL 取得语系，并将其加在 `href` 的开头。
+
+  ```tsx
+  import Link from 'next/link';
+  import { useParams } from 'next/navigation';
+
+  const { lang } = useParams();
+
+  return <Link href={`/${lang}/another-page`}>This is a link</Link>;
+  ```
+
+
+
+  至于其他地方，请使用 `useParams` hook 从 URL 取得语系。
+
+  ```tsx
+  import { Link, useParams } from 'react-router';
+
+  const { lang } = useParams();
+
+  <Link to={`/${lang}/about`}>About Us</Link>;
+  ```
+
+
+
+  至于其他地方，请使用 `useParams` hook 从 URL 取得语系。
+
+  ```tsx
+  import { Link, useParams } from '@tanstack/react-router';
+
+  const { lang } = useParams({ from: '/$lang/' });
+
+  <Link
+    to="/$lang/docs/$"
+    params={{
+      lang,
+      _splat: '',
+    }}
+  >
+    Open Docs
+  </Link>;
+  ```
+
+
+
+  至于其他地方，请从路径中撷取语系，并将其加在连结的开头。
+
+  ```tsx
+  import { Link, useRouter } from 'waku/router/client';
+
+  const router = useRouter();
+  const lang = router.path.split('/')[1];
+
+  <Link to={`/${lang}/about`}>About Us</Link>;
+  ```
+
+
+
+  至于其他地方，请从 `Astro.params` 或路径中撷取语系，并将其加在连结的开头。
+
+  ```astro
+  ---
+  const { lang } = Astro.params;
+  ---
+
+  <a href={lang ? `/${lang}/about` : '/about'}>About Us</a>
+  ```
+
+
+[`fumadocs-core/dynamic-link`](/docs/headless/components/link#dynamic-hrefs) 元件支援动态 href，因此您可以在 Markdown/MDX 内容中用它加上语系前缀。
+
+
+  ```mdx title="content.mdx"
+  import { DynamicLink } from 'fumadocs-core/dynamic-link';
+
+  <DynamicLink href="/[lang]/another-page">This is a link</DynamicLink>
+  ```
+
+
+
+  由于 MDX 内容会在其自身的 island 中算绘这些元件，请将它加入您的 MDX 元件：
+
+  ```tsx title="src/components/mdx.tsx"
+  import { DynamicLink } from 'fumadocs-core/dynamic-link'; // [!code ++]
+
+  export function getMDXComponents(components?: MDXComponents) {
+    return {
+      ...defaultMdxComponents,
+      DynamicLink, // [!code ++]
+      ...components,
+    } satisfies MDXComponents;
+  }
+  ```
+
+  ```mdx title="content.mdx"
+  <DynamicLink href="/[lang]/another-page">This is a link</DynamicLink>
+  ```
+

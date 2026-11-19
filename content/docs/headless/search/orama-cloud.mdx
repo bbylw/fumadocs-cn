@@ -1,0 +1,88 @@
+---
+title: Orama Cloud
+description: 整合 Orama Cloud
+---
+
+首先，请在 Orama Cloud 上建立帐号。
+
+## REST API [#rest-api]
+
+使用 REST API 整合时，您的文件网站需要自行上传索引。
+
+1. 在 Orama Cloud 主控台建立一个以 **REST API** 作为资料来源的新专案。
+
+   将您的认证资讯储存在 `.env.local` 中，例如 (在 Vite 框架上 `NEXT_PUBLIC_` 改为 `VITE_`，在 Astro 上则为 `PUBLIC_`) ：
+
+   ```dotenv
+   NEXT_PUBLIC_ORAMA_DATASOURCE_ID="Rest API data source ID"
+   NEXT_PUBLIC_ORAMA_PROJECT_ID="project ID"
+   NEXT_PUBLIC_ORAMA_API_KEY="public API key"
+
+   ORAMA_PRIVATE_API_KEY="private API key"
+   ```
+
+2. 预先算绘 `static.json` 路由，以便在建置时汇出搜寻索引，并在每次建置后透过指令码将索引同步至 Orama Cloud：
+
+   <feature>search/orama-cloud</feature>
+
+   `build` 指令码会在每次建置时进行同步，因此请在您的部署平台上设定相同的变数。
+
+### 搜寻用户端 [#search-client]
+
+若要在用户端搜寻文件，可以考虑以下方式：
+
+* 使用 [Fumadocs UI 搜寻对话方块](/docs/search/orama-cloud)。
+
+* 使用 Fumadocs 内建的 hook 自订搜寻 UI：
+
+  ```ts
+  import { useOramaCloudSearch } from 'fumadocs-core/search/client';
+  import { OramaCloud } from '@orama/core';
+
+  const orama = new OramaCloud({
+    projectId: process.env.NEXT_PUBLIC_ORAMA_PROJECT_ID,
+    apiKey: process.env.NEXT_PUBLIC_ORAMA_API_KEY,
+  });
+
+  const params = {
+    // 选用的搜寻参数
+  };
+
+  const { search, onSearchChange, isLoading, data } = useOramaCloudSearch({
+    client: orama,
+    params,
+  });
+  ```
+
+* 直接使用 Orama 提供的搜寻用户端。
+
+## 网路爬虫 [#web-crawler]
+
+1. 在主控台中建立 Crawler 资料来源，并套用「Documentation」预设范本，完成正确设定。
+2. 从主控台复制认证资讯。
+
+### 搜寻用户端 [#search-client-1]
+
+设定方式与 REST API 整合相同，但请务必将 `index` 设为 `crawler`。
+
+```ts
+import { useOramaCloudSearch } from 'fumadocs-core/search/client';
+import { OramaCloud } from '@orama/core';
+
+const orama = new OramaCloud({
+  projectId: '<project id>',
+  apiKey: '<read only api key>',
+});
+
+const params = {
+  // 选用的搜寻参数
+};
+
+const { search, onSearchChange, isLoading, data } = useOramaCloudSearch({
+  index: 'crawler',
+  client: orama,
+  params,
+});
+```
+
+Fumadocs UI 也是如此。

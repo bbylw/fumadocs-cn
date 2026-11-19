@@ -1,0 +1,20 @@
+{
+  "title": "MDX 外挂",
+  "pages": [
+    "index",
+    "headings",
+    "install",
+    "rehype-code",
+    "remark-admonition",
+    "remark-image",
+    "remark-include",
+    "remark-llms",
+    "remark-mdx-files",
+    "remark-npm",
+    "remark-show",
+    "remark-steps",
+    "remark-ts2js",
+    "stringification",
+    "structure"
+  ]
+}
