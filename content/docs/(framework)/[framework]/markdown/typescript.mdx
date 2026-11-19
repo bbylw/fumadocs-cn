@@ -1,0 +1,141 @@
+---
+title: Auto Type Table
+description: 从 TypeScript 类型定义生成文档
+---
+
+## 使用方式 [#usage]
+
+```package-install
+fumadocs-typescript
+```
+
+### UI 集成 [#ui-integration]
+
+此功能内置 `AutoTypeTable` 组件。若想了解更多，请参阅 [Auto Type Table](/docs/ui/components/auto-type-table)。
+
+### MDX 集成 [#mdx-integration]
+
+`remarkAutoTypeTable` 是一个 remark 插件，请将它加入你的配置文件：
+
+```ts title="source.config.ts" tab="unified"
+import {
+  remarkAutoTypeTable,
+  createGenerator,
+  createFileSystemGeneratorCache,
+} from 'fumadocs-typescript';
+import { defineConfig } from 'fumadocs-mdx/config';
+
+const generator = createGenerator({
+  // 建议：指定一个缓存目录
+  cache: createFileSystemGeneratorCache('.cache/fumadocs-typescript'),
+});
+
+export default defineConfig({
+  mdxOptions: {
+    remarkPlugins: [[remarkAutoTypeTable, { generator }]],
+  },
+});
+```
+
+```ts title="source.config.ts" tab="Sätteri"
+import { createGenerator, createFileSystemGeneratorCache } from 'fumadocs-typescript';
+import { remarkAutoTypeTable } from '@fumadocs/satteri/remark-auto-type-table';
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+const generator = createGenerator({
+  // 建议：指定一个缓存目录
+  cache: createFileSystemGeneratorCache('.cache/fumadocs-typescript'),
+});
+
+export const docs = defineDocs({
+  docs: {
+    compiler: 'satteri',
+  },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    mdastPlugins: [remarkAutoTypeTable({ generator })],
+  },
+});
+```
+
+它会提供一个 `auto-type-table` 组件。
+
+你可以像使用 [Auto Type Table](/docs/ui/components/auto-type-table) 一样使用它，但需遵守以下额外规则：
+
+* 属性值必须是字符串。
+* `path` 接受相对于该 MDX 文件本身的路径。
+* 你还需要将 [`TypeTable`](/docs/ui/components/type-table) 加入 MDX 组件中。
+
+```ts title="path/to/file.ts"
+export interface MyInterface {
+  name: string;
+}
+```
+
+```mdx title="page.mdx"
+<auto-type-table path="./path/to/file.ts" name="MyInterface" />
+```
+
+<Callout type="warn">
+  请勿将不受信任的值传给 `path`，因为它能读取你电脑上的任何 TypeScript 文件。
+</Callout>
+
+## 注解标记 [#annotations]
+
+### 隐藏 [#hide]
+
+为字段加上 `@internal` TSDoc 标签，即可将其隐藏。
+
+```ts
+interface MyInterface {
+  /**
+   * @internal
+   */
+  cache: number;
+}
+```
+
+### 简化类型 [#simplified-type]
+
+你可以使用 TSDoc 的 `@remarks` 标记来指定类型的简化名称。
+
+```ts
+interface MyInterface {
+  /**
+   * @remarks `timestamp` 由 API 返回。 // [!code highlight]
+   */
+  time: number;
+}
+```
+
+这会让 `time` 属性的类型显示为 `timestamp`。
+
+### 完整类型 [#full-type]
+
+你可以使用 TSDoc 标签 `@fumadocsType` 来指定类型的完整名称。
+
+```ts
+interface MyInterface {
+  /**
+   * @fumadocsType `MyBeautifulClient` // [!code highlight]
+   */
+  client: MyClient;
+}
+```
+
+### 类型 Href [#type-href]
+
+搭配类型表格使用时，可将属性链接至其他位置。
+
+类型表格会自动生成锚点 ID，你可以利用它链接到其他类型表格。
+
+```ts
+interface MyInterface {
+  /**
+   * @fumadocsHref #type-table-temp.ts-MyClass-test
+   */
+  client: MyClient;
+}
+```

@@ -1,11 +1,13 @@
 ---
-title: 产生型别
-description: 不必执行 dev/build 伺服器即可产生型别
+title: 生成类型
+description: 不必运行 dev/build 服务器即可生成类型
 ---
 
-您可以执行 `fumadocs-mdx`，为 `source.config.ts` 中定义的集合产生型别与进入点档案 (即 `.source` 资料夹) 。使用 [Macro API](/docs/mdx/macro) 的集合则不需要产生任何档案。
+### 概览 [#overview]
 
-您也可以选择在 postinstall 阶段执行此指令，确保专案初始化时就会产生型别。
+你可以运行 `fumadocs-mdx`，为 `source.config.ts` 中定义的集合生成类型与进入点文件 (即 `.source` 文件夹) 。使用 [Macro API](/docs/mdx/macro) 的集合则不需要生成任何文件。
+
+你也可以选择在 postinstall 阶段运行此指令，确保项目初始化时就会生成类型。
 
 ```json title="package.json"
 {
@@ -15,11 +17,11 @@ description: 不必执行 dev/build 伺服器即可产生型别
 }
 ```
 
-如果您的专案为设定档或输出目录使用自订路径，可以透过命令引数指定：
+如果你的项目为配置文件或输出目录使用自定义路径，可以通过命令参数指定：
 
 ```npm
 npx fumadocs-mdx "config-path" "output-dir"
 ```
 
-* `config-path`：Fumadocs MDX 设定档，预设为 `source.config.ts`。
-* `output-dir`：产生的档案所在目录，预设为 `.source`。
+* `config-path`：Fumadocs MDX 配置文件，默认为 `source.config.ts`。
+* `output-dir`：生成的文件所在目录，默认为 `.source`。

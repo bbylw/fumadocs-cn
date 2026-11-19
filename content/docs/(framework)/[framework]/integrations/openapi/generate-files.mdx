@@ -1,0 +1,445 @@
+---
+title: 生成页面
+description: 从 OpenAPI schema 生成页面。
+---
+
+`staticSource()` 与 `dynamicSource()` 会为你的 [`loader()`](/docs/integrations/openapi#generate-pages) 生成页面，而 `generateFiles()` 则会将页面以 MDX 文件的形式写入你的内容目录。这几个函数接受相同的选项。
+
+页面内容仍由 `<OpenAPIPage />` 负责渲染，生成器只负责编排每个页面中的端点与 webhook。
+
+## 选项 [#options]
+
+### `per` [#per]
+
+自定义每个页面包含的内容，默认为 `operation`。
+
+<Callout>Operation 指的是具有特定 HTTP 方法的 API 端点，例如 `/api/weather:GET`。</Callout>
+
+| 模式        | 内容                        | 文件路径                                 |
+| --------- | ------------------------- | ------------------------------------ |
+| tag       | 具有相同标签的 operation         | `{tag_name}.mdx`                     |
+| file      | 同一个 schema 文件中的 operation | `{file_name}.mdx`                    |
+| operation | 每个 operation 各自一页         | `{operationId ?? endpoint_path}.mdx` |
+| custom    | 请参阅下文                     | 不适用                                  |
+
+```ts
+import { openapi } from '@/lib/openapi';
+
+await openapi.staticSource({
+  per: 'tag',
+});
+```
+
+设为 `custom` 时，你可以传入一个函数，完全自定义生成流程：
+
+```ts title="Example"
+import type { OperationOutput } from 'fumadocs-openapi';
+import { openapi } from '@/lib/openapi';
+
+await openapi.staticSource({
+  per: 'custom',
+  toPages(builder) {
+    const items = builder.extract();
+
+    for (const op of items.operations) {
+      const { pathItem, operation, displayName } = builder.fromExtractedOperation(op)!;
+
+      const entry: OperationOutput = {
+        type: 'operation',
+        schemaId: builder.id,
+        item: op,
+        path: '...',
+        info: {
+          title: displayName,
+          description: operation.description ?? pathItem.description,
+        },
+      };
+
+      builder.create(entry);
+    }
+  },
+});
+```
+
+设为 `tag` 时，你可以在标签定义中加入 `x-displayName`，以控制各页面的标题。
+
+```yaml title="openapi.yaml"
+tags:
+  - name: test
+    description: this is a tag.
+    x-displayName: My Test Name
+```
+
+页面会与 [`groupBy`](#groupby) 相同，依循 OpenAPI 3.2 的标签阶层生成；不含任何 operation 的标签则不会生成页面。
+
+```yaml title="openapi.yaml"
+tags:
+  - name: store
+    kind: nav
+  # 输出：store/products.mdx
+  - name: products
+    parent: store
+```
+
+### `groupBy` [#groupby]
+
+在 `operation` 模式下，你可以用文件夹将输出文件分组。
+
+| 值          | 输出                                              |
+| ---------- | ----------------------------------------------- |
+| tag        | `{tag}/{operationId ?? endpoint_path}.mdx`      |
+| route      | `{endpoint_path}/{method}.mdx` (会忽略 `name` 选项)  |
+| none (默认)  | `{operationId ?? endpoint_path}.mdx`            |
+
+```ts
+import { openapi } from '@/lib/openapi';
+
+await openapi.staticSource({
+  per: 'operation',
+  groupBy: 'tag',
+});
+```
+
+依 `tag` 分组时，会遵循 OpenAPI 3.2 的标签阶层：标签会嵌套置于其 `parent` 标签的文件夹内，而 `kind` 不是 `nav` 的标签则会被忽略。
+
+```yaml title="openapi.yaml"
+tags:
+  - name: store
+    summary: Store
+    kind: nav
+  - name: products
+    parent: store
+
+paths:
+  /products:
+    get:
+      # 输出：store/products/listProducts.mdx
+      operationId: listProducts
+      tags: [products]
+```
+
+未设置标签的 operation 会归入 `unknown` 文件夹。
+
+### `name` [#name]
+
+用来控制所生成页面文件名的函数。
+
+```ts
+import { openapi } from '@/lib/openapi';
+
+await openapi.staticSource({
+  name(output) {
+    const doc = this.document;
+    if (output.type === 'operation') {
+      const operation = doc.paths![output.item.path]![output.item.method]!;
+      // operation 对象
+      console.log(operation);
+
+      return 'my-dir/filename';
+    }
+
+    const hook = this.dereferenceShallow(doc.webhooks![output.item.name])[output.item.method]!;
+    // webhook 对象
+    console.log(hook);
+    return 'my-dir/filename';
+  },
+});
+```
+
+### `meta` [#meta]
+
+自动生成 [`meta.json`](/docs/page-conventions#meta) 文件。
+
+你随时都可以手动定义 `meta.json` 文件，以获得最大的弹性。
+
+```ts
+import { openapi } from '@/lib/openapi';
+
+await openapi.staticSource({
+  meta: true,
+});
+```
+
+或者自定义文件夹的呈现方式：
+
+```ts
+import { openapi } from '@/lib/openapi';
+
+await openapi.staticSource({
+  meta: {
+    folderStyle: 'separator',
+  },
+});
+```
+
+## MDX 文件 [#mdx-files]
+
+若要将页面输出为 MDX 文件，请创建一个脚本：
+
+```ts title="scripts/generate-docs.ts"
+import { generateFiles } from 'fumadocs-openapi';
+import { openapi } from '@/lib/openapi';
+
+void generateFiles({
+  input: openapi,
+  output: './content/docs',
+  // 建议你启用此选项
+  // 请确认端点描述不会破坏 MDX 语法。
+  includeDescription: true,
+});
+```
+
+使用脚本生成文档：
+
+```bash
+bun ./scripts/generate-docs.ts
+```
+
+将 `OpenAPIPage` 组件加入你的 MDX 组件中。
+
+<show when={props.framework === 'next'}>
+  ```tsx title="app/docs/[[...slug]]/page.tsx"
+  // [!code ++:2]
+  import { openapi } from '@/lib/openapi';
+  import { OpenAPIPage } from '@/components/api-page';
+
+  export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
+    // ...
+    <MDX
+      components={getMDXComponents({
+        // [!code ++:3]
+        OpenAPIPage: async (props) => (
+          <OpenAPIPage {...await openapi.preloadOpenAPIPage(page)} {...props} />
+        ),
+      })}
+    />;
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  ```tsx title="app/routes/docs.tsx"
+  // [!code ++:3]
+  import type { MDXComponents } from 'mdx/types';
+  import { openapi } from '@/lib/openapi';
+  import { OpenAPIPage } from '@/components/api-page';
+
+  export async function loader({ params }: Route.LoaderArgs) {
+    // ...
+    return {
+      path: page.path,
+      pageTree: await source.serializePageTree(source.getPageTree()),
+      ...(await openapi.preloadOpenAPIPage(page)), // [!code ++]
+    };
+  }
+
+  // [!code highlight]
+  function Content({ path, components }: { path: string; components?: MDXComponents }) {
+    // ...
+    <MDX components={useMDXComponents(components)} />; // [!code highlight]
+  }
+
+  export default function Page({ loaderData }: Route.ComponentProps) {
+    const { path, pageTree, preloaded } = useFumadocsLoader(loaderData); // [!code highlight]
+
+    return (
+      <DocsLayout {...baseOptions()} tree={pageTree}>
+        <Content
+          path={path}
+          // [!code ++:3]
+          components={{
+            OpenAPIPage: (props) => <OpenAPIPage {...props} preloaded={preloaded} />,
+          }}
+        />
+      </DocsLayout>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  ```tsx title="src/routes/docs/$.tsx"
+  // [!code ++:3]
+  import type { MDXComponents } from 'mdx/types';
+  import { openapi } from '@/lib/openapi';
+  import { OpenAPIPage } from '@/components/api-page';
+
+  const serverLoader = createServerFn({
+    method: 'GET',
+  })
+    .validator((slugs: string[]) => slugs)
+    .handler(async ({ data: slugs }) => {
+      // ...
+      return {
+        path: page.path,
+        pageTree: await source.serializePageTree(source.getPageTree()),
+        ...(await openapi.preloadOpenAPIPage(page)), // [!code ++]
+      };
+    });
+
+  // [!code highlight]
+  function Content({ path, components }: { path: string; components?: MDXComponents }) {
+    // ...
+    <MDX components={useMDXComponents(components)} />; // [!code highlight]
+  }
+
+  function Page() {
+    const { path, pageTree, preloaded } = useFumadocsLoader(Route.useLoaderData()); // [!code highlight]
+
+    return (
+      <DocsLayout {...baseOptions()} tree={pageTree}>
+        <Suspense>
+          <Content
+            path={path}
+            // [!code ++:3]
+            components={{
+              OpenAPIPage: (props) => <OpenAPIPage {...props} preloaded={preloaded} />,
+            }}
+          />
+        </Suspense>
+      </DocsLayout>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```tsx title="src/pages/docs/[...slugs].tsx"
+  // [!code ++:2]
+  import { openapi } from '@/lib/openapi';
+  import { OpenAPIPage } from '@/components/api-page';
+
+  export default function Page({ slugs }: PageProps<'/docs/[...slugs]'>) {
+    // ...
+    <MDX
+      components={getMDXComponents({
+        // [!code ++:3]
+        OpenAPIPage: async (props) => (
+          <OpenAPIPage {...await openapi.preloadOpenAPIPage(page)} {...props} />
+        ),
+      })}
+    />;
+  }
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```tsx title="src/components/mdx.tsx"
+  import { OpenAPIPage } from '@/components/api-page'; // [!code ++]
+
+  export default getMDXComponents({
+    wrapper: DocsBody,
+    // [!code ++]
+    OpenAPIPage: (props) => <OpenAPIPage {...props} preloaded={{ docs: {} }} />,
+  });
+  ```
+
+  MDX 组件模块由所有页面共用，因此无法逐页预先加载文档。请改为传入 [`loadDocument`](/docs/integrations/openapi/server#loading-documents-once) 来加载文档。
+</show>
+
+将插件加入你的 `loader()`：
+
+```ts title="lib/source.ts"
+import { openapi } from '@/lib/openapi';
+import { loader } from 'fumadocs-core/source';
+
+export const source = loader({
+  // [!code ++:2] 可选：为页面树中的每个页面项目加上徽章
+  plugins: [openapi.loaderPlugin()],
+});
+```
+
+`generateFiles()` 也支持下列选项。
+
+### `index` [#index]
+
+生成索引文件，以卡片链接至各个生成的页面。
+
+```ts
+import { generateFiles } from 'fumadocs-openapi';
+
+void generateFiles({
+  index: {
+    // 用来生成 `href`
+    url: {
+      baseUrl: '/docs',
+      contentDir: './content/docs',
+    },
+    items: [
+      {
+        // 输出路径
+        path: 'index.mdx',
+        // 可选：限制输入文档（与 server 中的 `input` 字段相同）
+        only: ['petstore.yaml'],
+        // 可选：设置 frontmatter
+        description: 'All available pages',
+      },
+    ],
+  },
+});
+```
+
+### `imports` [#imports]
+
+在生成的 MDX 文件中加入自定义导入，方便你在生成的文档中引入组件、工具函数或其他依赖包。
+
+```ts
+import { generateFiles } from 'fumadocs-openapi';
+
+void generateFiles({
+  imports: [
+    {
+      names: ['API_BASE_URL'],
+      from: '@/constants',
+    },
+  ],
+});
+```
+
+这会在所有生成的 MDX 文件中加入以下导入：
+
+```ts
+import { API_BASE_URL } from '@/constants';
+```
+
+### `frontmatter` [#frontmatter]
+
+自定义 MDX 文件的 frontmatter。
+
+默认包含以下字段：
+
+| 属性            | 说明                        |
+| ------------- | ------------------------- |
+| `title`       | 页面标题                      |
+| `description` | 页面描述                      |
+| `full`        | 一律为 true，供 Fumadocs UI 使用 |
+| `_openapi`    | 内部属性                      |
+
+```ts
+import { generateFiles } from 'fumadocs-openapi';
+
+void generateFiles({
+  frontmatter: (title, description) => ({
+    myProperty: 'hello',
+  }),
+});
+```
+
+### `addGeneratedComment` [#addgeneratedcomment]
+
+在生成的文件开头加入注解，标示该文件为自动生成。
+
+```ts
+import { generateFiles } from 'fumadocs-openapi';
+
+void generateFiles({
+  // 加入默认注解
+  addGeneratedComment: true,
+
+  // 或提供自定义注解
+  addGeneratedComment: 'Custom auto-generated comment',
+
+  // 或禁用注解
+  addGeneratedComment: false,
+});
+```

@@ -1,15 +1,17 @@
 ---
 title: 协商
-description: 内容协商工具函式。
+description: 内容协商工具函数。
 ---
 
-若您使用的 React 框架支援中介软体，可以透过 Fumadocs 的协商 API 实作基本功能。
-在 Waku 上，请在 `src/middleware` 的 [Hono 中介软体](https://hono.dev/docs/guides/middleware)中使用它。
-在 Astro 上，请在[中介软体](https://docs.astro.build/en/guides/middleware)中使用它；此中介软体只会在依请求算绘的页面上执行。
+## 概览 [#overview]
+
+若你使用的 React 框架支持中间件，可以通过 Fumadocs 的协商 API 实现基本功能。
+在 Waku 上，请在 `src/middleware` 的 [Hono 中间件](https://hono.dev/docs/guides/middleware)中使用它。
+在 Astro 上，请在[中间件](https://docs.astro.build/en/guides/middleware)中使用它；此中间件只会在依请求渲染的页面上运行。
 
 ### 接受 Markdown [#accept-markdown]
 
-依据 `Accept` 标头回传 Markdown 或 HTML，可改善 AI 代理的使用体验。
+依据 `Accept` 标头返回 Markdown 或 HTML，可改善 AI 代理的使用体验。
 
 ```ts tab="Next.js" title="proxy.ts"
 import { NextRequest, NextResponse } from 'next/server';
@@ -40,7 +42,7 @@ const serverMiddleware: Route.MiddlewareFunction = async ({ request }, next) => 
   const url = new URL(request.url);
   const result = isMarkdownPreferred(request) && rewriteLLM(url.pathname);
 
-  // `Response.redirect()` 的 headers 无法修改，因此直接建立回应
+  // `Response.redirect()` 的 headers 无法修改，因此直接创建回应
   if (result)
     return new Response(null, {
       status: 302,
@@ -64,7 +66,7 @@ const llmMiddleware = createMiddleware().server(({ next, request }) => {
   const url = new URL(request.url);
   const result = isMarkdownPreferred(request) && rewriteLLM(url.pathname);
 
-  // 重新导向至 Markdown URL
+  // 重定向到 Markdown URL
   if (result) throw redirect({ href: new URL(result, url).href, headers: { Vary: 'Accept' } });
 
   return next();

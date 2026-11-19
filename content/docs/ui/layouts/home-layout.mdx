@@ -1,14 +1,19 @@
 ---
-title: 首页版面配置
-description: 供其他页面共用的版面配置
+title: 首页布局
+description: 供其他页面共用的布局
 ---
 
-仅包含导览列的版面配置。
+import { home } from './layouts.story';
 
+仅包含导航列的布局。
+
+<home.WithControl />
+
+<Customization />
 
 ## 使用方式 [#usage]
 
-为其他页面加入导览列与搜寻对话方块。
+为其他页面加入导航列与搜索对话框。
 
 ```tsx title="/app/(home)/layout.tsx"
 import { HomeLayout } from 'fumadocs-ui/layouts/home';
@@ -20,4 +25,4 @@ export default function Layout({ children }: { children: ReactNode }) {
 }
 ```
 
-关于 [`links`](/docs/ui/layouts/links) 与 [`nav`](/docs/ui/layouts/nav) 选项的详细说明，请参阅对应文件。
+关于 [`links`](/docs/ui/layouts/links) 与 [`nav`](/docs/ui/layouts/nav) 选项的详细说明，请参阅对应文档。

@@ -1,0 +1,91 @@
+---
+title: Algolia
+description: 在 Fumadocs UI 中使用 Algolia。
+---
+
+## 概览 [#overview]
+
+设置指南请参阅[集成 Algolia 搜索](/docs/headless/search/algolia)。
+
+虽然我们一般建议你使用 Algolia 的客户端 SDK 自行构建搜索功能，
+但你也可以直接使用内置的搜索对话框界面。
+
+## 设置 [#setup]
+
+Fumadocs CLI 可以自动帮你完成设置，包括创建搜索对话框、`static.json` 路由，以及在每次构建后同步搜索索引的脚本：
+
+```package-install
+npx @fumadocs/cli feature search --provider algolia
+```
+
+或手动设置：
+
+创建搜索对话框，并将 `appId`、`apiKey` 和 `indexName` 替换为你需要的值。
+
+```tsx title="components/search.tsx"
+'use client';
+import { liteClient } from 'algoliasearch/lite';
+import {
+  SearchDialog,
+  SearchDialogClose,
+  SearchDialogContent,
+  SearchDialogFooter,
+  SearchDialogHeader,
+  SearchDialogIcon,
+  SearchDialogInput,
+  SearchDialogList,
+  SearchDialogOverlay,
+  type SharedProps,
+} from 'fumadocs-ui/components/dialog/search';
+import { useAlgoliaSearch } from 'fumadocs-core/search/client';
+import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+const appId = 'replace me';
+const apiKey = 'replace me';
+const algolia = liteClient(appId, apiKey);
+
+export default function CustomSearchDialog(props: SharedProps) {
+  const { locale } = useI18n(); // (optional) for i18n
+  const search = useAlgoliaSearch({
+    client: algolia,
+    indexName: 'document',
+    locale,
+  });
+
+  return (
+    <SearchDialog {...search} {...props}>
+      <SearchDialogOverlay />
+      <SearchDialogContent>
+        <SearchDialogHeader>
+          <SearchDialogIcon />
+          <SearchDialogInput />
+          <SearchDialogClose />
+        </SearchDialogHeader>
+        <SearchDialogList />
+        <SearchDialogFooter>
+          <a
+            href="https://algolia.com"
+            rel="noreferrer noopener"
+            className="ms-auto text-xs text-fd-muted-foreground"
+          >
+            Search powered by Algolia
+          </a>
+        </SearchDialogFooter>
+      </SearchDialogContent>
+    </SearchDialog>
+  );
+}
+```
+
+<Callout title="注意" className="mt-4">
+  `useAlgoliaSearch()` 并未使用 Algolia 官方的
+  JavaScript 客户端 instant search。
+</Callout>
+
+<include>.shared.mdx</include>
+
+### 标签筛选 [#tag-filter]
+
+你也可以按需加入依标签筛选结果的 UI。请在搜索服务器上设置[标签筛选](/docs/headless/search/algolia#tag-filter)，并加入以下内容：
+
+<include>.tag-filter.mdx</include>

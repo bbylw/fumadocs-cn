@@ -1,12 +1,12 @@
 ---
 title: MCP
-description: 将您的文件以 MCP 工具的形式提供给 AI 代理。
+description: 将你的文档以 MCP 工具的形式提供给 AI 代理。
 ---
 
-`fumadocs-core/mcp` 会在 [MCP](https://modelcontextprotocol.io) 伺服器上注册工具，让 AI 代理能够读取及搜寻您的文件。
+`fumadocs-core/mcp` 会在 [MCP](https://modelcontextprotocol.io) 服务器上注册工具，让 AI 代理能够读取及搜索你的文档。
 
 <Callout>
-  [MCP 伺服器](/docs/integrations/llms#mcp-server)指南会为您设定一个包含这些工具的路由。
+  [MCP 服务器](/docs/integrations/llms#mcp-server)指南会为你设置一个包含这些工具的路由。
 </Callout>
 
 ## 使用方式 [#usage]
@@ -15,7 +15,7 @@ description: 将您的文件以 MCP 工具的形式提供给 AI 代理。
 fumadocs-core @modelcontextprotocol/server zod
 ```
 
-请使用您的来源、其 [`docsLlms`](/docs/integrations/llms#docsllms) 算绘器，以及搜寻伺服器来注册这些工具：
+请使用你的来源、其 [`docsLlms`](/docs/integrations/llms#docsllms) 渲染器，以及搜索服务器来注册这些工具：
 
 ```ts title="lib/mcp.ts"
 import { McpServer } from '@modelcontextprotocol/server';
@@ -31,18 +31,18 @@ registerSourceTools(mcp, source, docsLlms);
 registerSearchTool(mcp, createFromSource(source));
 ```
 
-若使用执行阶段载入的内容来源，请传入来源的 getter：
+若使用运行时加载的内容来源，请传入来源的 getter：
 
 ```ts
 registerSourceTools(mcp, getSource, docsLlms);
 ```
 
-接著，将伺服器连接到传输层，例如 Streamable HTTP 传输层。
+接着，将服务器连接到传输层，例如 Streamable HTTP 传输层。
 
 ## 工具 [#tools]
 
 | 工具           | 输入                | 输出                                |
 | ------------ | ----------------- | --------------------------------- |
 | `list_pages` | 无                 | `llms.index()`，即页面索引              |
-| `get_page`   | 页面的 `url`         | `llms.page(page)`；若找不到相符的页面，则回传错误 |
-| `search`     | `query`、`locale?` | 搜寻结果，格式为 JSON                     |
+| `get_page`   | 页面的 `url`         | `llms.page(page)`；若找不到相符的页面，则返回错误 |
+| `search`     | `query`、`locale?` | 搜索结果，格式为 JSON                     |

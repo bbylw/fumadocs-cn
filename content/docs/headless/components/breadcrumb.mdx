@@ -1,28 +1,31 @@
 ---
 title: Breadcrumb
-description: 位于画面顶端的导览元件
+description: 位于画面顶端的导航组件
 ---
 
-用于在您的文件中实作 Breadcrumb 的 hook。它会根据指定的页面树，回传该页面的 Breadcrumb 项目。
+用于在你的文档中实现 Breadcrumb 的 hook。它会根据指定的页面树，返回该页面的 Breadcrumb 项目。
 
-> 若资料夹有索引页面，则会以该页面作为项目。
+> 若文件夹有索引页面，则会以该页面作为项目。
 
 ## 使用方式 [#usage]
 
-它汇出一个 `useBreadcrumb` hook：
+它导出一个 `useBreadcrumb` hook：
 
 ```ts twoslash
 declare const tree: any;
 // ---cut---
 import { useBreadcrumb } from 'fumadocs-core/breadcrumb';
-// 或使用您的 React 框架所提供的 hook
+// 或使用你的 React 框架所提供的 hook
 import { usePathname } from 'fumadocs-core/framework';
 
 const pathname = usePathname();
 const items = useBreadcrumb(pathname, tree);
 //    ^?
 ```
-以下是一个已套用样式的范例。搭配对应的[框架 provider](/docs/headless#installation)，Fumadocs 的 `usePathname()` 与 `Link` 可在任何框架上运作。
+
+### 示例 [#example]
+
+以下是一个已应用样式的示例。搭配对应的[框架 provider](/docs/headless#installation)，Fumadocs 的 `usePathname()` 与 `Link` 可在任何框架上运作。
 
 ```tsx
 'use client';
@@ -58,7 +61,7 @@ export function Breadcrumb({ tree }: { tree: PageTree.Root }) {
 }
 ```
 
-您可以在伺服器元件中，透过 `tree` prop 传入页面树来使用它。
+你可以在服务器组件中，通过 `tree` prop 传入页面树来使用它。
 
 ### Breadcrumb 项目 [#breadcrumb-item]
 

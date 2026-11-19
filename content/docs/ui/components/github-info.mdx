@@ -1,7 +1,12 @@
 ---
-title: GitHub 资讯
-description: 显示您的 GitHub 储存库资讯
+title: GitHub 信息
+description: 显示你的 GitHub 保存库信息
+preview: githubInfo
 ---
+
+<Installation name="github-info" />
+
+## 使用方式 [#usage]
 
 ```tsx
 import { GithubInfo } from 'fumadocs-ui/components/github-info';
@@ -11,14 +16,14 @@ export function MyComp() {
     <GithubInfo
       owner="fuma-nama"
       repo="fumadocs"
-      // 您自己的 GitHub 存取权杖（选用）
+      // 你自己的 GitHub 访问权杖（可选）
       token={process.env.GITHUB_TOKEN}
     />
   );
 }
 ```
 
-建议透过 `links` 选项，将其加入您的文件版面配置：
+建议通过 `links` 选项，将其加入你的文档布局：
 
 ```tsx title="app/docs/layout.tsx"
 import { DocsLayout, type DocsLayoutProps } from 'fumadocs-ui/layouts/notebook';

@@ -1,0 +1,525 @@
+---
+title: 本地 HTML
+description: 适用于本地 HTML 文件的内容来源。
+---
+
+## 简介 [#introduction]
+
+`@fumadocs/local-html` 是用于本地 HTML 文件的内容来源。它在设计上就不需要打包，因此能完全在运行时运作。
+
+它专为以 HTML 形式取得、而非由你自行撰写的页面而设计，例如导出的演示文稿、报告，以及其他工具生成的输出。每个文件都会依照你的文档主题进行调整，而不是照原样渲染。
+
+与[本地 Markdown](/docs/integrations/content/local-md) 不同，HTML 在这里被视为需要调整的数据，而非用来撰写内容的文档格式。
+
+### 限制 [#limitations]
+
+* 脚本会被移除，原始页面的交互行为不会保留。
+* 内容中无法使用 MDX 组件，但你可以在渲染阶段将 HTML 标签对应到组件。
+* 处理过程只是转换，而非净化 (sanitization) 。所有可运行的内容都会被移除，但其余标记会原封不动地渲染，而其中引用的资源 (尤其是图片) 会在每位用户打开页面时被加载。请确保内容目录中只放你信任的文件，例如你自己的 Markdown 内容。
+
+## 设置 [#setup]
+
+请安装此包：
+
+```package-install
+@fumadocs/local-html
+```
+
+创建 `localHtml` 实例，并将它串接到 Fumadocs：
+
+```ts title="lib/source.ts"
+import { dynamicLoader } from 'fumadocs-core/source';
+import { localHtml } from '@fumadocs/local-html';
+
+const pages = localHtml({
+  dir: 'content/pages',
+  // 选项
+});
+
+const pagesLoader = dynamicLoader(pages.dynamicSource(), {
+  baseUrl: '/docs',
+});
+
+export async function getSource() {
+  return pagesLoader.get();
+}
+```
+
+`pagesLoader.get()` 返回的来源是一般的[内容加载器](/docs/headless/source-api)实例。
+
+## 使用方式 [#usage]
+
+`page.data.load()` 会返回已处理内容的渲染器。
+
+<show when={props.framework === 'next' || props.framework === 'waku'}>
+  在页面中渲染：
+</show>
+
+<show when={props.framework === 'react-router' || props.framework === 'tanstack-start'}>
+  在加载器中将其序列化，再于客户端渲染：
+</show>
+
+<show when={props.framework === 'astro'}>
+  在页面中将其序列化，再于 React island 中渲染：
+</show>
+
+<show when={props.framework === 'next'}>
+  ```tsx tab="app/docs/layout.tsx"
+  import { getSource } from '@/lib/source';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+
+  export default async function Layout({ children }: LayoutProps<'/docs'>) {
+    const source = await getSource();
+
+    return <DocsLayout tree={source.getPageTree()}>{children}</DocsLayout>;
+  }
+  ```
+
+  ```tsx tab="app/docs/[[...slug]]/page.tsx"
+  import { notFound } from 'next/navigation';
+  import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+  import { getSource } from '@/lib/source';
+
+  export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
+    const params = await props.params;
+    const source = await getSource();
+    const page = source.getPage(params.slug);
+    if (!page) notFound();
+
+    const renderer = await page.data.load();
+    const { body, toc } = await renderer.render();
+
+    return (
+      <DocsPage toc={toc}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsBody>{body}</DocsBody>
+      </DocsPage>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  ```tsx title="app/routes/docs.tsx"
+  import type { Route } from './+types/docs';
+  import { useMemo } from 'react';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+  import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+  import { useFumadocsLoader } from 'fumadocs-core/source/client';
+  import { rendererFromSerialized } from '@fumadocs/local-html/client';
+  import { getSource } from '@/lib/source';
+
+  export async function loader({ params }: Route.LoaderArgs) {
+    const source = await getSource();
+    const page = source.getPage(params['*'].split('/').filter((v) => v.length > 0));
+    if (!page) throw new Response('Not found', { status: 404 });
+
+    const renderer = await page.data.load();
+    return {
+      title: page.data.title,
+      description: page.data.description,
+      // 语法树，于客户端渲染
+      render: renderer.serialize(),
+      pageTree: await source.serializePageTree(source.getPageTree()),
+    };
+  }
+
+  export default function Page({ loaderData }: Route.ComponentProps) {
+    const { title, description, render, pageTree } = useFumadocsLoader(loaderData);
+    const renderer = useMemo(() => rendererFromSerialized(render), [render]);
+    const { body, toc } = renderer.renderSync();
+
+    return (
+      <DocsLayout tree={pageTree}>
+        <DocsPage toc={toc}>
+          <DocsTitle>{title}</DocsTitle>
+          <DocsDescription>{description}</DocsDescription>
+          <DocsBody>{body}</DocsBody>
+        </DocsPage>
+      </DocsLayout>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  ```tsx title="src/routes/docs/$.tsx"
+  import { createFileRoute, notFound } from '@tanstack/react-router';
+  import { createServerFn } from '@tanstack/react-start';
+  import { useMemo } from 'react';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+  import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+  import { useFumadocsLoader } from 'fumadocs-core/source/client';
+  import { rendererFromSerialized } from '@fumadocs/local-html/client';
+  import type { HtmlRendererOptions } from '@fumadocs/local-html';
+  import { getSource } from '@/lib/source';
+
+  // server function 结果的类型层级检查无法验证语法树，
+  // 因此需将其注册为可序列化（若无法解析 `@tanstack/router-core`，请先安装）
+  declare module '@tanstack/router-core' {
+    interface SerializableExtensions {
+      fumadocsHtmlRenderer: HtmlRendererOptions;
+    }
+  }
+
+  export const Route = createFileRoute('/docs/$')({
+    component: Page,
+    loader: ({ params }) => serverLoader({ data: params._splat?.split('/') ?? [] }),
+  });
+
+  const serverLoader = createServerFn({
+    method: 'GET',
+  })
+    .validator((slugs: string[]) => slugs)
+    .handler(async ({ data: slugs }) => {
+      const source = await getSource();
+      const page = source.getPage(slugs);
+      if (!page) throw notFound();
+
+      const renderer = await page.data.load();
+      return {
+        title: page.data.title,
+        description: page.data.description,
+        // 语法树，会在客户端渲染
+        render: renderer.serialize(),
+        pageTree: await source.serializePageTree(source.getPageTree()),
+      };
+    });
+
+  function Page() {
+    const { title, description, render, pageTree } = useFumadocsLoader(Route.useLoaderData());
+    const renderer = useMemo(() => rendererFromSerialized(render), [render]);
+    const { body, toc } = renderer.renderSync();
+
+    return (
+      <DocsLayout tree={pageTree}>
+        <DocsPage toc={toc}>
+          <DocsTitle>{title}</DocsTitle>
+          <DocsDescription>{description}</DocsDescription>
+          <DocsBody>{body}</DocsBody>
+        </DocsPage>
+      </DocsLayout>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```tsx tab="src/pages/docs/_layout.tsx"
+  import type { ReactNode } from 'react';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+  import { getSource } from '@/lib/source';
+
+  export default async function Layout({ children }: { children: ReactNode }) {
+    const source = await getSource();
+
+    return <DocsLayout tree={source.getPageTree()}>{children}</DocsLayout>;
+  }
+  ```
+
+  ```tsx tab="src/pages/docs/[...slugs].tsx"
+  import type { PageProps } from 'waku/router';
+  import { unstable_notFound } from 'waku/router/server';
+  import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+  import { getSource } from '@/lib/source';
+
+  export default async function Page({ slugs }: PageProps<'/docs/[...slugs]'>) {
+    const source = await getSource();
+    const page = source.getPage(slugs);
+    if (!page) unstable_notFound();
+
+    const renderer = await page.data.load();
+    const { body, toc } = await renderer.render();
+
+    return (
+      <DocsPage toc={toc}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsBody>{body}</DocsBody>
+      </DocsPage>
+    );
+  }
+
+  export const getConfig = async () => ({ render: 'dynamic' }) as const;
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```astro tab="src/pages/docs/[...slug].astro"
+  ---
+  import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+  import Layout from '@/layouts/Layout.astro';
+  import { Docs } from '@/components/docs';
+  import { getSource } from '@/lib/source';
+
+  export const prerender = true;
+
+  export const getStaticPaths = (async () => {
+    const source = await getSource();
+    return source.getPages().map((page) => ({
+      params: { slug: decodeURI(page.slugs.join('/')) || undefined },
+      props: { page },
+    }));
+  }) satisfies GetStaticPaths;
+
+  type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+  const { page } = Astro.props;
+  const source = await getSource();
+  const pageTree = await source.serializePageTree(source.getPageTree());
+  const renderer = await page.data.load();
+  ---
+
+  <Layout title={page.data.title}>
+    <Docs
+      client:load
+      pathname={Astro.url.pathname}
+      params={Astro.params}
+      tree={pageTree}
+      title={page.data.title}
+      description={page.data.description}
+      render={renderer.serialize()}
+    />
+  </Layout>
+  ```
+
+  ```tsx tab="src/components/docs.tsx"
+  import { useMemo } from 'react';
+  import { type SerializedPageTree, useFumadocsLoader } from 'fumadocs-core/source/client';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+  import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+  import { rendererFromSerialized } from '@fumadocs/local-html/client';
+  import type { HtmlRendererOptions } from '@fumadocs/local-html';
+  import { Provider, type ProviderProps } from '@/components/provider';
+
+  export interface DocsProps extends ProviderProps {
+    tree: SerializedPageTree;
+    title: string;
+    description?: string;
+    // 语法树，在 island 中渲染
+    render: HtmlRendererOptions;
+  }
+
+  export function Docs({ tree, title, description, render, ...props }: DocsProps) {
+    const data = useFumadocsLoader({ tree });
+    const renderer = useMemo(() => rendererFromSerialized(render), [render]);
+    const { body, toc } = renderer.renderSync();
+
+    return (
+      <Provider {...props}>
+        <DocsLayout tree={data.tree}>
+          <DocsPage toc={toc}>
+            <DocsTitle>{title}</DocsTitle>
+            <DocsDescription>{description}</DocsDescription>
+            <DocsBody>{body}</DocsBody>
+          </DocsPage>
+        </DocsLayout>
+      </Provider>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'next' || props.framework === 'waku'}>
+  将组件传入 `render()`，即可将 HTML 标签对应到你自定义的组件，例如带有锚点的标题：
+
+  ```tsx
+  import { getMDXComponents } from '@/components/mdx';
+
+  const { body, toc } = await renderer.render(getMDXComponents());
+  ```
+</show>
+
+<show when={props.framework !== 'next' && props.framework !== 'waku'}>
+  将组件传入 `renderSync()`，即可将 HTML 标签对应到你自定义的组件，例如带有锚点的标题：
+
+  ```tsx
+  import { getMDXComponents } from '@/components/mdx';
+
+  const { body, toc } = renderer.renderSync(getMDXComponents());
+  ```
+</show>
+
+### 页面元数据 [#page-metadata]
+
+每个页面的标题与描述会从该页面的 `<head>` 读取：
+
+* `<title>` 会作为页面标题。
+* `<meta name="description">` 会作为页面描述。
+
+你可以使用 `fumadocs:` meta 标签覆盖这些值 (也可以设置图标) ，而无须更动页面上显示的内容：
+
+```html
+<meta name="fumadocs:title" content="My Page" />
+<meta name="fumadocs:description" content="A short description." />
+<meta name="fumadocs:icon" content="SquareBookmark" />
+```
+
+文档中每一组 `<meta name>`/`content` 也都可以通过 `page.data.metadata` 取得。
+
+与其他本地来源一样，`meta.json` 文件可用来自定义页面树，并通过 `metaSchema` 进行验证。
+
+### 内容选项 [#content-options]
+
+页面只会保留其内容元素：优先使用唯一的 `<main>`，其次是唯一的 `<article>`，若都没有则退回使用 `<body>`，并移除 `<header>` 与 `<nav>` 等页面外框元素。该元素的 `class` 与 `style` 属性会被移除，改由你主题的 prose 样式接手；其中的标题则会加上 id，供目录与搜索功能使用。
+
+以上每个部分都可以设置：
+
+```ts
+import { localHtml } from '@fumadocs/local-html';
+
+const pages = localHtml({
+  dir: 'content/pages',
+  // 保留原始的 class/style 属性，不配合你的主题调整样式
+  adaptStyles: false,
+  // 从内容中额外移除指定的标签
+  exclude: ['aside'],
+  // 自定义挑选页面内容所在元素的逻辑
+  selectContent: (root) => {
+    // 返回 hast 元素，或返回 undefined 以使用默认行为
+  },
+});
+```
+
+### 语法高亮 [#syntax-highlighting]
+
+`<pre><code>` 块会使用 [Shiki](https://shiki.style) 进行语法高亮，选项与[本地 Markdown](/docs/integrations/content/local-md) 相同：
+
+```ts
+const pages = localHtml({
+  dir: 'content/pages',
+  rehypeCodeOptions: {
+    themes: {
+      light: 'github-light',
+      dark: 'github-dark',
+    },
+  },
+});
+```
+
+语言会从代码块的 `language-*` class 读取，该 class 可位于 `<code>` 或其外层的 `<pre>` 上：
+
+```html
+<pre><code class="language-ts">const answer: number = 42;</code></pre>
+```
+
+未指定语言的块会以纯文字呈现。若要禁用语法高亮，请传入 `rehypeCodeOptions: false`。
+
+### 热重载 [#hot-reload]
+
+`@fumadocs/local-html` 会在运行时读取文件，因此默认不会监看这些文件。
+
+<show when={props.framework === 'next'}>
+  开发期间，请与你的应用同时运行内置的开发服务器。它会在单一进程中监看你的文件，并通过 websocket 广播变更，因此即使 Next.js 以多个 worker 运行，也能正常运作。
+
+  ```json title="package.json"
+  {
+    "scripts": {
+      "dev": "local-html dev -- next dev"
+    }
+  }
+  ```
+
+  将来源连接到开发服务器：
+
+  ```ts title="lib/source.ts"
+  import { watchWithDevServer } from '@fumadocs/local-html/dev/ws';
+
+  if (process.env.NODE_ENV === 'development') {
+    void watchWithDevServer(pages);
+  }
+  ```
+
+  此指令会通过环境变量提供其 URL，因此不需要任何设置。若你自行运行服务器，请明确传入 URL，并使用 `-p` 变更连接端口：
+
+  ```ts
+  void watchWithDevServer(pages, { url: 'ws://127.0.0.1:8000/_fumadocs_local_md' });
+  ```
+
+  这只会让服务器上的来源失效，Next.js 仍会在浏览器中保留已渲染的页面。请在根布局中渲染 `<DevClient />`，让页面也跟着刷新：
+
+  ```tsx title="app/layout.tsx"
+  import { DevClient } from '@fumadocs/local-html/dev/react-client';
+
+  export function RootLayout({ children }) {
+    return (
+      <RootProvider>
+        {/* [!code ++] */}
+        <DevClient />
+        {children}
+      </RootProvider>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework !== 'next'}>
+  开发期间，Vite 插件会通过 Vite 的文件监看器让来源失效，不需要额外的进程或连接端口。请将插件加入你的设置，并连接来源：
+
+  <show when={props.framework === 'react-router' || props.framework === 'tanstack-start'}>
+    ```ts tab="vite.config.ts"
+    import { defineConfig } from 'vite';
+    import { localContentPlugin } from '@fumadocs/local-html/dev/vite';
+
+    export default defineConfig({
+      plugins: [localContentPlugin()],
+    });
+    ```
+  </show>
+
+  <show when={props.framework === 'waku'}>
+    ```ts tab="waku.config.ts"
+    import { defineConfig } from 'waku/config';
+    import { localContentPlugin } from '@fumadocs/local-html/dev/vite';
+
+    export default defineConfig({
+      vite: {
+        plugins: [localContentPlugin()],
+      },
+    });
+    ```
+  </show>
+
+  <show when={props.framework === 'astro'}>
+    ```js tab="astro.config.mjs"
+    import { defineConfig } from 'astro/config';
+    import { localContentPlugin } from '@fumadocs/local-html/dev/vite';
+
+    export default defineConfig({
+      vite: {
+        plugins: [localContentPlugin()],
+      },
+    });
+    ```
+  </show>
+
+  ```ts tab="lib/source.ts"
+  import { watchWithVite } from '@fumadocs/local-html/dev/vite';
+
+  if (import.meta.env.DEV) {
+    watchWithVite(pages);
+  }
+  ```
+</show>
+
+若想改用你自己的监看器，请在文件变更时调用 `pages.invalidateFile(path)`。
+
+### 禁用重新验证 [#disable-revalidation]
+
+若你只需要一次性的快照，不需要重新验证，可以使用 `staticSource()`。
+
+它可搭配一般的 `loader()` 使用，不必局限于 `dynamicLoader()`：
+
+```ts title="lib/source.ts"
+import { loader } from 'fumadocs-core/source';
+import { localHtml } from '@fumadocs/local-html';
+
+const pages = localHtml({
+  dir: 'content/pages',
+});
+
+export const source = loader(await pages.staticSource(), {
+  baseUrl: '/docs',
+});
+```

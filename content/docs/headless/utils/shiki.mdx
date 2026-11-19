@@ -1,9 +1,9 @@
 ---
-title: 语法突显器
-description: 使用 Shiki 或您选择的语法突显器，为程式码进行语法突显。
+title: 语法高亮器
+description: 使用 Shiki 或你选择的语法高亮器，为代码进行语法高亮。
 ---
 
-Fumadocs 预设使用 [Shiki](https://shiki.style) 为程式码进行语法突显。您也可以自行建立语法突显器，并传入需要语法突显程式码的地方；如此一来，便不会载入 Shiki。
+Fumadocs 默认使用 [Shiki](https://shiki.style) 为代码进行语法高亮。你也可以自行创建语法高亮器，并传入需要语法高亮代码的地方；如此一来，便不会加载 Shiki。
 
 ```ts tab="Highlights" title="lib/highlighter.ts"
 // npm i @pierre/highlights
@@ -22,18 +22,18 @@ import { defaultShikiFactory } from 'fumadocs-core/highlight/shiki/full';
 
 export const highlighter = createShikiHighlighter(() => defaultShikiFactory.getOrInit(), {
   themes: { light: 'github-light', dark: 'github-dark' },
-  // Fumadocs UI 以 CSS 变数为 token 上色
+  // Fumadocs UI 以 CSS 变量为 token 上色
   defaultColor: false,
 });
 ```
 
-[Highlights](https://diffs.com/highlights) 以 WebAssembly 撰写，速度比 Shiki 快上许多倍。它内建 80 种语言 (其他语言会以纯文字呈现) ，使用来自 `@pierre/highlights/themes` 的[专属主题](https://diffs.com/docs#highlights)，并透过相容层 `shikiTransformers` 执行 Shiki transformer。
+[Highlights](https://diffs.com/highlights) 以 WebAssembly 撰写，速度比 Shiki 快上许多倍。它内置 80 种语言 (其他语言会以纯文字呈现) ，使用来自 `@pierre/highlights/themes` 的[专属主题](https://diffs.com/docs#highlights)，并通过兼容层 `shikiTransformers` 运行 Shiki transformer。
 
-`highlighter.override()` 可使用不同的选项 (例如其他 transformer) 建立新的语法突显器。
+`highlighter.override()` 可使用不同的选项 (例如其他 transformer) 创建新的语法高亮器。
 
 ## 使用方式 [#usage]
 
-`rehypeCodeFromHighlighter` 是一个 rehype 外挂。请用它取代 Fumadocs MDX 预设的 Shiki 外挂：
+`rehypeCodeFromHighlighter` 是一个 rehype 插件。请用它取代 Fumadocs MDX 默认的 Shiki 插件：
 
 ```ts tab="unified" title="source.config.ts"
 import { defineConfig } from 'fumadocs-mdx/config';
@@ -42,12 +42,12 @@ import { highlighter } from './lib/highlighter';
 
 export default defineConfig({
   mdxOptions: {
-    // 停用预设的 Shiki 外挂
+    // 禁用默认的 Shiki 插件
     rehypeCodeOptions: false,
     rehypePlugins: (v) => [
       () =>
         rehypeCodeFromHighlighter(
-          // 搭配 Fumadocs 的 transformer（例如标记法与图示）建立
+          // 搭配 Fumadocs 的 transformer（例如标记法与图标）创建
           ({ transformers }) => highlighter.override({ shikiTransformers: transformers }),
         ),
       ...v,
@@ -69,11 +69,11 @@ export const docs = defineDocs({
 
 export default defineConfig({
   satteriOptions: {
-    // 停用预设的 Shiki 外挂
+    // 禁用默认的 Shiki 插件
     rehypeCodeOptions: false,
     hastPlugins: [
       rehypeCodeFromHighlighter(
-        // 搭配 Fumadocs 的 transformer（例如标记法与图示）建立
+        // 搭配 Fumadocs 的 transformer（例如标记法与图标）创建
         ({ transformers }) => highlighter.override({ shikiTransformers: transformers }),
       ),
     ],
@@ -81,7 +81,7 @@ export default defineConfig({
 });
 ```
 
-将它传给程式码区块元件：
+将它传给代码块组件：
 
 ```tsx tab="Server Code Block" title="components/codeblock.tsx"
 import { createServerCodeBlock } from 'fumadocs-ui/components/codeblock.rsc';
@@ -98,21 +98,21 @@ import { highlighter } from '@/lib/highlighter';
 export const DynamicCodeBlock = createDynamicCodeBlock({ highlighter });
 ```
 
-各整合会在其主要进入点接收它：
+各集成会在其主要进入点接收它：
 
-| 整合                                                                                              | 选项                                                                                  |
+| 集成                                                                                              | 选项                                                                                  |
 | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| [本机 Markdown (Sätteri) ](/docs/integrations/content/satteri-local-md)                           | 在 `hastPlugins` 中使用 `@fumadocs/satteri/rehype-code` 的 `rehypeCodeFromHighlighter()` |
+| [本地 Markdown (Sätteri) ](/docs/integrations/content/satteri-local-md)                           | 在 `hastPlugins` 中使用 `@fumadocs/satteri/rehype-code` 的 `rehypeCodeFromHighlighter()` |
 | [Python](/docs/integrations/content/python)、[Local HTML](/docs/integrations/content/local-html) | `createPython({ highlighter })`、`localHtml({ highlighter })`                        |
 | [OpenAPI](/docs/integrations/openapi)、GraphQL、AsyncAPI                                          | `createOpenAPIPage({ highlighter })`                                                |
-| [型别表格](/docs/ui/components/auto-type-table)                                                     | `remarkAutoTypeTable({ highlighter })`、`<AutoTypeTable highlighter />`              |
+| [类型表格](/docs/ui/components/auto-type-table)                                                     | `remarkAutoTypeTable({ highlighter })`、`<AutoTypeTable highlighter />`              |
 | shadcn                                                                                          | `@fumadocs/shadcn/rsc` 的 `createSnippet({ highlighter })`                           |
 
-若 Fumadocs 会为程式码区块加入 transformer (例如 `rehypeCodeFromHighlighter()`，以及 Python、Local HTML 与 shadcn 的整合) ，则会改由一个函式接收这些 transformer。
+若 Fumadocs 会为代码块加入 transformer (例如 `rehypeCodeFromHighlighter()`，以及 Python、Local HTML 与 shadcn 的集成) ，则会改由一个函数接收这些 transformer。
 
 ## Shiki Factory [#shiki-factory]
 
-Fumadocs 透过 Shiki factory 管理 Shiki 实例，您也可以为特定用途自行建立一个，例如使用细粒度的 bundle：
+Fumadocs 通过 Shiki factory 管理 Shiki 实例，你也可以为特定用途自行创建一个，例如使用细粒度的 bundle：
 
 ```ts
 import { createShikiFactory } from 'fumadocs-core/highlight/shiki';
@@ -131,7 +131,7 @@ export const myShikiFactory = createShikiFactory({
 });
 ```
 
-接著将它传给不同的模组／功能：
+接着将它传给不同的模块／功能：
 
 ```tsx tab="Dynamic CodeBlock (UI)"
 'use client';
@@ -152,21 +152,24 @@ export const highlighter = createShikiHighlighter(() => myShikiFactory.getOrInit
   defaultColor: false,
 });
 ```
-请实作 `Highlighter` 介面：
+
+## 自定义语法高亮器 [#custom-highlighter]
+
+请实现 `Highlighter` 界面：
 
 ```ts
 import type { Highlighter } from 'fumadocs-core/highlight';
 
 export const highlighter: Highlighter = {
   codeToHast(code, { lang, structure, meta }) {
-    // 回传 `pre > code > span.line`，并将 `meta` 放在 `<pre>` 上；若 `structure` 为 `inline`，则回传 `<code>` 的内容
+    // 返回 `pre > code > span.line`，并将 `meta` 放在 `<pre>` 上；若 `structure` 为 `inline`，则返回 `<code>` 的内容
   },
-  // 选用，用于随需载入的语言
+  // 可选，用于随需加载的语言
   async loadLanguage(...langs) {},
 };
 ```
 
-Fumadocs UI 会透过 `--shiki-light` 与 `--shiki-dark` 等 CSS 变数为 token 上色。您可以像传入其他语法突显器一样传入它，或使用 `rehypeCodeFromHighlighter`，在您自己的 rehype 管线中进行语法突显：
+Fumadocs UI 会通过 `--shiki-light` 与 `--shiki-dark` 等 CSS 变量为 token 上色。你可以像传入其他语法高亮器一样传入它，或使用 `rehypeCodeFromHighlighter`，在你自己的 rehype 管线中进行语法高亮：
 
 ```ts
 import { rehypeCodeFromHighlighter } from 'fumadocs-core/mdx-plugins/rehype-code.core';

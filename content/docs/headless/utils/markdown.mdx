@@ -1,9 +1,11 @@
 ---
-title: Markdown 算绘
-description: 将 React 元素算绘为 Markdown。
+title: Markdown 渲染
+description: 将 React 元素渲染为 Markdown。
 ---
 
-`fumadocs-core/server` 会将 React 伺服器元件算绘为 Markdown 文件：
+## 概览 [#overview]
+
+`fumadocs-core/server` 会将 React 服务器组件渲染为 Markdown 文档：
 
 ```tsx tab="Input"
 import { renderToMarkdown } from 'fumadocs-core/server';
@@ -24,13 +26,13 @@ const text = await renderToMarkdown(
 Some **rich** content.
 ```
 
-[Remark LLMs](/docs/headless/mdx/remark-llms#jsx-elements) 所汇出的元件即以它为基础运作；凡是您想以 Markdown 形式提供的伺服器端算绘内容，也都能使用它。
+[Remark LLMs](/docs/headless/mdx/remark-llms#jsx-elements) 所导出的组件即以它为基础运作；凡是你想以 Markdown 形式提供的服务端渲染内容，也都能使用它。
 
-> `renderToMarkdown()` 仅能在伺服器端使用。
+> `renderToMarkdown()` 仅能在服务端使用。
 
 ## `asMarkdown` [#asmarkdown]
 
-元件会自行定义其 Markdown 形式。在算绘期间呼叫 `asMarkdown()` 即代表选择启用此功能：当元件正被算绘为 Markdown 时，它会回传对应的[目标](#targets)，且元件回传的 HTML 元素会一并转换。
+组件会自行定义其 Markdown 形式。在渲染期间调用 `asMarkdown()` 即代表选择启用此功能：当组件正被渲染为 Markdown 时，它会返回对应的[目标](#targets)，且组件返回的 HTML 元素会一并转换。
 
 ```tsx
 import { asMarkdown, md } from 'fumadocs-core/server';
@@ -42,24 +44,24 @@ function Callout({ title, children }) {
 }
 ```
 
-未呼叫它的元件会以 JSX 语法连同其 props 一并保留，例如：
+未调用它的组件会以 JSX 语法连同其 props 一并保留，例如：
 
 ```mdx
 <Tabs items={['a', 'b']}>...</Tabs>
 ```
 
-这也包括不会在伺服器上执行的用户端元件。
+这也包括不会在服务器上运行的客户端组件。
 
 ### 目标 [#targets]
 
-树会针对某个目标进行算绘，也就是 `renderToMarkdown()` 的 `target` 选项：
+树会针对某个目标进行渲染，也就是 `renderToMarkdown()` 的 `target` 选项：
 
-* `markdown` (预设) ：提供给 AI 代理的文件。
-* `search`：[搜寻纪录](/docs/headless/mdx/structure#components)的文字。其中保留连结的文字，但不含图片与程式码区块；没有 Markdown 形式的元件会输出为 HTML 标签，并附上其文字 props。
+* `markdown` (默认) ：提供给 AI 代理的文档。
+* `search`：[搜索记录](/docs/headless/mdx/structure#components)的文字。其中保留链接的文字，但不含图片与代码块；没有 Markdown 形式的组件会输出为 HTML 标签，并附上其文字 props。
 
-这些规则适用于元件回传的元素，例如 `<a href>`。若在 `md` 范本中以纯文字撰写连结，搜寻结果仍会保留其连结目标，因此请回传元素，或自行检查目标。
+这些规则适用于组件返回的元素，例如 `<a href>`。若在 `md` 模板中以纯文字撰写链接，搜索结果仍会保留其链接目标，因此请返回元素，或自行检查目标。
 
-`asMarkdown()` 会回传目前的目标，因此元件可以提供给 AI 代理比搜寻索引更多的内容：
+`asMarkdown()` 会返回当前的目标，因此组件可以提供给 AI 代理比搜索索引更多的内容：
 
 ```tsx
 import { asMarkdown, md } from 'fumadocs-core/server';
@@ -72,16 +74,19 @@ function Version({ name, released }) {
   return <span title={released}>{name}</span>;
 }
 ```
-用于输出 Markdown 的标签样板 (tagged template) ，插值可以是字串、React 节点、Promise，或由它们组成的阵列。您可以先用它将 `children` 转为字串，再进行处理。
 
-以下两种变体会以区块形式回传内容：
+## `md` [#md]
 
-* `md.linePrefix(prefix)`：为每一行加上前缀，例如以 `'> '` 建立引用区块。
-* `md.indent(size)`：将每一行缩排。
+用于输出 Markdown 的标签样板 (tagged template) ，插值可以是字符串、React 节点、Promise，或由它们组成的数组。你可以先用它将 `children` 转为字符串，再进行处理。
+
+以下两种变体会以块形式返回内容：
+
+* `md.linePrefix(prefix)`：为每一行加上前缀，例如以 `'> '` 创建引用块。
+* `md.indent(size)`：将每一行缩进。
 
 ## `renderRoute` [#renderroute]
 
-将页面元素算绘为 Markdown；若其元件未呼叫 `asMarkdown()`，则回传 `undefined`。
+将页面元素渲染为 Markdown；若其组件未调用 `asMarkdown()`，则返回 `undefined`。
 
 ```tsx
 import { renderRoute } from 'fumadocs-core/server';
@@ -89,4 +94,4 @@ import { renderRoute } from 'fumadocs-core/server';
 const text = await renderRoute(<Page params={params} />);
 ```
 
-适合用来提供路由的 Markdown 版本：有选择启用的页面会产生 Markdown，其他页面则回传 `undefined`，让您可以改为回传 404 或改用其他来源。
+适合用来提供路由的 Markdown 版本：有选择启用的页面会生成 Markdown，其他页面则返回 `undefined`，让你可以改为返回 404 或改用其他来源。

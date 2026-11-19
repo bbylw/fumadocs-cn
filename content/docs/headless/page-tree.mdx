@@ -3,20 +3,20 @@ title: 页面树
 description: 页面树的结构。
 ---
 
-页面树是一种树状结构，用来描述所有导览连结，以及分隔符、资料夹等其他项目。
+页面树是一种树状结构，用来描述所有导航链接，以及分隔符、文件夹等其他项目。
 
-页面树会传送到用户端，供侧边栏和 Breadcrumb 等导览元素引用。
-因此，请勿在页面树中存放任何敏感或大型的资料。
+页面树会发送到客户端，供侧边栏和 Breadcrumb 等导航元素引用。
+因此，请勿在页面树中存放任何敏感或大型的数据。
 
 <Callout title="注意">
-  页面树在设计上只会包含所有页面与资料夹的必要资讯。
+  页面树在设计上只会包含所有页面与文件夹的必要信息。
 
-  无法序列化的资料 (例如函式) 无法传入页面树。
+  无法序列化的数据 (例如函数) 无法传入页面树。
 </Callout>
 
 ## 惯例 [#conventions]
 
-您可以汇入页面树的型别定义，若您想以写死的方式定义或自动产生页面树，这会相当实用。
+你可以导入页面树的类型定义，若你想以写死的方式定义或自动生成页面树，这会相当实用。
 
 ```ts
 import type * as PageTree from 'fumadocs-core/page-tree';
@@ -36,7 +36,7 @@ const tree: PageTree.Root = {
 
 ### Page [#page]
 
-代表连结的节点。
+代表链接的节点。
 
 ```json
 {
@@ -46,11 +46,11 @@ const tree: PageTree.Root = {
 }
 ```
 
-> 也支援外部 URL
+> 也支持外部 URL
 
 <auto-type-table path="props.ts" name="PageTreeItem" />
 
-### 资料夹 [#folder]
+### 文件夹 [#folder]
 
 包含多个子节点的节点。
 
@@ -83,6 +83,6 @@ const tree: PageTree.Root = {
 
 <auto-type-table path="props.ts" name="PageTreeSeparator" />
 
-## 图示 [#icons]
+## 图标 [#icons]
 
-图示的型别为 `ReactElement`，页面与资料夹皆可设定。
+图标的类型为 `ReactElement`，页面与文件夹皆可设置。

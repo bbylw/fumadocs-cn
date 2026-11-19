@@ -1,9 +1,14 @@
 ---
 title: 内嵌目录
-description: 在您的文件中加入内嵌目录
+description: 在你的文档中加入内嵌目录
+preview: inlineTOC
 ---
 
-您可以在 MDX 内容中使用它。在 Fumadocs MDX 的 MDX 档案中，汇出的 `toc` 是一个以页面 props 为参数的函式：
+<Installation name="inline-toc" />
+
+## 使用方式 [#usage]
+
+你可以在 MDX 内容中使用它。在 Fumadocs MDX 的 MDX 文件中，导出的 `toc` 是一个以页面 props 为参数的函数：
 
 ```mdx title="content.mdx"
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
@@ -27,4 +32,7 @@ export default function Page() {
   );
 }
 ```
+
+## 参考资料 [#reference]
+
 <auto-type-table cwd path="content/docs/ui/props.ts" name="InlineTOCProps" />

@@ -5,15 +5,18 @@ description: 从 Markdown/MDX 内容中解析目录
 
 从 Markdown/MDX 内容中解析目录。
 
-> [您也可以直接使用 remark 外挂](/docs/headless/mdx/headings)
+> [你也可以直接使用 remark 插件](/docs/headless/mdx/headings)
 
 ## 使用方式 [#usage]
 
-注意：如果您使用的是 CMS，应改用该 CMS 提供的 API。
+注意：如果你使用的是 CMS，应改用该 CMS 提供的 API。
 
 ```ts
 import { getTableOfContents } from 'fumadocs-core/content/toc';
 
 const toc = getTableOfContents('## markdown content');
 ```
-回传一个由 [`TOCItemType`](/docs/headless/mdx/headings#output) 组成的阵列。
+
+### 输出 [#output]
+
+返回一个由 [`TOCItemType`](/docs/headless/mdx/headings#output) 组成的数组。

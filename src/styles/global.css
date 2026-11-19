@@ -3,6 +3,8 @@
 @import 'tailwindcss';
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
+@import 'fumadocs-twoslash/twoslash.css';
+@import 'katex/dist/katex.min.css';
 @plugin 'tailwindcss-animate';
 
 @font-face {
@@ -132,6 +134,34 @@ html > body[data-scroll-locked] {
 
 body {
   background-color: var(--color-fd-background);
+}
+
+:root {
+  --headless-color: hsl(250, 80%, 52%);
+  --framework-color: hsl(36, 100%, 26%);
+  --ui-color: hsl(217, 92%, 44%);
+}
+
+:root:not(.dark) {
+  --color-fd-muted-foreground: hsl(0, 0%, 38%);
+}
+
+.dark {
+  --headless-color: hsl(250 100% 80%);
+  --framework-color: #fff383;
+  --ui-color: #a9ceff;
+}
+
+.ui {
+  --color-fd-primary: var(--ui-color);
+}
+
+.headless {
+  --color-fd-primary: var(--headless-color);
+}
+
+.framework {
+  --color-fd-primary: var(--framework-color);
 }
 
 /* #region pele */

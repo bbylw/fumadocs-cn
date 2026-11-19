@@ -1,0 +1,120 @@
+---
+title: ZBSearch（默认）
+description: 以 ZBSearch 为基础的默认搜索引擎。
+---
+
+## 概览 [#overview]
+
+Fumadocs 默认已设置好 [ZBSearch 搜索引擎](/docs/headless/search/orama)，开箱即用。
+
+搜索会通过服务器上运行的 API 端点进行；若是静态网站，则改用静态缓存的 JSON 文件。
+
+## 设置 [#setup]
+
+创建搜索对话框。
+
+<Tabs items={['fetch (default)', 'static']}>
+  <Tab>
+    <show when={props.framework !== 'astro'}>
+      默认的搜索对话框即使用此客户端。若要自定义搜索对话框，请重新创建它：
+    </show>
+
+    <show when={props.framework === 'astro'}>
+      若你的搜索路由采用每次请求时渲染 (需要适配器) ，请使用此客户端：
+    </show>
+
+    ```tsx title="components/search.tsx"
+    'use client';
+    import { useFetchSearch } from 'fumadocs-core/search/client';
+    import {
+      SearchDialog,
+      SearchDialogClose,
+      SearchDialogContent,
+      SearchDialogHeader,
+      SearchDialogIcon,
+      SearchDialogInput,
+      SearchDialogList,
+      SearchDialogOverlay,
+      type SharedProps,
+    } from 'fumadocs-ui/components/dialog/search';
+    import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+    export default function DefaultSearchDialog(props: SharedProps) {
+      const { locale } = useI18n(); // (optional) for i18n
+      const search = useFetchSearch({
+        locale,
+      });
+
+      return (
+        <SearchDialog {...search} {...props}>
+          <SearchDialogOverlay />
+          <SearchDialogContent>
+            <SearchDialogHeader>
+              <SearchDialogIcon />
+              <SearchDialogInput />
+              <SearchDialogClose />
+            </SearchDialogHeader>
+            <SearchDialogList />
+          </SearchDialogContent>
+        </SearchDialog>
+      );
+    }
+    ```
+  </Tab>
+
+  <Tab id="static">
+    <show when={props.framework !== 'astro'}>
+      若为静态网站，请在搜索服务器上设置[静态模式](/docs/headless/search/orama#static-export)，并使用 `static` 客户端：
+    </show>
+
+    <show when={props.framework === 'astro'}>
+      Astro 的设置默认使用 `static` 客户端，并在搜索服务器上搭配[静态模式](/docs/headless/search/orama#static-export)：
+    </show>
+
+    ```tsx title="components/search.tsx"
+    'use client';
+    import {
+      SearchDialog,
+      SearchDialogClose,
+      SearchDialogContent,
+      SearchDialogHeader,
+      SearchDialogIcon,
+      SearchDialogInput,
+      SearchDialogList,
+      SearchDialogOverlay,
+      type SharedProps,
+    } from 'fumadocs-ui/components/dialog/search';
+    import { useStaticSearch } from 'fumadocs-core/search/client';
+    import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+    export default function DefaultSearchDialog(props: SharedProps) {
+      const { locale } = useI18n(); // (optional) for i18n
+      const search = useStaticSearch({
+        locale,
+      });
+
+      return (
+        <SearchDialog {...search} {...props}>
+          <SearchDialogOverlay />
+          <SearchDialogContent>
+            <SearchDialogHeader>
+              <SearchDialogIcon />
+              <SearchDialogInput />
+              <SearchDialogClose />
+            </SearchDialogHeader>
+            <SearchDialogList />
+          </SearchDialogContent>
+        </SearchDialog>
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<include>.shared.mdx</include>
+
+### 标签筛选 [#tag-filter]
+
+你也可以按需加入依标签筛选结果的 UI。请在搜索服务器上设置[标签筛选](/docs/headless/search/orama#tag-filter)，并加入以下内容：
+
+<include>.tag-filter.mdx</include>

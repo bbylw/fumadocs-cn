@@ -1,16 +1,16 @@
 {
-  "title": "版面配置",
+  "title": "页面布局",
   "pages": [
-    "index",
+    "---配置---",
+    "links",
+    "nav",
+    "---组件---",
     "docs",
     "flux",
     "glass",
     "home-layout",
-    "links",
-    "nav",
     "notebook",
-    "page",
-    "root-provider",
-    "spacious"
+    "spacious",
+    "..."
   ]
 }

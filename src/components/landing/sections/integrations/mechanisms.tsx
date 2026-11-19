@@ -302,7 +302,7 @@ function LLMsMechanism() {
         knock={rect(5, 27, 10, 1) + rect(5, 29, 14, 1) + rect(5, 31, 8, 1)}
       />
       <Text x={34} y={0} h={4} className={`${CODE} opacity-55`}>
-        /docs/markdown/twoslash.md
+        /docs/next/markdown/twoslash.md
       </Text>
       <Text x={37} y={7} h={3} className={CODE}>
         #

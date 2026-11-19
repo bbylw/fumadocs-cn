@@ -1,11 +1,13 @@
 ---
 title: Remark NPM
-description: 为各个套件管理工具产生程式码区块
+description: 为各个包管理工具生成代码块
 ---
 
-Remark NPM 是一个 remark 外挂，Fumadocs MDX 预设已启用。您可以透过 `remarkNpmOptions` 传入选项。
+## 使用方式 [#usage]
 
-请定义所需的元件：
+Remark NPM 是一个 remark 插件，Fumadocs MDX 默认已启用。你可以通过 `remarkNpmOptions` 传入选项。
+
+请定义所需的组件：
 
 ```tsx tab="Custom" title="components/mdx.tsx"
 import { CodeBlockTabs, CodeBlockTab, CodeBlockTabsList, CodeBlockTabsTrigger } from 'my-ui';
@@ -28,13 +30,16 @@ import type { MDXComponents } from 'mdx/types';
 
 export function getMDXComponents(components?: MDXComponents) {
   return {
-    // `defaultComponents` 中已预设包含这些元件
+    // `defaultComponents` 中已默认包含这些组件
     ...defaultComponents,
     ...components,
   } satisfies MDXComponents;
 }
 ```
-建立语言指定为 `npm` 的程式码区块。
+
+### 输入 [#input]
+
+创建语言指定为 `npm` 的代码块。
 
 ````mdx
 ```npm
@@ -46,11 +51,11 @@ npm i my-package -D
 ```
 ````
 
-`package-install` 程式码区块也同样适用。您只需提供套件名称 (例如 `my-package`) ，它就会将其转换为 `npm install` 指令。
+`package-install` 代码块也同样适用。你只需提供包名称 (例如 `my-package`) ，它就会将其转换为 `npm install` 指令。
 
 ### 输出 [#output]
 
-此外挂应会产生以下结构。
+此插件应会生成以下结构。
 
 ```mdx
 <CodeBlockTabs defaultValue="npm">
@@ -71,7 +76,10 @@ npm i my-package -D
 ```npm
 npm i my-package
 ```
-搭配 Fumadocs UI 使用时，您可以透过 `persist` 选项持久保存所选取的值。
+
+### 持久保存 [#persistent]
+
+搭配 Fumadocs UI 使用时，你可以通过 `persist` 选项持久保存所选取的值。
 
 ```ts tab="unified" title="source.config.ts"
 import { defineConfig } from 'fumadocs-mdx/config';
@@ -105,4 +113,4 @@ export default defineConfig({
 });
 ```
 
-这会为 `` 产生 [`persist`](/docs/ui/components/tabs#persistent) prop。
+这会为 `<CodeBlockTabs />` 生成 [`persist`](/docs/ui/components/tabs#persistent) prop。

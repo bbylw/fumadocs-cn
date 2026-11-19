@@ -1,0 +1,250 @@
+---
+title: 无头式
+description: 提供 GraphQL 页面的状态与逻辑，不含 UI。
+---
+
+## 概览 [#overview]
+
+除了 `@fumadocs/graphql/ui` 之外，其余部分皆为无头式。
+
+| 路径                             | 模块                                      |
+| ------------------------------ | --------------------------------------- |
+| `@fumadocs/graphql`            | 页面：由 SDL 构建的 schema、交叉链接，以及你的组件         |
+| `@fumadocs/graphql/operation`  | 单一 operation：其字段、标题、指示词 (directive) 与示例 |
+| `@fumadocs/graphql/type-docs`  | 具名类型：其种类、指示词 (directive) 、关联与使用位置       |
+| `@fumadocs/graphql/playground` | 交互测试区的状态，以及发送 operation 与订阅             |
+
+## 页面 [#page]
+
+`createGraphQLRenderer()` 会接收你的组件并返回 `<GraphQLPage />`，该组件可接受生成页面的 props。
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { type CodeBlockProps, createGraphQLRenderer } from '@fumadocs/graphql';
+import { Operation } from '@/components/my-operation';
+import { TypeDocs } from '@/components/my-type';
+
+export const GraphQLPage = createGraphQLRenderer({
+  components: {
+    Operation,
+    TypeDocs,
+    // `root` 是类似字段的根节点，或是像 `Query.orders()` 这样的 schema 座标
+    SchemaUI: ({ client, root }) => (
+      <pre>{`${client.name}: ${typeof root === 'string' ? root : root.type}`}</pre>
+    ),
+    CodeBlock({ lang, code }: CodeBlockProps) {
+      return (
+        <pre>
+          <code className={`language-${lang}`}>{code}</code>
+        </pre>
+      );
+    },
+  },
+});
+```
+
+| 组件          | 渲染内容                                         |
+| ----------- | -------------------------------------------- |
+| `Operation` | 页面中的每个 operation，请参阅 [Operation](#operation) |
+| `TypeDocs`  | 页面中的每个具名类型，请参阅 [Type](#type)                 |
+| `SchemaUI`  | 类型、参数或字段的详细信息                                |
+| `Layout`    | 可选，用来包覆已渲染的项目                                |
+
+传入 `typeLinks` 与 `operationLinks`，即可覆盖预先生成页面的[交叉链接](/docs/integrations/graphql/api-page#cross-linking)。
+
+### Hooks [#hooks]
+
+页面底下的组件可以读取页面的状态。
+
+| Hook                           | 返回值                                    |
+| ------------------------------ | -------------------------------------- |
+| `useGraphQL()`                 | 构建完成的 `schema`、其 `sdl`，以及页面链接与示例       |
+| `useComponents()`              | 传入页面的组件                                |
+| `useTypeLink(name)`            | 指定名称类型的页面 URL，未链接时为 `undefined`        |
+| `useOperationLink(kind, name)` | operation 的页面 URL                      |
+| `useRenderContext()`           | 页面的渲染选项，例如 `playground` 与 `codeUsages` |
+
+若要自行渲染 operation，请挂载 `<GraphQLProvider sdl={sdl} components={...} />` 来取代 `createGraphQLRenderer()`。
+
+## Operation [#operation]
+
+`<OperationProvider />` 会推导出 operation 的详细信息。
+
+```tsx title="components/my-operation.tsx"
+'use client';
+import { useComponents } from '@fumadocs/graphql';
+import {
+  OperationProvider,
+  type PageOperationProps,
+  useOperation,
+} from '@fumadocs/graphql/operation';
+
+export function Operation({ kind, name }: PageOperationProps) {
+  return (
+    <OperationProvider kind={kind} name={name}>
+      <Content />
+    </OperationProvider>
+  );
+}
+
+function Content() {
+  const { title, field, examples, selected, select } = useOperation();
+  const { CodeBlock, SchemaUI } = useComponents();
+  const example = examples.at(selected);
+
+  return (
+    <>
+      <h2>{title}</h2>
+      {field.args.map((arg) => (
+        <SchemaUI
+          key={arg.name}
+          client={{ name: arg.name, rootId: arg.name }}
+          root={{ type: arg.type }}
+        />
+      ))}
+      {examples.map((item, i) => (
+        <button key={i} onClick={() => select(i)}>
+          {item.name ?? 'Example'}
+        </button>
+      ))}
+      {example && <CodeBlock lang="graphql" code={example.query} />}
+    </>
+  );
+}
+```
+
+`examples` 是来自 [`examples` 选项](/docs/integrations/graphql/server#examples)的示例，或是自动生成的示例。`selected` 由 provider 底下的所有元素共用，例如示例卡片与交互测试区。
+
+<auto-type-table path="props.ts" name="OperationInfo" />
+
+<auto-type-table path="props.ts" name="OperationExample" />
+
+## 类型 [#type]
+
+`<TypeProvider />` 会推导出具名类型的详细信息。
+
+```tsx title="components/my-type.tsx"
+'use client';
+import { useComponents } from '@fumadocs/graphql';
+import { type PageTypeProps, TypeProvider, useNamedType } from '@fumadocs/graphql/type-docs';
+
+export function TypeDocs({ name }: PageTypeProps) {
+  return (
+    <TypeProvider name={name}>
+      <Content />
+    </TypeProvider>
+  );
+}
+
+function Content() {
+  const { name, kind, type, relations } = useNamedType();
+  const { SchemaUI } = useComponents();
+
+  return (
+    <>
+      <h2>
+        {name} ({kind})
+      </h2>
+      {relations.usages.returnedBy.map((op) => (
+        <span key={`${op.kind}:${op.name}`}>{op.name}</span>
+      ))}
+      <SchemaUI client={{ name, rootId: name, as: 'body' }} root={{ type }} />
+    </>
+  );
+}
+```
+
+<auto-type-table path="props.ts" name="NamedTypeInfo" />
+
+`relations` 将此类型与 schema 的其他部分链接起来：
+
+| 关系              | 说明                   |
+| --------------- | -------------------- |
+| `implements`    | 此类型实现的界面             |
+| `unions`        | 包含此类型的联集 (适用于对象)     |
+| `implementedBy` | 实现此类型的对象 (适用于界面)     |
+| `possibleTypes` | 联集的成员                |
+| `usages`        | 此类型在整个 schema 中出现的位置 |
+
+<auto-type-table path="props.ts" name="TypeUsages" />
+
+## 交互测试区 [#playground]
+
+`usePlayground()` 会保存 `<OperationProvider />` 底下该 operation 的交互测试区，并依照页面的 [`playground` 选项](/docs/integrations/graphql/api-page#playground)进行设置。
+
+```tsx title="components/my-playground.tsx"
+'use client';
+import { StfProvider, useFieldValue } from '@fumari/stf';
+import { useOperation } from '@fumadocs/graphql/operation';
+import { usePlayground } from '@fumadocs/graphql/playground';
+
+export function MyPlayground() {
+  const { field } = useOperation();
+  const { stf, open, url, changeUrl, query, setQuery, send, isSending, response } = usePlayground();
+
+  return (
+    // 展开时会还原先前造访时使用的端点与标头
+    <details onToggle={(e) => e.currentTarget.open && open()}>
+      <summary>Try it</summary>
+      <input value={url} onChange={(e) => changeUrl(e.target.value)} />
+      <textarea value={query} onChange={(e) => setQuery(e.target.value)} />
+      <StfProvider value={stf}>
+        {field.args.map((arg) => (
+          <Variable key={arg.name} name={arg.name} />
+        ))}
+      </StfProvider>
+      <button disabled={isSending} onClick={send}>
+        Send
+      </button>
+      {response?.result.type === 'response' && <pre>{response.result.body}</pre>}
+    </details>
+  );
+}
+
+function Variable({ name }: { name: string }) {
+  const [value, setValue] = useFieldValue(['variables', name]);
+
+  return (
+    <input
+      aria-label={name}
+      value={String(value ?? '')}
+      onChange={(e) => setValue(e.target.value)}
+    />
+  );
+}
+```
+
+订阅改用 `subscribe()`、`stop()`、`status` 与 `log`，取代 `send()` 与 `response`。
+
+<auto-type-table path="props.ts" name="Playground" />
+
+| 导出                                    | 用途                                                              |
+| ------------------------------------- | --------------------------------------------------------------- |
+| `useRequestValues()`                  | `<StfProvider />` 底下的表单所送出的 `variables` 与 `headers`，会随表单的编辑同步更新 |
+| `executeGraphQL(request)`             | 通过 HTTP POST 发送 query 或 mutation，即默认的 `fetcher`                 |
+| `subscribeGraphQL(request, handlers)` | 开始订阅，并返回用来停止订阅的函数                                               |
+| `inputTypeToJsonSchema(type)`         | 输入类型的 JSON Schema，用于生成变量表单                                      |
+
+`subscribeGraphQL()` 会依 URL scheme 选择通信协定，与 [`subscriptionUrl`](/docs/integrations/graphql/api-page#subscriptions) 的规则相同。
+
+```ts
+import { subscribeGraphQL } from '@fumadocs/graphql/playground';
+
+const stop = subscribeGraphQL(
+  {
+    url: 'wss://api.example.com/graphql',
+    query: 'subscription { orderUpdated(id: "1") { status } }',
+    headers: {},
+  },
+  {
+    onNext: (result) => console.log(result),
+    onError: (error) => console.error(error.type),
+    onComplete: () => console.log('completed'),
+  },
+);
+
+// 调用后不会再触发任何处理进程
+stop();
+```
+
+<auto-type-table path="props.ts" name="SubscriptionHandlers" />

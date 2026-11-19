@@ -1,13 +1,3 @@
 {
-  "title": "工具函式",
-  "pages": [
-    "index",
-    "get-toc",
-    "git-last-edit",
-    "markdown",
-    "mcp",
-    "negotiation",
-    "page-tree",
-    "shiki"
-  ]
+  "title": "工具"
 }

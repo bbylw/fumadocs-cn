@@ -1,30 +1,30 @@
 ---
 title: 浏览器入口
-description: 从浏览器／用户端环境存取集合。
+description: 从浏览器／客户端环境访问集合。
 ---
 
 <Callout title="使用 Macro API？">
-  巨集集合可直接在用户端汇入，无需用户端载入器。对应的用法请参阅 [Macro API](/docs/mdx/macro#browser)。
+  宏集合可直接在客户端导入，无需客户端加载器。对应的用法请参阅 [Macro API](/docs/mdx/macro#browser)。
 </Callout>
 
 ## 使用方式 [#usage]
 
-产生的输出已使用非同步汇入，针对浏览器环境进行最佳化。
+生成的输出已使用异步导入，针对浏览器环境进行优化。
 
-在浏览器中只能存取 doc/docs 集合。
+在浏览器中只能访问 doc/docs 集合。
 
 ```tsx
 import browserCollections from 'collections/browser';
 
-// 尚未载入的项目
+// 尚未加载的项目
 console.log(browserCollections['collection name'].raw);
 
-// 定义用户端集合载入器
+// 定义客户端集合加载器
 const clientLoader = browserCollections['collection name'].createClientLoader({
   component(
-    // 存取已编译的档案
+    // 访问已编译的文档
     { default: MDX },
-    // 定义 props（选用）
+    // 定义 props（可选）
     props: { myProp: string },
   ) {
     return (
@@ -35,14 +35,14 @@ const clientLoader = browserCollections['collection name'].createClientLoader({
   },
 });
 
-// 由伺服器（静态产生器）回传路径
+// 由服务器（静态生成器）返回路径
 async function serverLoader() {
   return source.getPage(slugs)!.path;
 }
 
 async function loader() {
   const path = await serverLoader();
-  // 预先载入此路径
+  // 预先加载此路径
   await clientLoader.preload(path);
   return { path };
 }
@@ -50,12 +50,15 @@ async function loader() {
 function Page() {
   const { path } = loader();
 
-  // 算绘内容
+  // 渲染内容
   return clientLoader.useContent(path, {
     myProp: 'hello world',
   });
 }
 ```
+
+### 路径参数 [#path-params]
+
 若页面使用[路径参数](/docs/page-conventions#path-params)，请在路径后方传入对应的参数：
 
 ```tsx
@@ -76,9 +79,12 @@ function Page() {
   return clientLoader.useContent(path, { myProp: 'hello world' }, params);
 }
 ```
-以下范例适用于在 React Router 与 TanStack Start 上不使用 RSC 的情况。若使用 Next.js 或 Waku，建议改用 RSC 搭配 [server entry](/docs/mdx/entry/server)，以获得更好的用户端效能。
 
-我们储存库中的范例应用程式则改用 [Macro API](/docs/mdx/macro) 来处理这部分，很适合作为完整设定的参考。
+## 示例 [#examples]
+
+以下示例适用于在 React Router 与 TanStack Start 上不使用 RSC 的情况。若使用 Next.js 或 Waku，建议改用 RSC 搭配 [server entry](/docs/mdx/entry/server)，以获得更好的客户端性能。
+
+我们保存库中的示例应用则改用 [Macro API](/docs/mdx/macro) 来处理这部分，很适合作为完整设置的参考。
 
 ```tsx tab="React Router" title="app/routes/docs.tsx"
 import type { Route } from './+types/docs';

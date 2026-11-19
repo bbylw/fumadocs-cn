@@ -1,9 +1,11 @@
 ---
 title: 集合
-description: 应用程式的内容资料集合
+description: 应用的内容数据集合
 ---
 
-您可以定义集合来解析特定的一组档案。本页范例会在 `source.config.ts` 中定义集合，而 [Macro API](/docs/mdx/macro) 则是在 `lib/source.ts` 中定义，两者的选项大致相同。
+## 定义集合 [#define-collections]
+
+你可以定义集合来解析特定的一组文件。本页示例会在 `source.config.ts` 中定义集合，而 [Macro API](/docs/mdx/macro) 则是在 `lib/source.ts` 中定义，两者的选项大致相同。
 
 ```ts
 import { defineCollections } from 'fumadocs-mdx/config';
@@ -18,12 +20,15 @@ export const blog = defineCollections({
   // 其他选项
 });
 ```
+
+### `type` [#type]
+
 集合可接受的类型。
 
 ```ts
 import { defineCollections } from 'fumadocs-mdx/config';
 
-// 仅扫描 meta 档案
+// 仅扫描 meta 文档
 export const metaFiles = defineCollections({
   type: 'meta',
   // 选项
@@ -32,19 +37,19 @@ export const metaFiles = defineCollections({
 
 * `type: meta`
 
-  接受 JSON/YAML 档案，以及具有预设汇出 (default export) 的程式码模组 (`meta.ts` 或 `meta.js`) 。请参阅 [Meta](/docs/page-conventions#meta)。可用选项：
+  接受 JSON/YAML 文件，以及具有默认导出 (default export) 的代码模块 (`meta.ts` 或 `meta.js`) 。请参阅 [Meta](/docs/page-conventions#meta)。可用选项：
 
   <auto-type-table path="./props.ts" name="MetaCollection" />
 
 * `type: doc`
 
-  Markdown/MDX 文件。可用选项：
+  Markdown/MDX 文档。可用选项：
 
   <auto-type-table path="./props.ts" name="DocCollection" />
 
 ### `schema` [#schema]
 
-用来验证档案资料的 schema (`doc` 类型验证的是 frontmatter，`meta` 类型验证的是档案内容) 。
+用来验证文件数据的 schema (`doc` 类型验证的是 frontmatter，`meta` 类型验证的是文件内容) 。
 
 ```ts
 import { defineCollections } from 'fumadocs-mdx/config';
@@ -59,10 +64,10 @@ export const blog = defineCollections({
 });
 ```
 
-> 支援与 [Standard Schema](https://standardschema.dev) 相容的函式库，包括 Zod。
+> 支持与 [Standard Schema](https://standardschema.dev) 兼容的函数库，包括 Zod。
 
-请注意，验证是在建置时进行，因此输出必须可序列化。
-您也可以传入一个函式，该函式会接收转换上下文 (transform context) 。
+请注意，验证是在构建时进行，因此输出必须可序列化。
+你也可以传入一个函数，该函数会接收转换上下文 (transform context) 。
 
 ```ts
 import { defineCollections } from 'fumadocs-mdx/config';
@@ -75,14 +80,17 @@ export const blog = defineCollections({
     return z.object({
       name: z.string(),
       testPath: z.string().default(
-        // 档案的绝对路径
+        // 文档的绝对路径
         ctx.path,
       ),
     });
   },
 });
 ```
-针对以 unified 编译的集合，在集合层级自订 MDX 选项。
+
+### `mdxOptions` [#mdxoptions]
+
+针对以 unified 编译的集合，在集合层级自定义 MDX 选项。
 
 > 此 API 仅适用于 `doc` 类型。
 
@@ -98,9 +106,9 @@ export const blog = defineCollections({
 });
 ```
 
-这是刻意的设计：此设定会移除您的全域设定与 Fumadocs MDX 所套用的所有预设设定，让您完全掌控 MDX 选项。
+这是刻意的设计：此设置会移除你的全域设置与 Fumadocs MDX 所应用的所有默认设置，让你完全掌控 MDX 选项。
 
-您可以使用 [`applyMdxPreset`](/docs/mdx/mdx) 套用预设的 MDX 设定组合。
+你可以使用 [`applyMdxPreset`](/docs/mdx/mdx) 应用默认的 MDX 设置组合。
 
 ```ts title="source.config.ts"
 import { applyMdxPreset, defineCollections } from 'fumadocs-mdx/config';
@@ -109,10 +117,13 @@ export const blog = defineCollections({
   type: 'doc',
   dir: './content/blog',
   mdxOptions: applyMdxPreset({
-    // 扩充预设组合
+    // 扩展默认组合
   }),
 });
 ```
+
+### `compiler` [#compiler]
+
 > 此 API 仅适用于 `doc` 类型。
 
 改用 [Sätteri](/docs/mdx/mdx#satteri) 而非 unified 来编译此集合，并改为传入 `satteriOptions` 以取代 `mdxOptions`。
@@ -124,24 +135,24 @@ export const blog = defineCollections({
   type: 'doc',
   dir: './content/blog',
   compiler: 'satteri',
-  // 选用，预设为全域的 `satteriOptions`
+  // 可选，默认为全域的 `satteriOptions`
   satteriOptions: {
     // Sätteri 选项
   },
 });
 ```
 
-与 `mdxOptions` 不同，除非您传入 `preset: 'minimal'`，否则集合层级的 `satteriOptions` 仍会沿用内建的预设组合。此外，它会直接取代全域的 `satteriOptions`，而不会与其合并。
+与 `mdxOptions` 不同，除非你传入 `preset: 'minimal'`，否则集合层级的 `satteriOptions` 仍会沿用内置的默认组合。此外，它会直接取代全域的 `satteriOptions`，而不会与其合并。
 
 ### `postprocess` [#postprocess]
 
 > 此 API 仅适用于 `doc` 类型。
 
-您可以使用 `postprocess` API 将建置阶段的资讯传递至执行阶段。
+你可以使用 `postprocess` API 将构建阶段的信息传递至运行时。
 
 * #### `includeProcessedMarkdown` [#includeprocessedmarkdown]
 
-  汇出由 [Remark LLMs](/docs/headless/mdx/remark-llms) 产生的文件 Markdown。可传入 `true` 或其选项。
+  导出由 [Remark LLMs](/docs/headless/mdx/remark-llms) 生成的文档 Markdown。可传入 `true` 或其选项。
 
   ```ts tab="docs"
   import { defineDocs } from 'fumadocs-mdx/config';
@@ -168,7 +179,7 @@ export const blog = defineCollections({
   });
   ```
 
-  请使用 `getText('processed')` 读取，例如透过 `loader()`：
+  请使用 `getText('processed')` 读取，例如通过 `loader()`：
 
   ```ts
   import { source } from '@/lib/source';
@@ -179,9 +190,9 @@ export const blog = defineCollections({
 
 * #### `valueToExport` [#valuetoexport]
 
-  部分 remark 外挂会将输出储存在 `vfile.data` (编译阶段的记忆体) 中，您的程式码无法存取这些资料。
+  部分 remark 插件会将输出保存在 `vfile.data` (编译阶段的内存) 中，你的代码无法访问这些数据。
 
-  您可以指定要纳入的属性名称，这些属性会转换为 ESM 汇出，让您在汇入 MDX 档案时即可存取。
+  你可以指定要纳入的属性名称，这些属性会转换为 ESM 导出，让你在导入 MDX 文件时即可访问。
 
   ```ts tab="docs"
   import { defineDocs } from 'fumadocs-mdx/config';
@@ -207,6 +218,9 @@ export const blog = defineCollections({
     },
   });
   ```
+
+## 定义 Docs [#define-docs]
+
 为 Fumadocs 定义集合。
 
 ```ts
@@ -222,7 +236,10 @@ export const docs = defineDocs({
   },
 });
 ```
-请透过 `defineDocs` 自订内容目录，而不是在个别集合中分别设定：
+
+### `dir` [#dir]
+
+请通过 `defineDocs` 自定义内容目录，而不是在个别集合中分别设置：
 
 ```ts
 import { defineDocs } from 'fumadocs-mdx/config';
@@ -231,7 +248,10 @@ export const docs = defineDocs({
   dir: 'content/guides',
 });
 ```
-您可以扩充 `docs` 与 `meta` 预设的 Zod 4 schema。
+
+### `schema` [#schema-1]
+
+你可以扩展 `docs` 与 `meta` 默认的 Zod 4 schema。
 
 ```ts
 import { defineDocs } from 'fumadocs-mdx/config';

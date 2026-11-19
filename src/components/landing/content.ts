@@ -61,22 +61,22 @@ export const copy = {
       story: {
         label: 'Story',
         line: '组件实时交互预览，附带属性控制面板。',
-        href: '/docs/integrations/story',
+        href: '/docs/next/integrations/story',
       },
       openapi: {
         label: 'OpenAPI',
         line: '自动生成 API 文档页、调试台与代码示例。',
-        href: '/docs/integrations/openapi',
+        href: '/docs/next/integrations/openapi',
       },
       graphql: {
         label: 'GraphQL',
         line: '每个操作独立成页，附带类型说明与调试台。',
-        href: '/docs/integrations/graphql',
+        href: '/docs/next/integrations/graphql',
       },
       asyncapi: {
         label: 'AsyncAPI',
         line: '频道与消息文档，内置 WebSocket 调试台。',
-        href: '/docs/integrations/asyncapi',
+        href: '/docs/next/integrations/asyncapi',
       },
     },
   },
@@ -101,19 +101,11 @@ export const copy = {
 export const command = 'pnpm create fumadocs-app';
 
 export const frameworks = [
-  { name: 'Next.js', href: 'https://www.fumadocs.dev/docs/next/manual-installation', external: true },
-  {
-    name: 'React Router',
-    href: 'https://www.fumadocs.dev/docs/react-router/manual-installation',
-    external: true,
-  },
-  {
-    name: 'TanStack Start',
-    href: 'https://www.fumadocs.dev/docs/tanstack-start/manual-installation',
-    external: true,
-  },
-  { name: 'Waku', href: 'https://www.fumadocs.dev/docs/waku/manual-installation', external: true },
-  { name: 'Astro', href: '/docs/manual-installation', external: false },
+  { name: 'Next.js', href: '/docs/next/manual-installation', external: false },
+  { name: 'React Router', href: '/docs/react-router/manual-installation', external: false },
+  { name: 'TanStack Start', href: '/docs/tanstack-start/manual-installation', external: false },
+  { name: 'Waku', href: '/docs/waku/manual-installation', external: false },
+  { name: 'Astro', href: '/docs/astro/manual-installation', external: false },
 ];
 
 export interface Quote {

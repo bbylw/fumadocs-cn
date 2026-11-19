@@ -1,8 +1,3 @@
 {
-  "title": "(integrations)",
-  "pages": [
-    "next",
-    "vite",
-    "loader"
-  ]
+  "title": "框架与打包工具"
 }

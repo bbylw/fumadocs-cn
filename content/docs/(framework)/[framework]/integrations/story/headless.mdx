@@ -1,0 +1,108 @@
+---
+title: 无头式
+description: 替换 stories 的 UI，或基于无头式层自行构建 UI。
+---
+
+## 概览 [#overview]
+
+`@fumadocs/story` 导出了 `<StoryProvider />`、`useStory()` 与 `useStoryArgs()`，可在不含 UI 的情况下提供组件情境的状态：
+
+* 所选的变体，以及其对应的默认组合
+* 已渲染组件的参数，并经过防抖 (debounce) 处理，因此输入时不会每按一个键就重新渲染组件
+
+内置面板就是以这些 API 构建而成，你也可以改用自己实现的面板。
+
+## 自定义面板 [#your-own-panel]
+
+`defineStoryFactory()` 可接受一个 `WithControl` 组件，并以它取代内置面板进行渲染。
+
+<show when={props.framework === 'next'}>
+  ```tsx title="lib/story.tsx"
+  import { defineStoryFactory } from '@fumadocs/story/next/client';
+  import { StoryPanel } from '@/components/story-panel';
+
+  export const { defineStory } = defineStoryFactory({ WithControl: StoryPanel });
+  ```
+</show>
+
+<show when={props.framework !== 'next'}>
+  ```tsx title="lib/story.tsx"
+  import { defineStoryFactory } from '@fumadocs/story/vite/client';
+  import { StoryPanel } from '@/components/story-panel';
+
+  export const { defineStory } = defineStoryFactory({ WithControl: StoryPanel });
+  ```
+</show>
+
+此组件会接收组件情境的默认组合，以及要渲染的组件。
+
+```tsx title="components/story-panel.tsx"
+'use client';
+import { StoryProvider, useStory, useStoryArgs, type WithControlProps } from '@fumadocs/story';
+
+export function StoryPanel(props: WithControlProps) {
+  return (
+    <StoryProvider {...props}>
+      <Content />
+    </StoryProvider>
+  );
+}
+
+function Content() {
+  const { presets, variant, setVariant, preset, Component } = useStory();
+  const args = useStoryArgs();
+
+  return (
+    <div>
+      <select value={variant} onChange={(e) => setVariant(e.target.value)}>
+        {presets.map((item) => (
+          <option key={item.variant} value={item.variant}>
+            {item.variant}
+          </option>
+        ))}
+      </select>
+      <Component {...args} />
+      <pre>{JSON.stringify(preset?.controls, null, 2)}</pre>
+    </div>
+  );
+}
+```
+
+| Hook              | 说明                                                                           |
+| ----------------- | ---------------------------------------------------------------------------- |
+| `useStory()`      | 默认组合、当前选中的 `variant` 与 `setVariant`，以及 `Component` 和 `frame`。                |
+| `useStoryArgs()`  | 已渲染组件的参数，会随控制项同步更新。                                                          |
+| `useStoryFrame()` | [`frame`](/docs/integrations/story#frame) 的 iframe 所用的 ref，负责将参数发送给该 iframe。 |
+
+控制项通过 [`@fumari/stf`](https://github.com/fuma-nama/fumadocs/tree/dev/packages/stf) 编辑，也就是 `<StoryProvider />` 所设置的表单引擎。`preset.controls` 是组件 props 的[类型树](/docs/integrations/story#controls)。
+
+<Callout title="从内置面板开始">
+  要撰写完整的控制面板，就必须处理类型树中的每一种节点。建议你安装下方的内置
+  面板，再加以修改。
+</Callout>
+
+## 安装 UI [#install-the-ui]
+
+整个面板，包括其中的参数控制项：
+
+```npm
+npx @fumadocs/cli add story/controls
+```
+
+<show when={props.framework === 'next'}>
+  ```tsx title="lib/story.tsx"
+  import { defineStoryFactory } from '@fumadocs/story/next/client';
+  import { WithControl } from '@/components/story';
+
+  export const { defineStory } = defineStoryFactory({ WithControl });
+  ```
+</show>
+
+<show when={props.framework !== 'next'}>
+  ```tsx title="lib/story.tsx"
+  import { defineStoryFactory } from '@fumadocs/story/vite/client';
+  import { WithControl } from '@/components/story';
+
+  export const { defineStory } = defineStoryFactory({ WithControl });
+  ```
+</show>

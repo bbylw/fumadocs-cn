@@ -1,0 +1,317 @@
+---
+title: Notion
+description: 从 Notion 截取页面，并以 Fumadocs 渲染。
+staticParams:
+  - framework: next
+  - framework: waku
+---
+
+## 简介 [#introduction]
+
+`@fumadocs/notion` 可将 Notion 数据库转换为 Fumadocs 内容来源。它提供一个动态[内容来源](/docs/headless/source-api)，通过官方 Notion API 截取页面；另外也提供服务端渲染器，以 Fumadocs UI 渲染 Notion 块。
+
+它不包含客户端渲染器，也不会将内容转换为 MDX。块一律在服务端渲染，因此不需要打包工具，也没有类型生成步骤。
+
+## 设置 [#setup]
+
+请安装此集成以及官方的 Notion 客户端：
+
+```package-install
+@fumadocs/notion @notionhq/client
+```
+
+请在 Fumadocs UI 样式之后，导入渲染器的 Tailwind CSS 来源：
+
+```css title="Tailwind CSS"
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+/* [!code ++] */
+@import '@fumadocs/notion/css/preset.css';
+```
+
+### Notion 数据库 [step] [#notion-database]
+
+1. [创建 Notion 集成](https://developers.notion.com/docs/getting-started)，并授予读取内容的权限。
+2. 将存放你页面的数据库连接至该集成。
+3. 将集成权杖与数据库的 **data source ID** 存放在仅限服务端访问的环境变量中。
+
+```ini title=".env.local"
+NOTION_TOKEN=ntn_...
+NOTION_DATA_SOURCE_ID=...
+```
+
+<Callout type="info">
+  请使用数据源 (data source) ID，而非数据库 URL 中显示的数据库 ID。在当前的 Notion API 中，数据库是一个容器，
+  每次查找的对象都是其中一个数据源。详情请参阅 Notion 的[数据源升级指南](https://developers.notion.com/guides/get-started/upgrade-guide-2025-09-03)。
+</Callout>
+
+### Notion 集成 [step] [#notion-integration]
+
+集成只需创建一次，并由内容来源与文件路由共用。
+
+```ts title="lib/notion.ts"
+import { Client } from '@notionhq/client';
+import { createNotion } from '@fumadocs/notion';
+
+export const notion = createNotion({
+  client: new Client({ auth: process.env.NOTION_TOKEN }),
+  dataSourceId: process.env.NOTION_DATA_SOURCE_ID!,
+});
+```
+
+### 内容加载器 [step] [#content-loader]
+
+将 `notion.dynamicSource()` 传入 `dynamicLoader()`，并通过 `getSource()` 对外提供该加载器：
+
+```ts title="lib/source.ts"
+import { dynamicLoader } from 'fumadocs-core/source';
+import { notion } from '@/lib/notion';
+
+const source = dynamicLoader(
+  notion.dynamicSource({
+    // 将 Notion 属性对应到页面字段
+    properties: {
+      title: 'Name',
+      slug: 'Slug',
+      description: 'Description',
+    },
+    // 筛选、排序或以其他方式自定义查找条件
+    query: {
+      filter: {
+        property: 'Published',
+        checkbox: { equals: true },
+      },
+    },
+  }),
+  {
+    baseUrl: '/docs',
+  },
+);
+
+export async function getSource() {
+  return source.get();
+}
+```
+
+来源会分页走访所有符合条件的 data source 数据列，并延迟加载每个页面的嵌套块。在加载器失效之前，重复加载同一页面内容的调用都会经过去重处理。
+
+### 渲染页面 [step] [#render-pages]
+
+在布局中使用加载器创建页面树。加载页面的块后，再以 `NotionRenderer` 渲染；目录则由 `blocksToTableOfContents()` 生成：
+
+<show when={props.framework === 'next'}>
+  ```tsx tab="app/docs/layout.tsx"
+  import { getSource } from '@/lib/source';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+
+  export default async function Layout({ children }: LayoutProps<'/docs'>) {
+    const source = await getSource();
+
+    return <DocsLayout tree={source.getPageTree()}>{children}</DocsLayout>;
+  }
+  ```
+
+  ```tsx tab="app/docs/[[...slug]]/page.tsx"
+  import { notFound } from 'next/navigation';
+  import { getSource } from '@/lib/source';
+  import {
+    NotionRenderer,
+    blocksToTableOfContents,
+    createNotionFileUrlResolver,
+  } from '@fumadocs/notion';
+  import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+
+  export default async function Page({ params }: PageProps<'/docs/[[...slug]]'>) {
+    const { slug = [] } = await params;
+    const source = await getSource();
+
+    const page = source.getPage(slug);
+    if (!page) notFound();
+
+    // [!code highlight:2] 加载页面内容
+    const { blocks } = await page.data.load();
+
+    return (
+      <DocsPage toc={blocksToTableOfContents(blocks)}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsBody>
+          <NotionRenderer
+            blocks={blocks}
+            getFileUrl={createNotionFileUrlResolver({ pageId: page.data.id })}
+          />
+        </DocsBody>
+      </DocsPage>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```tsx tab="src/pages/docs/_layout.tsx"
+  import type { ReactNode } from 'react';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+  import { getSource } from '@/lib/source';
+
+  export default async function Layout({ children }: { children: ReactNode }) {
+    const source = await getSource();
+
+    return <DocsLayout tree={source.getPageTree()}>{children}</DocsLayout>;
+  }
+  ```
+
+  ```tsx tab="src/pages/docs/[...slugs].tsx"
+  import type { PageProps } from 'waku/router';
+  import { unstable_notFound } from 'waku/router/server';
+  import { getSource } from '@/lib/source';
+  import {
+    NotionRenderer,
+    blocksToTableOfContents,
+    createNotionFileUrlResolver,
+  } from '@fumadocs/notion';
+  import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+
+  export default async function Page({ slugs }: PageProps<'/docs/[...slugs]'>) {
+    const source = await getSource();
+
+    const page = source.getPage(slugs);
+    if (!page) unstable_notFound();
+
+    // [!code highlight:2] 加载页面内容
+    const { blocks } = await page.data.load();
+
+    return (
+      <DocsPage toc={blocksToTableOfContents(blocks)}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsBody>
+          <NotionRenderer
+            blocks={blocks}
+            getFileUrl={createNotionFileUrlResolver({ pageId: page.data.id })}
+          />
+        </DocsBody>
+      </DocsPage>
+    );
+  }
+
+  export const getConfig = async () => ({ render: 'dynamic' }) as const;
+  ```
+</show>
+
+### Notion 文件 [step] [#notion-files]
+
+Notion 托管的文件 URL (图片、视频、PDF) 大约一小时后就会失效，因此无法直接嵌入经过缓存或以静态方式提供的页面。
+
+`createNotionFileUrlResolver()` 会将这些内部资源转交给文件处理器，由它随需取得新的签署 URL。请使用 `createNotionFileHandler()` 挂载处理器，它会先验证所请求的块是否属于你数据源中的页面，再进行重定向：
+
+<show when={props.framework === 'next'}>
+  ```ts title="app/api/notion/file/route.ts"
+  import { createNotionFileHandler } from '@fumadocs/notion';
+  import { notion } from '@/lib/notion';
+
+  export const GET = createNotionFileHandler(notion);
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```ts title="src/pages/_api/api/notion/file.ts"
+  import { createNotionFileHandler } from '@fumadocs/notion';
+  import { notion } from '@/lib/notion';
+
+  export const GET = createNotionFileHandler(notion);
+  ```
+</show>
+
+默认路由为 `/api/notion/file`。若要挂载到其他位置，请将相同的 `path` 传入这两个函数：
+
+```ts
+createNotionFileUrlResolver({ pageId: page.data.id, path: '/notion/file' });
+```
+
+<Callout type="info">
+  若要进行静态导出，请为你的资源使用可长期访问的外部 URL，并省略 `getFileUrl`，渲染器便会
+  直接链接 Notion 的 URL。文件处理器需要在动态运行时环境中运作。
+</Callout>
+
+### 完成 [step] [#done]
+
+将页面添加至数据库并标记为已发布后，这些页面就会显示在 docs 路由下。
+
+## 重新验证 [#revalidation]
+
+加载器会缓存页面，直到你使缓存失效为止。若要同步 Notion 上的编辑内容，请在受信任的 webhook 或重新验证路由中调用 `revalidate()`：
+
+```ts title="lib/source.ts"
+export function revalidateNotion() {
+  return source.revalidate();
+}
+```
+
+若你需要类似预览模式的设置，让每个请求都能反映最新内容，请在读取前先将缓存失效：
+
+```ts title="lib/source.ts"
+export async function getSource() {
+  source.invalidate(); // [!code ++]
+  return source.get();
+}
+```
+
+## 页面属性 [#page-properties]
+
+`properties` 会将 Notion 属性对应到页面字段。若省略此设置，来源将会：
+
+* 使用第一个 Notion `title` 属性作为页面标题；
+* 使用名为 `Slug` 的属性作为 URL，若没有此属性，则改用依标题生成的 slug；
+* 若有名为 `Description` 的属性，则使用该属性作为描述。
+
+slug 可包含 `/`，以创建嵌套路由。若虚拟路径重复或不安全，会直接抛出说明明确的错误，而不会在未提示的情况下覆盖既有页面。
+
+## 查找与路径 [#query-and-paths]
+
+请通过 `query` 传入 Notion 的筛选与排序条件。你可以使用 `baseDir` 将虚拟页面放在指定目录下，或使用 `generatePath` 完整自定义虚拟文件路径：
+
+```ts
+notion.dynamicSource({
+  baseDir: 'docs',
+  query: {
+    sorts: [{ timestamp: 'last_edited_time', direction: 'descending' }],
+  },
+  generatePath(page, info) {
+    return info.slugs.length > 0 ? `${info.slugs.join('/')}.mdx` : `${page.id}.mdx`;
+  },
+});
+```
+
+## 自定义渲染 [#customize-rendering]
+
+`NotionRenderer` 内置常见块类型的渲染器。你可以传入 `components` 来添加或覆盖这些渲染器，每个覆盖的类型都会对应到其块类型：
+
+```tsx
+import { NotionRenderer } from '@fumadocs/notion';
+
+<NotionRenderer
+  blocks={blocks}
+  components={{
+    callout({ block, children, renderRichText }) {
+      return (
+        <aside className="rounded-lg bg-fd-muted p-4">
+          {renderRichText(block.callout.rich_text)}
+          {children}
+        </aside>
+      );
+    },
+  }}
+/>;
+```
+
+代码块默认会在服务端通过 Shiki 进行语法高亮。传入 `highlightCode={false}` 即可渲染未经语法高亮的代码；若要改用你自己的语法高亮器，则可传入一个函数。
+
+## 仅导入来源 [#source-only-import]
+
+若代码只需要截取 Notion 页面 (例如搜索索引器或 `llms.txt` 路由) ，可以改从 `@fumadocs/notion/source` 导入，以略过 React 渲染器的进入点：
+
+```ts
+import { createNotion } from '@fumadocs/notion/source';
+```
+
+此进入点会将 Notion SDK 保留为外部依赖包，且不含任何 React 导入。此处同样提供 `blocksToPlainText()`、`blocksToStructuredData()` 与 `blocksToTableOfContents()`。

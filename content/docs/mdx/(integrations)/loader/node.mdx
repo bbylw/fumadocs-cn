@@ -1,17 +1,19 @@
 ---
 title: Node.js
-description: 在 Node.js 执行阶段中存取内容。
+description: 在 Node.js 运行时中访问内容。
 ---
 
-请使用 [tsx](https://tsx.is) 等 TypeScript 执行器来执行您的指令码，因为范本中的 `lib/source.ts` 使用了省略副档名的汇入与路径别名，而 Node.js 无法解析这些写法。
+## 设置 [#setup]
+
+请使用 [tsx](https://tsx.is) 等 TypeScript 运行器来运行你的脚本，因为模板中的 `lib/source.ts` 使用了省略扩展名的导入与路径别名，而 Node.js 无法解析这些写法。
 
 ```ts title="scripts/example.ts"
 import { register } from 'fumadocs-mdx/node';
 
-// 注册 Node.js 载入器
+// 注册 Node.js 加载器
 register();
 
-// 存取内容
+// 访问内容
 const { source } = await import('../lib/source');
 console.log(source.getPages());
 ```
@@ -20,9 +22,9 @@ console.log(source.getPages());
 npx tsx scripts/example.ts
 ```
 
-此载入器只会转换 ES 模组。请在 `package.json` 中设定 `"type": "module"`，让 `lib/source.ts` 以 ES 模组的形式载入。此设定会套用到套件内所有的 `.js` 档案，因此请先将 `next.config.js` 等 CommonJS 档案转换为 ESM。
+此加载器只会转换 ES 模块。请在 `package.json` 中设置 `"type": "module"`，让 `lib/source.ts` 以 ES 模块的形式加载。此设置会应用到包内所有的 `.js` 文件，因此请先将 `next.config.js` 等 CommonJS 文件转换为 ESM。
 
-`register()` 函式可接受以下选项：
+`register()` 函数可接受以下选项：
 
 ```ts
 register({

@@ -1,9 +1,9 @@
 ---
 title: Remark Structure
-description: 从您的文件中撷取搜寻纪录。
+description: 从你的文档中截取搜索记录。
 ---
 
-`remarkStructure` 外挂会将文件的标题与内容撷取为纪录，供[搜寻](/docs/headless/search)使用。纪录会保留您原本撰写的 Markdown。产生方式请参阅[字串化](/docs/headless/mdx/stringification)。
+`remarkStructure` 插件会将文档的标题与内容截取为记录，供[搜索](/docs/headless/search)使用。记录会保留你原本撰写的 Markdown。生成方式请参阅[字符串化](/docs/headless/mdx/stringification)。
 
 ```mdx tab="Input"
 ## Installation
@@ -31,21 +31,24 @@ Run the [command](/docs/cli) below.
   ]
 }
 ```
-Remark Structure 是一个 remark 外挂。Fumadocs MDX 预设会启用它，并将纪录汇出为 `structuredData`。您可以透过 `remarkStructureOptions` 传入选项。
 
-在 Fumadocs MDX 中，纪录会依据页面的 props 产生：[`<show>`](/docs/markdown#show) 中未被算绘的内容会被排除，表达式则会替换为其求值结果。在 Fumadocs MDX 以外，表达式会保留为原始码文字。
+## 使用方式 [#usage]
 
-## 纪录 [#records]
+Remark Structure 是一个 remark 插件。Fumadocs MDX 默认会启用它，并将记录导出为 `structuredData`。你可以通过 `remarkStructureOptions` 传入选项。
 
-标题、段落、引用区块、表格与 JSX 元素都会被记录 (请参阅 `types`) ：
+在 Fumadocs MDX 中，记录会依据页面的 props 生成：[`<show>`](/docs/markdown#show) 中未被渲染的内容会被排除，表达式则会替换为其求值结果。在 Fumadocs MDX 以外，表达式会保留为源代码文字。
 
-* 连结会替换为其文字，图片则会移除。
-* 表格的每一列各为一笔纪录，内容是由表头与该列组成的表格。这些列共用同一个 `table` 栏位。
-* JSX 元素会替换为其内容，但 `filterElement` 保留的元素除外 (请参阅[元件](#components)) 。
-* JSX 元素若没有子元素 (请参阅 `mdxTypes`) ，或可以写在一行内，即为一笔纪录。
-* 纪录内的内容不会重复记录。
+## 记录 [#records]
 
-在 Fumadocs MDX 中，此外挂预设会保留元件的元素，例如 `<Callout>`，但不包含 `<div>`。在 Fumadocs MDX 之外，则会保留 `File`、`TypeTable`、`Callout` 与 `Card`。您可以透过 `filterElement` 变更此行为：
+标题、段落、引用块、表格与 JSX 元素都会被记录 (请参阅 `types`) ：
+
+* 链接会替换为其文字，图片则会移除。
+* 表格的每一列各为一笔记录，内容是由表头与该列组成的表格。这些列共用同一个 `table` 字段。
+* JSX 元素会替换为其内容，但 `filterElement` 保留的元素除外 (请参阅[组件](#components)) 。
+* JSX 元素若没有子元素 (请参阅 `mdxTypes`) ，或可以写在一行内，即为一笔记录。
+* 记录内的内容不会重复记录。
+
+在 Fumadocs MDX 中，此插件默认会保留组件的元素，例如 `<Callout>`，但不包含 `<div>`。在 Fumadocs MDX 之外，则会保留 `File`、`TypeTable`、`Callout` 与 `Card`。你可以通过 `filterElement` 变更此行为：
 
 ```ts tab="unified" title="source.config.ts"
 import { defineConfig } from 'fumadocs-mdx/config';
@@ -74,16 +77,19 @@ export default defineConfig({
   },
 });
 ```
-在 Fumadocs MDX 中，保留下来的 JSX 元素会依您读取纪录的方式，以下列两种形式之一记录：
 
-* `page.data.structuredData`：不会算绘元件。该元素会保留为 HTML 标签，再由搜寻对话方块将其作为元件算绘。若使用 `async` 或 `dynamic` 集合，请从已载入的页面读取。
-* `await page.data.structuredData()`：会针对 [`search` 目标](/docs/headless/utils/markdown#targets)算绘元件，并将该元素替换为对应的 Markdown 形式。只有 `async` 与 `dynamic` 集合提供此函式。
+## 组件 [#components]
 
-算绘时，元件的查找方式与 MDX 相同：先查找档案中的汇入与宣告，再查找[页面 props](/docs/headless/source-api#custom-props) 中的 MDX 元件。
+在 Fumadocs MDX 中，保留下来的 JSX 元素会依你读取记录的方式，以下列两种形式之一记录：
 
-搜寻会从 `getPages()` 读取页面，而这些页面不含自订 props。若希望搜寻时能算绘某个元件，请在档案中汇入或宣告该元件。
+* `page.data.structuredData`：不会渲染组件。该元素会保留为 HTML 标签，再由搜索对话框将其作为组件渲染。若使用 `async` 或 `dynamic` 集合，请从已加载的页面读取。
+* `await page.data.structuredData()`：会针对 [`search` 目标](/docs/headless/utils/markdown#targets)渲染组件，并将该元素替换为对应的 Markdown 形式。只有 `async` 与 `dynamic` 集合提供此函数。
 
-元件可透过 [`asMarkdown()`](/docs/headless/utils/markdown#asmarkdown) 定义供搜寻使用的文字：
+渲染时，组件的查找方式与 MDX 相同：先查找文件中的导入与声明，再查找[页面 props](/docs/headless/source-api#custom-props) 中的 MDX 组件。
+
+搜索会从 `getPages()` 读取页面，而这些页面不含自定义 props。若希望搜索时能渲染某个组件，请在文件中导入或声明该组件。
+
+组件可通过 [`asMarkdown()`](/docs/headless/utils/markdown#asmarkdown) 定义供搜索使用的文字：
 
 ```tsx
 import { asMarkdown } from 'fumadocs-core/server';
@@ -94,33 +100,36 @@ export function ProductName() {
 }
 ```
 
-没有对应 Markdown 形式的元件会保留为 JSX 语法，与页面 props 中缺少的 MDX 元件处理方式相同。
+没有对应 Markdown 形式的组件会保留为 JSX 语法，与页面 props 中缺少的 MDX 组件处理方式相同。
 
-## 外挂 [#plugins]
+## 插件 [#plugins]
 
-外挂插入的节点不会被记录。外挂需透过 `data.structuredData` 自行加入其节点的纪录：
+插件插入的节点不会被记录。插件需通过 `data.structuredData` 自行加入其节点的记录：
 
 ```ts
 node.data = {
   ...node.data,
   structuredData: {
-    // `heading` 预设为目前的标题
+    // `heading` 默认为当前的标题
     contents: [{ heading: undefined, content: 'Generated **content**' }],
   },
 };
 ```
 
-若只想变更纪录中所撰写内容的 Markdown，请使用 [`replaceSource()`](/docs/headless/mdx/stringification#editing-the-output) 编辑 `search` 命名空间。
+若只想变更记录中所撰写内容的 Markdown，请使用 [`replaceSource()`](/docs/headless/mdx/stringification#editing-the-output) 编辑 `search` 命名空间。
 
-## 作为函式使用 [#as-a-function]
+## 作为函数使用 [#as-a-function]
 
-在 unified 中，`structure()` 会从字串撷取纪录：
+在 unified 中，`structure()` 会从字符串截取记录：
 
 ```ts
 import { structure } from 'fumadocs-core/mdx-plugins';
 import remarkMath from 'remark-math';
 
-// 传入您的内容所需的 remark 外挂
+// 传入你的内容所需的 remark 插件
 const data = structure(content, [remarkMath], options);
 ```
+
+## 选项 [#options]
+
 <auto-type-table path="../props.ts" name="StructureOptions" />

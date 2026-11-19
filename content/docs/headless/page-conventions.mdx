@@ -1,16 +1,16 @@
 ---
 title: 页面 Slug 与页面树
-description: 自订系统产生的页面 slug 与页面树。
+description: 自定义系统生成的页面 slug 与页面树。
 ---
 
 > 本指南仅适用于使用 `loader()` API 的内容来源，例如 **Fumadocs MDX**。
 
 ## 概览 [#overview]
 
-Fumadocs 会透过 [`loader()`](/docs/headless/source-api) 从您的内容目录产生**页面 slug** 与**页面树** (侧边栏项目) ，
-路由功能则交由您的 React 框架处理。
+Fumadocs 会通过 [`loader()`](/docs/headless/source-api) 从你的内容目录生成**页面 slug** 与**页面树** (侧边栏项目) ，
+路由功能则交由你的 React 框架处理。
 
-您可以用类似档案系统路由的方式定义资料夹与页面。
+你可以用类似文件系统路由的方式定义文件夹与页面。
 
 <Files>
   <Folder name="content/docs（内容目录）" defaultOpen>
@@ -20,11 +20,11 @@ Fumadocs 会透过 [`loader()`](/docs/headless/source-api) 从您的内容目录
   </Folder>
 </Files>
 
-若要进一步自订输出结果，可以使用[载入器外挂](/docs/headless/source-api/plugins)。
+若要进一步自定义输出结果，可以使用[加载器插件](/docs/headless/source-api/plugins)。
 
-## 档案 [#file]
+## 文件 [#file]
 
-若是 [MDX](https://mdxjs.com) &amp; Markdown 档案，您可以透过 frontmatter 自订页面资讯。
+若是 [MDX](https://mdxjs.com) &amp; Markdown 文件，你可以通过 frontmatter 自定义页面信息。
 
 ```mdx
 ---
@@ -36,45 +36,45 @@ icon: House
 ## Learn More
 ```
 
-Fumadocs 会读取以下属性来建构页面树。
+Fumadocs 会读取以下属性来构建页面树。
 
 | 名称            | 说明                   |
 | ------------- | -------------------- |
 | `title`       | 页面标题                 |
 | `description` | 页面说明                 |
-| `icon`        | 图示名称，请参阅[图示](#icons) |
+| `icon`        | 图标名称，请参阅[图标](#icons) |
 
 <Callout title="小提示">
-  页面资讯由内容来源 (例如 **Fumadocs MDX**) 提供。
+  页面信息由内容来源 (例如 **Fumadocs MDX**) 提供。
 
-  在 Fumadocs MDX 中，您可以透过 [`schema`](/docs/mdx/collections#schema-1) 选项自订 frontmatter schema。
+  在 Fumadocs MDX 中，你可以通过 [`schema`](/docs/mdx/collections#schema-1) 选项自定义 frontmatter schema。
 </Callout>
 
 ### Slugs [#slugs]
 
-页面的 slugs 是根据其档案路径产生的。
+页面的 slugs 是根据其文件路径生成的。
 
-| 路径 (相对于内容资料夹)     | slugs             |
+| 路径 (相对于内容文件夹)     | slugs             |
 | ----------------- | ----------------- |
 | `./dir/page.mdx`  | `['dir', 'page']` |
 | `./dir/index.mdx` | `['dir']`         |
 
-## 资料夹 [#folder]
+## 文件夹 [#folder]
 
-资料夹用来组织多个页面，您可以建立 [Meta 档案](#meta) 来自订资料夹。
+文件夹用来组织多个页面，你可以创建 [Meta 文件](#meta) 来自定义文件夹。
 
-### 资料夹群组 [#folder-group]
+### 文件夹分组 [#folder-group]
 
-根据预设，将档案放入资料夹会改变其 slugs。
-若不想影响子档案的 slugs，可以用括号包住资料夹名称。
+根据默认，将文件放入文件夹会改变其 slugs。
+若不想影响子文件的 slugs，可以用括号包住文件夹名称。
 
-| 路径 (相对于内容资料夹)             | slugs      |
+| 路径 (相对于内容文件夹)             | slugs      |
 | ------------------------- | ---------- |
 | `./(group-name)/page.mdx` | `['page']` |
 
-### 根资料夹 [#root-folder]
+### 根文件夹 [#root-folder]
 
-将资料夹标记为根资料夹，仅显示目前开启的根资料夹中的项目。
+将文件夹标记为根文件夹，仅显示目前打开的根文件夹中的项目。
 
 ```json title="meta.json"
 {
@@ -84,7 +84,7 @@ Fumadocs 会读取以下属性来建构页面树。
 }
 ```
 
-例如，当您开启根资料夹 `framework` 时，其他资料夹 (例如 `headless`) 就不会显示在侧边栏和其他导览元素中。
+例如，当你打开根文件夹 `framework` 时，其他文件夹 (例如 `headless`) 就不会显示在侧边栏和其他导航元素中。
 
 <Files>
   <Folder name="framework" defaultOpen>
@@ -101,13 +101,13 @@ Fumadocs 会读取以下属性来建构页面树。
 </Files>
 
 <Callout title="Fumadocs UI">
-  Fumadocs UI 会将根资料夹算绘为[版面配置页签](/docs/ui/layouts/docs#layout-tabs)，让使用者能在各个根资料夹之间切换。
+  Fumadocs UI 会将根文件夹渲染为[布局选项卡](/docs/ui/layouts/docs#layout-tabs)，让用户能在各个根文件夹之间切换。
 </Callout>
 
 ### 根类型 [#root-type]
 
-`root` 也可以接受字串，用来指定根资料夹的**类型**：
-在同一个上层范围内，相同类型的根资料夹可以互相切换，例如同一份文件的不同版本。
+`root` 也可以接受字符串，用来指定根文件夹的**类型**：
+在同一个上层范围内，相同类型的根文件夹可以互相切换，例如同一篇文档的不同版本。
 
 <Files>
   <Folder name="v1" defaultOpen>
@@ -141,22 +141,22 @@ Fumadocs 会读取以下属性来建构页面树。
 }
 ```
 
-`root: true` 其实就是预设类型，会以页签形式显示。
+`root: true` 其实就是默认类型，会以选项卡形式显示。
 
-切换到同类型的另一个根资料夹时，页面会对应到其**结构投影**，也就是相对于根资料夹位于相同路径的页面：
+切换到同类型的另一个根文件夹时，页面会对应到其**结构投影**，也就是相对于根文件夹位于相同路径的页面：
 
 | 页面                    | 在 `v2` 中的投影                     |
 | --------------------- | ------------------------------- |
 | `v1/guide.mdx`        | `v2/guide.mdx`                  |
-| `v1/python/guide.mdx` | `v2/python/guide.mdx`，巢状根资料夹会保留 |
+| `v1/python/guide.mdx` | `v2/python/guide.mdx`，嵌套根文件夹会保留 |
 
 <Callout title="Fumadocs UI">
-  Fumadocs UI 会为目前页面路径上的每个根资料夹算绘一个[下拉选单](/docs/ui/layouts/docs#tabs-groups)，用来在同类型的根资料夹之间切换。完整范例请参阅[版本管理](/docs/navigation#versioning)。
+  Fumadocs UI 会为当前页面路径上的每个根文件夹渲染一个[下拉菜单](/docs/ui/layouts/docs#tabs-groups)，用来在同类型的根文件夹之间切换。完整示例请参阅[版本管理](/docs/navigation#versioning)。
 </Callout>
 
 ## Meta [#meta]
 
-在资料夹中建立 `meta.json` 档案，即可自订该资料夹。
+在文件夹中创建 `meta.json` 文件，即可自定义该文件夹。
 
 ```json tab="meta.json"
 {
@@ -176,20 +176,20 @@ export default {
 };
 ```
 
-若您的内容来源支援，也可以用程式码撰写 meta 档案 (`meta.ts` 或 `meta.js`) ，并将资料设为预设汇出 (default export) 。
+若你的内容来源支持，也可以用代码撰写 meta 文件 (`meta.ts` 或 `meta.js`) ，并将数据设为默认导出 (default export) 。
 
 | 名称            | 说明                      |
 | ------------- | ----------------------- |
 | `title`       | 显示名称                    |
-| `icon`        | 图示名称，请参阅[图示](#icons)    |
-| `defaultOpen` | 预设展开资料夹                 |
-| `collapsible` | 资料夹内容是否可收合 (预设：`true`)  |
-| `pages`       | 资料夹项目 (详见下文)            |
+| `icon`        | 图标名称，请参阅[图标](#icons)    |
+| `defaultOpen` | 默认展开文件夹                 |
+| `collapsible` | 文件夹内容是否可收合 (默认：`true`)  |
+| `pages`       | 文件夹项目 (详见下文)            |
 | `pagesIndex`  | 索引项目 (详见下文)             |
 
 ### 页面 [#pages]
 
-资料夹中的项目预设依字母顺序排序，您可以使用 `pages` 新增项目或调整项目顺序。
+文件夹中的项目默认依字母顺序排序，你可以使用 `pages` 添加项目或调整项目顺序。
 
 ```json title="meta.json"
 {
@@ -197,16 +197,16 @@ export default {
 }
 ```
 
-> 指定此栏位后，只有列在 `pages` 中的项目才会被纳入。
+> 指定此字段后，只有列在 `pages` 中的项目才会被纳入。
 
 | 类型         | 语法                                                                 | 说明                                               |
 | ---------- | ------------------------------------------------------------------ | ------------------------------------------------ |
-| **路径**     | `./path/to/page`                                                   | 指向页面或资料夹的路径。                                     |
-| **分隔项目**   | `---Label---`<br />`---[Icon]Label---`                             | 两个区段之间的分隔符 (支援图示) 。                              |
-| **连结**     | `[Text](url)`<br />`[Icon][Text](url)`<br />`external:[Text](url)` | 插入连结 (支援图示) <br />加上 `external:` 前缀即可将连结标记为外部连结。 |
+| **路径**     | `./path/to/page`                                                   | 指向页面或文件夹的路径。                                     |
+| **分隔项目**   | `---Label---`<br />`---[Icon]Label---`                             | 两个节之间的分隔符 (支持图标) 。                              |
+| **链接**     | `[Text](url)`<br />`[Icon][Text](url)`<br />`external:[Text](url)` | 插入链接 (支持图标) <br />加上 `external:` 前缀即可将链接标记为外部链接。 |
 | **其余项目**   | `...`                                                              | 纳入其余页面 (依字母顺序排序) 。                               |
 | **反向其余项目** | `z...a`                                                            | 反向排序的**其余项目**。                                   |
-| **展开**     | `...folder`                                                        | 展开资料夹中的项目。                                       |
+| **展开**     | `...folder`                                                        | 展开文件夹中的项目。                                       |
 | **排除**     | `!item`                                                            | 从 `...` 或 `z...a` 中排除某个项目。                       |
 
 ```json title="meta.json"
@@ -228,18 +228,18 @@ export default {
   同一个页面 URL 在整个页面树中只能出现一次。
   基于相同原因，页面项目也不得重复。
 
-  这是刻意的设计，让 Fumadocs 能够仅依据目前的 pathname 找出作用中的树状项目。
+  这是刻意的设计，让 Fumadocs 能够仅依据当前的 pathname 找出作用中的树状项目。
 </Callout>
 
-### 资料夹索引 [#folder-index]
+### 文件夹索引 [#folder-index]
 
-当资料夹拥有索引项目时，该资料夹即可点击，点击后会跳转至索引项目。
+当文件夹拥有索引项目时，该文件夹即可点击，点击后会跳转至索引项目。
 
-预设情况下，索引项目是各资料夹中的 `index` 档案。您也可以自行指定资料夹的索引项目，支援 **路径** 与 **连结** 两种类型。
+默认情况下，索引项目是各文件夹中的 `index` 文件。你也可以自行指定文件夹的索引项目，支持 **路径** 与 **链接** 两种类型。
 
 ```json tab="meta.json (Path)"
 {
-  // 假设该资料夹下有 "overview.mdx" 档案
+  // 假设该文档夹下有 "overview.mdx" 文档
   "pagesIndex": "overview"
 }
 ```
@@ -249,19 +249,22 @@ export default {
   "pagesIndex": "[Example](https://example.com)"
 }
 ```
-由于 Fumadocs 并未内建图示函式库，您必须在执行阶段将图示名称转换为 JSX 元素，再以元件的形式算绘。
 
-您可以为 `loader()` 加入 [`icon` 处理器](/docs/headless/source-api#icons)。
+## 图标 [#icons]
+
+由于 Fumadocs 并未内置图标函数库，你必须在运行时将图标名称转换为 JSX 元素，再以组件的形式渲染。
+
+你可以为 `loader()` 加入 [`icon` 处理器](/docs/headless/source-api#icons)。
 
 ## i18n 路由 [#i18n-routing]
 
-您可以为 i18n 路由定义不同的风格。
+你可以为 i18n 路由定义不同的风格。
 
 ```ts title="lib/i18n.ts"
 import type { I18nConfig } from 'fumadocs-core/i18n';
 
 export const i18n: I18nConfig = {
-  // 预设值
+  // 默认值
   parser: 'dot',
   // 或
   parser: 'dir',
@@ -270,7 +273,7 @@ export const i18n: I18nConfig = {
 
 <Tabs items={['dot', 'dir']}>
   <Tab>
-    在档名后加上 `.{locale}`，即可为不同语言新增 Markdown/meta 档案，例如：
+    在文件名后加上 `.{locale}`，即可为不同语言添加 Markdown/meta 文件，例如：
 
     <Files>
       <Folder name="content/docs" defaultOpen>
@@ -284,11 +287,11 @@ export const i18n: I18nConfig = {
       </Folder>
     </Files>
 
-    预设语系的档案可省略语系代码。
+    默认语系的文件可省略语系代码。
   </Tab>
 
   <Tab>
-    所有内容档案皆依语言分别放在各自的资料夹中：
+    所有内容文件皆依语言分别放在各自的文件夹中：
 
     <Files>
       <Folder name="content/docs" defaultOpen>
@@ -310,7 +313,7 @@ export const i18n: I18nConfig = {
 
 ## 路径参数 [#path-params]
 
-系统会依参数的每个值，各产生一个名为 `[name]` 的资料夹。请在该资料夹的 meta 档案中，于 `staticParams` 列出这些值：
+系统会依参数的每个值，各生成一个名为 `[name]` 的文件夹。请在该文件夹的 meta 文件中，于 `staticParams` 列出这些值：
 
 <Files>
   <Folder name="content/docs" defaultOpen>
@@ -329,13 +332,13 @@ export const i18n: I18nConfig = {
 }
 ```
 
-| 路径 (相对于内容资料夹)              | slugs                                       |
+| 路径 (相对于内容文件夹)              | slugs                                       |
 | -------------------------- | ------------------------------------------- |
 | `./[framework]/deploy.mdx` | `['waku', 'deploy']`, `['astro', 'deploy']` |
 
-meta 档案会套用到每个产生的资料夹。页面会以 [props](/docs/markdown#props) 的形式接收其参数，也可以透过 `loader()` 回传的 `page.params` 取得。
+meta 文件会应用到每个生成的文件夹。页面会以 [props](/docs/markdown#props) 的形式接收其参数，也可以通过 `loader()` 返回的 `page.params` 取得。
 
-在 `meta.ts` 中，您也可以改为汇出一个以参数为输入的函式，并将 `staticParams` 作为具名汇出：
+在 `meta.ts` 中，你也可以改为导出一个以参数为输入的函数，并将 `staticParams` 作为具名导出：
 
 ```ts title="[framework]/meta.ts"
 const names = { waku: 'Waku', astro: 'Astro' };
@@ -348,12 +351,12 @@ export default ({ framework }: { framework: keyof typeof names }) => ({
 ```
 
 <Callout title="小提示">
-  若没有任何地方列出 `[name]` 资料夹的值，它就会维持为一般资料夹。
+  若没有任何地方列出 `[name]` 文件夹的值，它就会维持为一般文件夹。
 </Callout>
 
 ### 页面参数 [#page-params]
 
-页面也可以在 frontmatter 中列出 `staticParams`。若所属资料夹也有列出，则只会针对两者共有的值产生该页面。
+页面也可以在 frontmatter 中列出 `staticParams`。若所属文件夹也有列出，则只会针对两者共有的值生成该页面。
 
 ```mdx title="[framework]/fumadocs-mdx.mdx"
 ---
@@ -362,15 +365,18 @@ staticParams:
   - framework: waku
 ---
 ```
-位于固定路径的档案，优先顺序高于动态产生的档案。例如，`astro/deploy.mdx` 会取代 `[framework]/deploy.mdx` 所产生的 `astro` 页面。meta 档案也适用相同规则。
+
+### 静态路径 [#static-paths]
+
+位于固定路径的文件，优先级高于动态生成的文件。例如，`astro/deploy.mdx` 会取代 `[framework]/deploy.mdx` 所生成的 `astro` 页面。meta 文件也适用相同规则。
 
 ### 在地化页面 [#localized-pages]
 
-启用 [i18n](#i18n-routing) 时，语系本身的档案会优先于其备用语系的档案。以 `/cn/docs/astro/deploy` 为例，会依序采用第一个存在的档案：
+激活 [i18n](#i18n-routing) 时，语系本身的文件会优先于其备用语系的文件。以 `/cn/docs/astro/deploy` 为例，会依序采用第一个存在的文件：
 
 1. `astro/deploy.cn.mdx`
 2. `[framework]/deploy.cn.mdx`
 3. `astro/deploy.mdx`
 4. `[framework]/deploy.mdx`
 
-在地化页面会优先从 `meta.cn.json` 读取 `staticParams`。使用 `dir` 解析器时，每个语言资料夹会各自列出其值。
+在地化页面会优先从 `meta.cn.json` 读取 `staticParams`。使用 `dir` 解析器时，每个语言文件夹会各自列出其值。

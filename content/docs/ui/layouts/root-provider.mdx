@@ -3,11 +3,11 @@ title: Root Provider
 description: Fumadocs UI 的 Context Provider。
 ---
 
-为所有元件提供 Context 的 Provider，其中包含 `next-themes` 与 [``](/docs/headless#installation)。请将它放在根版面配置中。
+为所有组件提供 Context 的 Provider，其中包含 `next-themes` 与 [`<FrameworkProvider />`](/docs/headless#installation)。请将它放在根布局中。
 
 ## 使用方式 [#usage]
 
-请依您使用的 React.js 框架汇入：
+请依你使用的 React.js 框架导入：
 
 ```jsx tab="Next.js"
 import { RootProvider } from 'fumadocs-ui/provider/next';
@@ -78,7 +78,7 @@ export default function Layout({ children }) {
 import { navigate } from 'astro:transitions/client';
 import { RootProvider } from 'fumadocs-ui/provider/astro';
 
-// 此元件在 React island 中算绘，请从 Astro 页面传入 pathname 与 params。
+// 此组件在 React island 中渲染，请从 Astro 页面传入 pathname 与 params。
 export function Provider({ pathname, params, children }) {
   return (
     <RootProvider pathname={pathname} params={params} navigate={navigate}>
@@ -87,7 +87,10 @@ export function Provider({ pathname, params, children }) {
   );
 }
 ```
-您可以透过 `search` 选项自订或停用搜寻对话方块。
+
+### 搜索对话框 [#search-dialog]
+
+你可以通过 `search` 选项自定义或禁用搜索对话框。
 
 ```jsx
 <RootProvider
@@ -99,12 +102,12 @@ export function Provider({ pathname, params, children }) {
 </RootProvider>
 ```
 
-详情请参阅[搜寻](/docs/ui/search)。
+详情请参阅[搜索](/docs/ui/search)。
 
 ### 主题 Provider [#theme-provider]
 
-Fumadocs 透过 [`next-themes`](https://github.com/pacocoursey/next-themes) 支援浅色／深色模式。
-您可以透过 `theme` 选项自订或停用此功能。
+Fumadocs 通过 [`next-themes`](https://github.com/pacocoursey/next-themes) 支持浅色／深色模式。
+你可以通过 `theme` 选项自定义或禁用此功能。
 
 ```jsx
 <RootProvider
@@ -116,14 +119,14 @@ Fumadocs 透过 [`next-themes`](https://github.com/pacocoursey/next-themes) 支�
 </RootProvider>
 ```
 
-您也可以自行安装 `next-themes`，并在程式码中引用它来管理主题。
+你也可以自行安装 `next-themes`，并在代码中引用它来管理主题。
 
 #### 快捷键 [#hotkey]
 
-按下 <kbd>D</kbd> 即可切换浅色与深色模式。
-当您正在可编辑的元素 (例如 `<input />`) 中输入内容，或已开启对话方块 (例如搜寻对话方块) 时，此快捷键不会生效。
+点击 <kbd>D</kbd> 即可切换浅色与深色模式。
+当你正在可编辑的元素 (例如 `<input />`) 中输入内容，或已打开对话框 (例如搜索对话框) 时，此快捷键不会生效。
 
-您可以将其他按键传入 `theme.hotKey`，或传入 `false` 来停用此快捷键。
+你可以将其他按键传入 `theme.hotKey`，或传入 `false` 来禁用此快捷键。
 
 ```jsx
 <RootProvider
@@ -135,7 +138,7 @@ Fumadocs 透过 [`next-themes`](https://github.com/pacocoursey/next-themes) 支�
 </RootProvider>
 ```
 
-也可以传入函式，以完全掌控要比对的按键组合。
+也可以传入函数，以完全掌控要比对的按键组合。
 
 ```jsx
 <RootProvider

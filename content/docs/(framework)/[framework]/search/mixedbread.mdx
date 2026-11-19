@@ -1,0 +1,80 @@
+---
+title: Mixedbread
+description: 在 Fumadocs UI 中使用 Mixedbread。
+---
+
+## 设置 [#setup]
+
+Mixedbread 搜索会在请求时于你的服务器上运行，因此不适用于静态网站。
+
+Fumadocs CLI 可以帮你完成设置，它会创建搜索对话框、搜索路由、`static.json` 路由，以及一个在每次构建后同步保存区的脚本：
+
+```package-install
+npx @fumadocs/cli feature search --provider mixedbread
+```
+
+或手动设置：
+
+1. 集成 [Mixedbread Search](/docs/headless/search/mixedbread)。
+
+2. 创建搜索对话框组件。
+
+   ```tsx title="components/search.tsx"
+   'use client';
+
+   import {
+     SearchDialog,
+     SearchDialogClose,
+     SearchDialogContent,
+     SearchDialogFooter,
+     SearchDialogHeader,
+     SearchDialogIcon,
+     SearchDialogInput,
+     SearchDialogList,
+     SearchDialogOverlay,
+     type SharedProps,
+   } from 'fumadocs-ui/components/dialog/search';
+   import { useFetchSearch } from 'fumadocs-core/search/client';
+   import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+   export default function CustomSearchDialog(props: SharedProps) {
+     const { locale } = useI18n(); // (optional) for i18n
+     const search = useFetchSearch({
+       api: '/api/search',
+       locale,
+       // every search is a request to Mixedbread
+       delayMs: 300,
+     });
+
+     return (
+       <SearchDialog {...search} {...props}>
+         <SearchDialogOverlay />
+         <SearchDialogContent>
+           <SearchDialogHeader>
+             <SearchDialogIcon />
+             <SearchDialogInput />
+             <SearchDialogClose />
+           </SearchDialogHeader>
+           <SearchDialogList />
+           <SearchDialogFooter>
+             <a
+               href="https://mixedbread.com"
+               rel="noreferrer noopener"
+               className="ms-auto text-xs text-fd-muted-foreground"
+             >
+               Search powered by Mixedbread
+             </a>
+           </SearchDialogFooter>
+         </SearchDialogContent>
+       </SearchDialog>
+     );
+   }
+   ```
+
+<include>.shared.mdx</include>
+
+### 标签筛选 [#tag-filter]
+
+你也可以按需加入依标签筛选结果的 UI。请在搜索服务器上设置[标签筛选](/docs/headless/search/mixedbread#tag-filter)，并加入以下内容：
+
+<include>.tag-filter.mdx</include>

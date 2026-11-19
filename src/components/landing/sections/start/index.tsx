@@ -7,7 +7,7 @@ import { command, copy } from '../../content';
 
 const links = [
   { text: '文档', href: '/docs' },
-  { text: '对比', href: '/docs/comparisons' },
+  { text: '对比', href: '/docs/next/comparisons' },
   { text: '案例', href: 'https://www.fumadocs.dev/showcase', external: true },
   { text: '赞助', href: 'https://fuma-nama.dev/sponsors', external: true },
   { text: 'GitHub', href: 'https://github.com/fuma-nama/fumadocs', external: true },
@@ -27,7 +27,7 @@ export function Start() {
           <a href="/docs" className={cn(button, 'bg-lp-yellow text-lp-on-yellow')}>
             开始使用
           </a>
-          <a href="/docs/what-is-fumadocs" className={cn(button, 'bg-lp-paper')}>
+          <a href="/docs/next/what-is-fumadocs" className={cn(button, 'bg-lp-paper')}>
             为何选择 Fumadocs
           </a>
           <a

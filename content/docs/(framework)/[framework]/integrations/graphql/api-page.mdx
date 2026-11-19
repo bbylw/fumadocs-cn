@@ -1,0 +1,371 @@
+---
+title: createGraphQLPage()
+description: 用于渲染 GraphQL 文档内容的组件
+---
+
+## 概览 [#overview]
+
+Fumadocs GraphQL 使用 `<GraphQLPage />` 组件来渲染页面内容，此组件应为客户端组件。
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+export const GraphQLPage = createGraphQLPage({
+  // 设置
+});
+```
+
+### 交互测试区 [#playground]
+
+设置端点后，operation 页面会提供交互测试区：读者可以编辑 operation、通过表单或 JSON 填入变量，再附上自己的标头送出。
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+export const GraphQLPage = createGraphQLPage({
+  playground: {
+    url: 'https://api.example.com/graphql',
+    // 允许用户编辑端点 URL（默认：true）
+    allowUrlEdit: false,
+    // 交互测试区请求的默认标头
+    headers: {
+      'X-Client-Name': 'docs',
+    },
+  },
+});
+```
+
+<Callout type="warn">
+  请勿将密钥等机密信息放入 `headers`，因为这些内容会发送至浏览器、显示在代码示例中，并依端点来源保存在浏览器的本地保存空间 (local storage) 中。
+</Callout>
+
+查找 (query) 与变更 (mutation) 会通过 HTTP POST 发送，你可以替换其 fetcher，例如通过代理服务器转送请求：
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+export const GraphQLPage = createGraphQLPage({
+  playground: {
+    async fetcher(request) {
+      const start = performance.now();
+      const res = await fetch('/api/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...request.headers },
+        body: JSON.stringify({ query: request.query, variables: request.variables }),
+      });
+
+      return {
+        type: 'response',
+        status: res.status,
+        time: performance.now() - start,
+        body: await res.text(),
+        contentType: res.headers.get('Content-Type') ?? '',
+        // 选填，会显示在 Headers 选项卡中
+        headers: Array.from(res.headers),
+      };
+    },
+  },
+});
+```
+
+或者，你也可以使用 `render` 完全替换交互测试区的 UI，它会显示在原本签名列的位置：
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+export const GraphQLPage = createGraphQLPage({
+  playground: {
+    render({ kind, name, operation }) {
+      return <div>my playground</div>;
+    },
+  },
+});
+```
+
+#### 订阅 [#subscriptions]
+
+在订阅页面上，交互测试区会订阅 `subscriptionUrl`，并记录收到的事件。默认值为将 `url` 的 scheme 改为 `ws(s)://` 后的网址。
+
+| `subscriptionUrl`     | 协定                                          |
+| --------------------- | ------------------------------------------- |
+| `ws://`, `wss://`     | graphql-ws (`graphql-transport-ws`)         |
+| `http://`, `https://` | GraphQL over SSE (distinct connections 模式)  |
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+export const GraphQLPage = createGraphQLPage({
+  playground: {
+    url: 'https://api.example.com/graphql',
+    // 在同一个端点上通过 SSE 使用 GraphQL（GraphQL over SSE）
+    subscriptionUrl: 'https://api.example.com/graphql',
+  },
+});
+```
+
+<Callout title="浏览器限制">
+  浏览器无法设置 WebSocket 连接的标头，因此 graphql-ws 改将标头放在
+  `connection_init` 的负载中发送。
+</Callout>
+
+### 代码示例 [#code-samples]
+
+示例请求会以 GraphQL 呈现，或以 cURL、JavaScript、Go、Python、Java、C# 和 Rust 代码呈现，这些代码会带上 `playground.headers`，将请求发送至 `playground.url` (未设置时会使用预留位置) 。交互测试区也会针对正在编辑的请求显示相同的代码。订阅页面的示例仅以 GraphQL 呈现。
+
+你可以通过 `codeUsages` 添加生成器，或移除默认的生成器：
+
+```tsx title="components/api-page.tsx"
+'use client';
+import {
+  createCodeUsageGeneratorRegistry,
+  createGraphQLPage,
+  registerDefaultCodeUsages,
+} from '@fumadocs/graphql/ui';
+
+// 若要从零开始，请省略默认项目
+const codeUsages = registerDefaultCodeUsages(createCodeUsageGeneratorRegistry());
+
+// 默认项目：curl、js、go、python、java、csharp、rust
+codeUsages.remove('java');
+codeUsages.add('graphql-request', {
+  label: 'graphql-request',
+  lang: 'js',
+  generate({ url, query, variables = {}, headers }) {
+    return `import { request } from 'graphql-request';
+
+const data = await request(${JSON.stringify(url)}, ${JSON.stringify(query)}, ${JSON.stringify(variables)}, ${JSON.stringify(headers)});`;
+  },
+});
+
+export const GraphQLPage = createGraphQLPage({ codeUsages });
+```
+
+<auto-type-table path="props.ts" name="CodeUsageData" />
+
+### 交互链接 [#cross-linking]
+
+[类型页面](/docs/integrations/graphql/server#includeoperations--includetypes)会自动互相链接，也会链接至 operation。Operation 页面则会让读者留在原页面，其中的类型会在结构描述 UI 中打开。
+
+你也可以自行解析这些链接：
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+export const GraphQLPage = createGraphQLPage({
+  typeLinks(name) {
+    return `/docs/types/${name}`;
+  },
+  operationLinks(kind, name) {
+    return `/docs/${kind}/${name}`;
+  },
+});
+```
+
+若类型或 operation 没有独立页面，请返回 `undefined`。
+
+### 自定义布局 [#custom-layout]
+
+你可以自定义 operation 页面与类型页面的布局。
+
+<Tabs items={['Operation', 'Type']}>
+  <Tab>
+    ```tsx title="components/api-page.tsx"
+    'use client';
+    import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+    export const GraphQLPage = createGraphQLPage({
+      content: {
+        renderOperationLayout(slots) {
+          return (
+            <div className="flex flex-col gap-6">
+              {slots.header}
+              {slots.playground}
+              {slots.description}
+              {slots.deprecated}
+              {slots.arguments}
+              {slots.returns}
+              {slots.example}
+            </div>
+          );
+        },
+      },
+    });
+    ```
+
+    | Slot          | 渲染内容                                                     |
+    | ------------- | -------------------------------------------------------- |
+    | `header`      | 标题，仅在包含多个项目的页面上显示                                        |
+    | `playground`  | 签名 (例如 `QUERY customer(id: ID!): Customer`) 、其指示词以及交互测试区 |
+    | `description` | operation 的说明                                            |
+    | `deprecated`  | 弃用原因                                                     |
+    | `arguments`   | 参数                                                       |
+    | `returns`     | 返回类型及其字段                                                 |
+    | `example`     | 示例请求与回应，在宽版页面上会显示于 operation 旁                           |
+  </Tab>
+
+  <Tab>
+    ```tsx title="components/api-page.tsx"
+    'use client';
+    import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+    export const GraphQLPage = createGraphQLPage({
+      content: {
+        renderTypeLayout(slots) {
+          return (
+            <div className="flex flex-col gap-6">
+              {slots.header}
+              {slots.definition}
+              {slots.description}
+              {slots.fields}
+              {slots.values}
+              {slots.usages}
+              {slots.sdl}
+            </div>
+          );
+        },
+      },
+    });
+    ```
+
+    | Slot          | 渲染内容                                            |
+    | ------------- | ----------------------------------------------- |
+    | `header`      | 名称，仅在包含多个项目的页面上显示                               |
+    | `definition`  | SDL 的开头 (例如 `type Order implements Node`) 及其指示词 |
+    | `description` | 类型的说明                                           |
+    | `fields`      | 对象、界面与输入对象的字段，或联集的成员                            |
+    | `values`      | 枚举的值                                            |
+    | `usages`      | 实现、所属联集，以及使用此类型的 operation 与字段                  |
+    | `sdl`         | 类型的 SDL，在宽版页面上会显示于类型旁                           |
+  </Tab>
+</Tabs>
+
+### 结构描述 UI [#schema-ui]
+
+自定义类型的渲染方式。
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+export const GraphQLPage = createGraphQLPage({
+  schemaUI: {
+    render(options, ctx) {
+      // 完全自定义的 schema 渲染器
+      return <ctx.SchemaUI {...options} />;
+    },
+  },
+});
+```
+
+### 国际化 [#internationalization]
+
+假设你已在 UI 层级设置好[国际化](/docs/internationalization)：
+
+```tsx title="layout.shared.tsx"
+import { defineI18n } from 'fumadocs-core/i18n';
+import { uiTranslations } from 'fumadocs-ui/i18n';
+import { graphqlTranslations } from '@fumadocs/graphql/i18n';
+
+const i18n = defineI18n({
+  languages: ['en', 'cn'],
+  defaultLanguage: 'en',
+});
+
+export const translations = i18n
+  .translations()
+  .extend(uiTranslations())
+  // [!code ++]
+  .extend(graphqlTranslations())
+  .add({
+    cn: {
+      displayName: 'Chinese',
+      // [!code ++]
+      'Arguments(operation page)': '参数',
+    },
+  });
+```
+
+详细信息请参阅[翻译](/docs/ui/translations)。
+
+### 语法高亮 [#syntax-highlighting]
+
+GraphQL 页面会使用 Shiki 为代码块进行语法高亮，若要自定义，可以传入[语法高亮器](/docs/headless/utils/shiki)。
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+import { highlighter } from '@/lib/highlighter';
+
+export const GraphQLPage = createGraphQLPage({ highlighter });
+```
+
+### 自定义组件 [#custom-components]
+
+覆盖默认的标题、代码块及 Markdown 组件。
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+export const GraphQLPage = createGraphQLPage({
+  components: {
+    Heading({ id, depth, ...props }) {
+      const Tag = `h${depth}` as const;
+      return <Tag id={id} {...props} />;
+    },
+    CodeBlock({ lang, code }) {
+      return <pre data-lang={lang}>{code}</pre>;
+    },
+  },
+});
+```
+
+## 自定义 UI [#customise-ui]
+
+若现有选项无法满足你的自定义需求，你可以通过 [Fumadocs CLI](/docs/cli) 将 UI 安装到你的代码库中。
+
+### 完整 UI [#full-ui]
+
+GraphQL 页面的完整 UI，以[无头式层](/docs/integrations/graphql/headless)为基础构建而成。
+
+```npm
+npx @fumadocs/cli add graphql/page
+```
+
+它会自行安装 `<GraphQLPage />`，因此不再需要 `components/api-page.tsx`。请更新 `<GraphQLPage />` 的导入路径：
+
+```tsx
+import { GraphQLPage } from '@/components/api-page'; // [!code --]
+import { GraphQLPage } from '@/components/graphql/page'; // [!code ++]
+```
+
+### 部件 [#parts]
+
+只需安装你想编辑的部件，再通过 `components` 返回即可。`components` 中没有交互测试区的 slot：它会由已安装的 `graphql/operation` 渲染，你也可以从 [`playground.render`](#playground) 返回 `<OperationPlayground />`。
+
+| 组件                   | 内容                 |
+| -------------------- | ------------------ |
+| `graphql/operation`  | operation，包含其参数与示例 |
+| `graphql/type-docs`  | 具名类型，包含其字段与使用之处    |
+| `graphql/schema-ui`  | 类型、参数与字段的详细信息      |
+| `graphql/playground` | 交互测试区              |
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createGraphQLPage } from '@fumadocs/graphql/ui';
+import { Operation } from '@/components/graphql/operation';
+import { TypeDocs } from '@/components/graphql/type-docs';
+
+export const GraphQLPage = createGraphQLPage({
+  components: {
+    Operation,
+    TypeDocs,
+  },
+});
+```

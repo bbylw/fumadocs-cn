@@ -1,14 +1,13 @@
 ---
-title: 中介软体
-description: 用于实作 i18n 路由的 Next.js Proxy
+title: 中间件
+description: 用于实现 i18n 路由的 Next.js Proxy
 ---
 
-此功能会将使用者重新导向至适当的语系，您可以在 `i18n.ts` 设定档中自订。
+## 设置 [#setup]
 
-此功能透过 Next.js 的 Proxy 实作。若要在 React Router、TanStack Start、Waku 与 Astro 中进行设定，请参阅[国际化](/docs/internationalization)。
+此功能会将用户重定向到适当的语系，你可以在 `i18n.ts` 配置文件中自定义。
 
-
-
+此功能通过 Next.js 的 Proxy 实现。若要在 React Router、TanStack Start、Waku 与 Astro 中进行设置，请参阅[国际化](/docs/internationalization)。
 
 ```ts title="proxy.ts"
 import { createI18nMiddleware } from 'fumadocs-core/i18n/middleware';
@@ -23,7 +22,4 @@ export const config = {
 };
 ```
 
-
-
-
-> 启用 `hideLocale` 时，会使用 `NextResponse.rewrite` 隐藏语系前缀。
+> 激活 `hideLocale` 时，会使用 `NextResponse.rewrite` 隐藏语系前缀。

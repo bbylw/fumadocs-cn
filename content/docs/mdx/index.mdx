@@ -3,13 +3,19 @@ title: 快速入门
 description: 认识 Fumadocs MDX：Fumadocs 的官方内容来源。
 ---
 
-Fumadocs MDX 是一个将内容转换为型别安全资料的工具，类似于 Content Collections。
+import { SquareBookmark } from 'lucide-static';
 
-它并非完整的 CMS，而是专为 React 框架设计的内容处理层，您可以用它来处理部落格文章及其他内容。
+export const frontmatter = { icon: SquareBookmark };
+
+## 简介 [#introduction]
+
+Fumadocs MDX 是一个将内容转换为类型安全数据的工具，类似于 Content Collections。
+
+它并非完整的 CMS，而是专为 React 框架设计的内容处理层，你可以用它来处理博客文章及其他内容。
 
 ### 什么是集合？ [#what-is-a-collection]
 
-**集合 (Collection)&#x20;**&#x20;是指由特定类型档案所组成的集合。您可以在应用程式中透过 [Macro API](/docs/mdx/macro) 定义集合：
+**集合 (Collection)&#x20;**&#x20;是指由特定类型文件所组成的集合。你可以在应用中通过 [Macro API](/docs/mdx/macro) 定义集合：
 
 ```ts title="lib/source.ts"
 import { defineDocs } from 'fumadocs-mdx/macro';
@@ -29,7 +35,7 @@ export const source = loader({
 
 <Tabs items={["doc", "meta", 'docs']}>
   <Tab value="doc">
-    将 Markdown 与 MDX 档案编译为 React 元件，并提供**目录**等实用属性。
+    将 Markdown 与 MDX 文件编译为 React 组件，并提供**目录**等实用属性。
 
     ```ts
     import { defineCollections } from 'fumadocs-mdx/macro';
@@ -42,7 +48,7 @@ export const source = loader({
   </Tab>
 
   <Tab value="meta">
-    将 YAML/JSON 档案转换为资料阵列。
+    将 YAML/JSON 文件转换为数据数组。
 
     ```ts
     import { defineCollections } from 'fumadocs-mdx/macro';
@@ -73,7 +79,7 @@ export const source = loader({
   </Tab>
 </Tabs>
 
-例如，`doc` 集合会转换 `.md` 与 `.mdx` 档案：
+例如，`doc` 集合会转换 `.md` 与 `.mdx` 文件：
 
 <Files>
   <Folder name="folder" defaultOpen>
@@ -87,11 +93,11 @@ export const source = loader({
   <File name="meta.json" className="opacity-50 cursor-not-allowed" aria-disabled />
 </Files>
 
-您也可以透过 [Config API](/docs/mdx/collections) 在 `source.config.ts` 中定义集合，这种方式会在 `.source` 底下产生进入点档案。
+你也可以通过 [Config API](/docs/mdx/collections) 在 `source.config.ts` 中定义集合，这种方式会在 `.source` 底下生成进入点文件。
 
 ## 安装 [#installation]
 
-请依您的环境设定 Fumadocs MDX：
+请依你的环境设置 Fumadocs MDX：
 
 <Cards>
   <Card title="Next.js" href="/docs/mdx/next">
@@ -102,29 +108,29 @@ export const source = loader({
     搭配 Vite 使用 Fumadocs MDX。
   </Card>
 
-  <Card title="执行阶段载入器" href="/docs/mdx/loader">
-    搭配 JavaScript 执行环境使用 Fumadocs MDX。
+  <Card title="运行时加载器" href="/docs/mdx/loader">
+    搭配 JavaScript 运行环境使用 Fumadocs MDX。
   </Card>
 </Cards>
 
 ## 常见问题 [#faq]
 
-### 内建属性 [#built-in-properties]
+### 内置属性 [#built-in-properties]
 
-MDX 档案预设会汇出以下属性。
+MDX 文件默认会导出以下属性。
 
 | 属性                    | 说明              |
 | --------------------- | --------------- |
 | `frontmatter`         | frontmatter     |
 | `toc`                 | 目录              |
-| `structuredData`      | 结构化资料，可用于实作搜寻功能 |
+| `structuredData`      | 结构化数据，可用于实现搜索功能 |
 | `extractedReferences` | 用于分析 `hrefs` 参照 |
 
-### 自订 Frontmatter [#customize-frontmatter]
+### 自定义 Frontmatter [#customize-frontmatter]
 
 使用 [`schema`](/docs/mdx/collections#schema-1) 选项传入验证用的 schema，借此验证 frontmatter 并定义其输出属性。
 
-MDX 页面也可以[在程式码中汇出 frontmatter](/docs/markdown#frontmatter)。汇出的内容会合并并覆写 YAML frontmatter，再由集合的 schema 验证合并后的结果：
+MDX 页面也可以[在代码中导出 frontmatter](/docs/markdown#frontmatter)。导出的内容会合并并覆盖 YAML frontmatter，再由集合的 schema 验证合并后的结果：
 
 ```mdx title="content/docs/index.mdx"
 ---
@@ -133,17 +139,17 @@ title: Introduction
 
 import { version } from '../../package.json';
 
- export const frontmatter = {
+export const frontmatter = {
   description: `The docs of v${version}.`,
 };
 ```
 
-此 export 会在建置时执行。它可以使用页面的汇入，以及同一区块中写在它之前的 export，但无法使用页面的内容或元件。`staticParams` 仍须保留在 YAML frontmatter 中，因为载入器会在 export 执行前就先读取它。
+此 export 会在构建时运行。它可以使用页面的导入，以及同一块中写在它之前的 export，但无法使用页面的内容或组件。`staticParams` 仍须保留在 YAML frontmatter 中，因为加载器会在 export 运行前就先读取它。
 
-### 自订编译器 [#customize-compiler]
+### 自定义编译器 [#customize-compiler]
 
-Fumadocs MDX 透过 [MDX Compiler](https://mdxjs.com/packages/mdx)，以 unified 将 MDX 档案编译成 JavaScript 档案。
+Fumadocs MDX 通过 [MDX Compiler](https://mdxjs.com/packages/mdx)，以 unified 将 MDX 文件编译成 JavaScript 文件。
 
-集合也可以改用 [Sätteri](/docs/mdx/mdx#satteri) 进行编译。两者都内建一组预设组合，包含预设的外挂与设定。
+集合也可以改用 [Sätteri](/docs/mdx/mdx#satteri) 进行编译。两者都内置一组默认组合，包含默认的插件与设置。
 
-您可以在[全域设定](/docs/mdx/global#mdx-options)或[集合设定](/docs/mdx/collections#mdxoptions)中进行自订。
+你可以在[全域设置](/docs/mdx/global#mdx-options)或[集合设置](/docs/mdx/collections#mdxoptions)中进行自定义。

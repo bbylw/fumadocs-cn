@@ -1,35 +1,26 @@
 ---
-title: 内建搜寻
-description: Fumadocs 的内建文件搜寻
+title: 内置搜索
+description: Fumadocs 的内置文档搜索
 ---
 
-Fumadocs 透过 [ZBSearch](https://www.zbsearch.dev) 支援文件搜寻。这不仅是预设选项，也是我们推荐的选项，因为它可以自行托管，而且完全免费。
+Fumadocs 通过 [ZBSearch](https://www.zbsearch.dev) 支持文档搜索。这不仅是默认选项，也是我们推荐的选项，因为它可以自行托管，而且完全免费。
 
-## 设定 [#setup]
+## 设置 [#setup]
 
-架设伺服器以处理搜寻请求。
+架设服务器以处理搜索请求。
 
-### 从来源建立 [#from-source]
+### 从来源创建 [#from-source]
 
-从来源物件建立伺服器。
+从来源对象创建服务器。
 
-
-
-
-```ts title="app/api/search/route.ts"
+```ts tab="Next.js" title="app/api/search/route.ts"
 import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
 
 export const { GET } = createFromSource(source);
 ```
 
-
-
-
-
-
-
-```ts title="app/routes/search.ts"
+```ts tab="React Router" title="app/routes/search.ts"
 import type { Route } from './+types/search';
 import { createFromSource } from 'fumadocs-core/search/server';
 import { source } from '@/lib/source';
@@ -41,13 +32,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 ```
 
-
-
-
-
-
-
-```ts title="src/routes/api/search.ts"
+```ts tab="TanStack Start" title="src/routes/api/search.ts"
 import { createFileRoute } from '@tanstack/react-router';
 import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
@@ -63,35 +48,31 @@ export const Route = createFileRoute('/api/search')({
 });
 ```
 
-
-
-
-
-
-```ts title="src/pages/_api/api/search.ts"
+```ts tab="Waku" title="src/pages/_api/api/search.ts"
 import { createFromSource } from 'fumadocs-core/search/server';
 import { source } from '@/lib/source';
 
 export const { GET } = createFromSource(source);
 ```
 
-
-
 ```ts tab="Astro" title="src/pages/api/search.ts"
 import type { APIRoute } from 'astro';
 import { createFromSource } from 'fumadocs-core/search/server';
 import { source } from '@/lib/source';
 
-// 于每次请求时算绘，需要搭配转接器
+// 于每次请求时渲染，需要搭配适配器
 export const prerender = false;
 
 const server = createFromSource(source);
 
 export const GET: APIRoute = ({ request }) => server.GET(request);
 ```
-从搜寻索引建立伺服器，每个索引都必须包含 `structuredData` 栏位。
 
-此栏位通常由您的内容来源 (例如 Fumadocs MDX) 提供。您也可以使用 [Remark Structure](/docs/headless/mdx/structure) 外挂，从 Markdown/MDX 文件中撷取。
+### 从搜索索引创建 [#from-search-indexes]
+
+从搜索索引创建服务器，每个索引都必须包含 `structuredData` 字段。
+
+此字段通常由你的内容来源 (例如 Fumadocs MDX) 提供。你也可以使用 [Remark Structure](/docs/headless/mdx/structure) 插件，从 Markdown/MDX 文档中截取。
 
 ```ts tab="Next.js" title="app/api/search/route.ts"
 import { source } from '@/lib/source';
@@ -173,7 +154,7 @@ import { createSearchAPI } from 'fumadocs-core/search/server';
 import { source } from '@/lib/source';
 
 const server = createSearchAPI('advanced', {
-  // `structuredData` 会随需载入
+  // `structuredData` 会随需加载
   indexes: () =>
     Promise.all(
       source.getPages().map(async (page) => ({
@@ -186,15 +167,18 @@ const server = createSearchAPI('advanced', {
     ),
 });
 
-// 每次请求时算绘，需搭配转接器
+// 每次请求时渲染，需搭配适配器
 export const prerender = false;
 
 export const GET: APIRoute = ({ request }) => server.GET(request);
 ```
-您可以透过以下方式搜寻文件：
 
-* **Fumadocs UI**：已内建支援，详情请参阅[搜寻 UI](/docs/search/orama)。
-* **搜寻用户端**：
+### 搜索文档 [#searching-documents]
+
+你可以通过以下方式搜索文档：
+
+* **Fumadocs UI**：已内置支持，详情请参阅[搜索 UI](/docs/search/orama)。
+* **搜索客户端**：
 
 ```ts twoslash
 import { useFetchSearch } from 'fumadocs-core/search/client';
@@ -204,11 +188,11 @@ const { search, onSearchChange, isLoading, data } = useFetchSearch();
 
 <auto-type-table type="import(&#x22;fumadocs-core/search/client/fetch&#x22;).FetchOptions" />
 
-## 设定 [#configurations]
+## 设置 [#configurations]
 
 ### 标签筛选 [#tag-filter]
 
-支援依标签筛选结果，适合用来实作类似本文件网站的多文件架构。
+支持依标签筛选结果，适合用来实现类似本文档网站的多文档架构。
 
 ```ts
 import { source } from '@/lib/source';
@@ -222,17 +206,17 @@ const server = createFromSource(source, {
       url: page.url,
       id: page.url,
       structuredData: page.data.structuredData,
-      // 使用您想要的值，例如 page.slugs[0] [!code ++:2]
+      // 使用你想要的值，例如 page.slugs[0] [!code ++:2]
       tag: '<value>',
     };
   },
 });
 ```
 
-并更新您的搜寻用户端：
+并更新你的搜索客户端：
 
-* **Fumadocs UI**：在搜寻 UI 中设定[标签筛选](/docs/search/orama#tag-filter)。
-* **搜寻用户端**：将标签传入 `useFetchSearch()`。
+* **Fumadocs UI**：在搜索 UI 中设置[标签筛选](/docs/search/orama#tag-filter)。
+* **搜索客户端**：将标签传入 `useFetchSearch()`。
 
 ```ts
 import { useFetchSearch } from 'fumadocs-core/search/client';
@@ -241,19 +225,22 @@ const { search, onSearchChange, isLoading, data } = useFetchSearch({
   tag: '<value>', // [!code ++]
 });
 ```
-若要支援静态网站，请使用搜寻伺服器提供的 `staticGET`，并将该路由设为静态或预先算绘。
+
+### 静态模式 [#static-export]
+
+若要支持静态网站，请使用搜索服务器提供的 `staticGET`，并将该路由设为静态或预先渲染。
 
 ```ts tab="Next.js" title="app/api/search/route.ts"
 import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
 
-// 静态快取 [!code highlight:3]
+// 静态缓存 [!code highlight:3]
 export const revalidate = false;
 export const { staticGET: GET } = createFromSource(source);
 ```
 
 ```ts tab="React Router" title="app/routes/search.ts"
-// 请确认此路由已在 `react-router.config.ts` 中设定为预先算绘。
+// 请确认此路由已在 `react-router.config.ts` 中设置为预先渲染。
 export async function loader() {
   // [!code highlight]
   return server.staticGET();
@@ -283,7 +270,7 @@ export default defineConfig({
       prerender: {
         enabled: true,
       },
-      // [!code ++:2] 预先算绘搜寻索引档案
+      // [!code ++:2] 预先渲染搜索索引文档
       pages: [{ path: '/api/search' }],
     }),
   ],
@@ -297,7 +284,7 @@ import { createFromSource } from 'fumadocs-core/search/server';
 // [!code highlight]
 export const { staticGET: GET } = createFromSource(source);
 
-// 静态快取 [!code highlight:4]
+// 静态缓存 [!code highlight:4]
 export const getConfig = async () => ({
   render: 'static',
 });
@@ -310,17 +297,17 @@ import { source } from '@/lib/source';
 
 const server = createFromSource(source);
 
-// 预设为预先算绘 [!code highlight]
+// 默认为预先渲染 [!code highlight]
 export const GET: APIRoute = () => server.staticGET();
 ```
 
 > `createSearchAPI` 也提供 `staticGET`。
 
-接著更新您的搜寻用户端：
+接着更新你的搜索客户端：
 
-* **Fumadocs UI**：在搜寻 UI 中使用[静态用户端](/docs/search/orama#static)。
+* **Fumadocs UI**：在搜索 UI 中使用[静态客户端](/docs/search/orama#static)。
 
-* **搜寻用户端**：改用 `useStaticSearch()` 取代 `useFetchSearch()`。
+* **搜索客户端**：改用 `useStaticSearch()` 取代 `useFetchSearch()`。
 
   ```ts
   import { useStaticSearch } from 'fumadocs-core/search/client';
@@ -331,21 +318,21 @@ export const GET: APIRoute = () => server.staticGET();
   <auto-type-table type="import(&#x22;fumadocs-core/search/client/orama-static&#x22;).StaticOptions" />
 
 <Callout type="warn" title="请注意">
-  静态搜寻需要用户端下载汇出的搜寻索引。
-  对大型文件网站而言，成本可能相当高。
+  静态搜索需要客户端下载导出的搜索索引。
+  对大型文档网站而言，成本可能相当高。
 
-  在这种情况下，建议您改用 Orama Cloud 或 Algolia 等云端解决方案。
+  在这种情况下，建议你改用 Orama Cloud 或 Algolia 等云端解决方案。
 </Callout>
 
 ## 国际化 [#internationalization]
 
-搜寻功能开箱即支援所有语言：预设的 `multilingual` 模式采用 Unicode 断词，因此所有语系 (包括中文和日文) 都共用同一个搜寻资料库，完全不需要任何设定。
+搜索功能开箱即支持所有语言：默认的 `multilingual` 模式采用 Unicode 断词，因此所有语系 (包括中文和日文) 都共用同一个搜索数据库，完全不需要任何设置。
 
 ```ts title="app/api/search/route.ts" tab="From Source"
 import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
 
-// i18n 不需要额外设定
+// i18n 不需要额外设置
 const server = createFromSource(source);
 ```
 
@@ -369,11 +356,11 @@ const server = createI18nSearchAPI('advanced', {
 });
 ```
 
-并更新您的搜寻用户端：
+并更新你的搜索客户端：
 
-* **Fumadocs UI**：无需任何变更，只要正确设定 i18n，Fumadocs UI 就会自动处理。
-* **搜寻用户端**：
-  在搜寻用户端加上 `locale`，这样使用者就只能搜寻到指定语系的页面。
+* **Fumadocs UI**：无需任何变更，只要正确设置 i18n，Fumadocs UI 就会自动处理。
+* **搜索客户端**：
+  在搜索客户端加上 `locale`，这样用户就只能搜索到指定语系的页面。
 
 ```ts
 import { useFetchSearch } from 'fumadocs-core/search/client';
@@ -386,10 +373,10 @@ const { search, onSearchChange, isLoading, data } = useFetchSearch({
 这同样适用于**静态模式**，只需改为将 `locale` 传入 `useStaticSearch()` 即可。
 
 <Callout title="特定语言的分词">
-  `multilingual` 模式不会套用特定语言的词干提取 (stemming) 或停用词 (stop-words) 。
-  若未进行词干提取，像 `recordings` 这样的复数查询就无法比对到包含 `recording` 的页面。
+  `multilingual` 模式不会应用特定语言的词干提取 (stemming) 或禁用词 (stop-words) 。
+  若未进行词干提取，像 `recordings` 这样的复数查找就无法比对到包含 `recording` 的页面。
 
-  若要加入词干提取器，同时保留多语言断词与单一资料库，请传入 `tokenizer`：
+  若要加入词干提取器，同时保留多语言断词与单一数据库，请传入 `tokenizer`：
 
   ```ts
   import { source } from '@/lib/source';
@@ -401,7 +388,7 @@ const { search, onSearchChange, isLoading, data } = useFetchSearch({
   });
   ```
 
-  或者，您也可以透过 `localeMap`，为每个语系指定[支援语言](https://www.zbsearch.dev/docs/zbsearch/supported-languages)清单中的语言：
+  或者，你也可以通过 `localeMap`，为每个语系指定[支持语言](https://www.zbsearch.dev/docs/zbsearch/supported-languages)列表中的语言：
 
   ```ts
   import { source } from '@/lib/source';
@@ -409,33 +396,33 @@ const { search, onSearchChange, isLoading, data } = useFetchSearch({
 
   const server = createFromSource(source, {
     localeMap: {
-      // [语系]: 搜寻选项 [!code ++:3]
+      // [语系]: 搜索选项 [!code ++:3]
       ru: { language: 'russian' },
       en: { language: 'english' },
     },
   });
   ```
 
-  请注意，启用 `localeMap` 后，系统会为每个语系各建立一个独立的搜寻资料库。
+  请注意，激活 `localeMap` 后，系统会为每个语系各创建一个独立的搜索数据库。
 
   <Callout type="warn" title="静态模式">
-    自订的 `tokenizer` 也必须提供给用户端，因为用户端需要以相同方式对查询进行分词。
-    请透过 `useStaticSearch()` 的 `initDB` 传入。
+    自定义的 `tokenizer` 也必须提供给客户端，因为客户端需要以相同方式对查找进行分词。
+    请通过 `useStaticSearch()` 的 `initDB` 传入。
   </Callout>
 </Callout>
 
 ## 无头式 [#headless]
 
-您也可以将搜寻伺服器架设在其他后端，例如 Express 或 Elysia。
+你也可以将搜索服务器架设在其他后端，例如 Express 或 Elysia。
 
 ```ts
 import { initAdvancedSearch } from 'fumadocs-core/search/server';
 
 const server = initAdvancedSearch({
-  // 您仍需传入索引
+  // 你仍需传入索引
 });
 
 server.search('query', {
-  // 您可以在此指定 `locale` 与 `tag`
+  // 你可以在此指定 `locale` 与 `tag`
 });
 ```

@@ -1,0 +1,60 @@
+---
+title: 可视化编辑器
+description: 以可视化方式撰写 Markdown 与 MDX，并以你的文件作为唯一可信来源。
+---
+
+## 简介 [#introduction]
+
+[Fumadocs Editor](https://editor.fumadocs.dev) 是 Fumadocs MDX 的可视化编辑器。
+
+### 从 Studio 开始 [#start-with-studio]
+
+Studio 会在浏览器中打开你的本地文档，无须在应用中加入编辑器。
+请在你的 Fumadocs 项目中运行：
+
+```bash
+npx @fumadocs-editor/studio
+```
+
+Studio 需要 **Node.js 24 或更新版本**。它会寻找 `content/docs`，若找不到，则改为在上层目录中寻找。
+若要指定其他内容文件夹：
+
+```bash
+npx @fumadocs-editor/studio --root ./docs
+```
+
+编辑内容会自动保存至磁盘，你在代码编辑器中所做的变更也会合并至当前打开的文档。
+文件列表会依照 `meta.json` 中的顺序排列。
+
+请在 Git 中检阅变更，再通过网站平时使用的部署流程发布。
+
+> Studio 只能编辑现有文件。若要创建、重命名或删除文件，请改用代码编辑器或文件管理员。
+
+### 作为函数库使用 [#use-as-a-library]
+
+你可以使用 `@fumadocs-editor/ui`，在自己的应用中打造编辑界面。详细说明请参阅文档：
+
+<Cards>
+  <Card title="React 快速入门" href="https://editor.fumadocs.dev">
+    安装编辑器、导入样式，并渲染你的第一份可编辑文档。
+  </Card>
+
+  <Card title="Studio 设置" href="https://editor.fumadocs.dev/studio">
+    设置内容文件夹、自定义组件与样式。
+  </Card>
+
+  <Card title="文件同步" href="https://editor.fumadocs.dev/sync">
+    通过开发服务器，将内嵌编辑器与文件连接。
+  </Card>
+</Cards>
+
+### 使用组件撰写 [#write-with-components]
+
+内置编辑支持涵盖 Fumadocs 组件，例如 Callout、Cards、Steps、Accordions 和 Files。
+
+自定义组件可通过[组件规格](https://editor.fumadocs.dev/components)定义专属的可编辑区域。
+
+<Callout title="沿用你现有的内容设置">
+  编辑器直接处理你的 Markdown 与 MDX 文件。你可以继续使用 [Fumadocs MDX](/docs/mdx) 加载
+  这些文件，并通过你的 React 框架渲染发布后的网站。
+</Callout>

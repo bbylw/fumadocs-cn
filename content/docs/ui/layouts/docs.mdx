@@ -1,13 +1,19 @@
 ---
-title: 文件版面配置
-description: 文件的版面配置
+title: 文档布局
+description: 文档的布局
 ---
 
-文件页面的版面配置，包含侧边栏，以及**仅在行动装置上显示**的导览列／页首。
+import { docs } from './layouts.story';
+
+文档页面的布局，包含侧边栏，以及**仅在行动设备上显示**的导航列／页眉。
+
+<docs.WithControl />
+
+<Customization />
 
 ## 使用方式 [#usage]
 
-将您的页面树传给此元件。
+将你的页面树传给此组件。
 
 ```tsx title="layout.tsx"
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
@@ -23,7 +29,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 }
 ```
 
-有关 [`links`](/docs/ui/layouts/links) 与 [`nav`](/docs/ui/layouts/nav) 选项的详细说明，请参阅相关文件。
+有关 [`links`](/docs/ui/layouts/links) 与 [`nav`](/docs/ui/layouts/nav) 选项的详细说明，请参阅相关文档。
 
 ### 参考资料 [#references]
 
@@ -40,15 +46,18 @@ import { DocsLayout } from 'fumadocs-ui/layouts/docs';
   }}
 />;
 ```
-自订侧边栏的导览连结。
+
+### 侧边栏项目 [#sidebar-items]
+
+自定义侧边栏的导航链接。
 
 <div className="flex justify-center items-center *:max-w-[200px] bg-linear-to-br from-fd-primary/10 rounded-xl border">
   ![侧边栏](/docs/sidebar.png)
 </div>
 
-侧边栏项目是根据您传入 `` 的页面树算绘而成。
+侧边栏项目是根据你传入 `<DocsLayout />` 的页面树渲染而成。
 
-若页面树来自 [`loader()`](/docs/headless/source-api)，则会依据您的档案结构产生，请参阅[可用的模式](/docs/page-conventions)。
+若页面树来自 [`loader()`](/docs/headless/source-api)，则会依据你的文件结构生成，请参阅[可用的模式](/docs/page-conventions)。
 
 ```tsx title="layout.tsx"
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
@@ -67,7 +76,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 }
 ```
 
-您也可以直接写死在程式码中：
+你也可以直接写死在代码中：
 
 ```tsx title="layout.tsx"
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
@@ -87,15 +96,18 @@ export default function Layout({ children }: { children: ReactNode }) {
   );
 }
 ```
-版面配置页签是行为类似页签的资料夹，只会显示目前开启页签的内容。
+
+### 布局选项卡 (下拉菜单)  [#layout-tabs]
+
+布局选项卡是行为类似选项卡的文件夹，只会显示当前打开的选项卡的内容。
 
 <div className="flex justify-center items-center *:max-w-[360px] bg-linear-to-br from-fd-primary/10 rounded-xl border">
-  ![版面配置页签](/docs/sidebar-tabs.png)
+  ![布局选项卡](/docs/sidebar-tabs.png)
 </div>
 
-预设情况下，页签触发器会以**下拉选单**元件呈现 (只有在其中某个项目处于启用状态时才会显示) 。
+默认情况下，选项卡触发器会以**下拉菜单**组件呈现 (只有在其中某个项目处于激活状态时才会显示) 。
 
-页签是根据页面树产生的。您可以在资料夹中建立 `meta.json` 档案，将该资料夹标记为[根资料夹](/docs/page-conventions#root-folder)：
+选项卡是根据页面树生成的。你可以在文件夹中创建 `meta.json` 文件，将该文件夹标记为[根文件夹](/docs/page-conventions#root-folder)：
 
 ```json title="content/docs/my-folder/meta.json"
 {
@@ -118,14 +130,14 @@ import { DocsLayout } from 'fumadocs-ui/layouts/docs';
       // 在 `/docs/components` 及其子路由（例如 `/docs/components/button`）下启用
       url: '/docs/components',
 
-      // 您也可以另外指定一组会启用此项目的 URL
+      // 你也可以另外指定一组会启用此项目的 URL
       // urls: new Set(['/docs/test', '/docs/components']),
     },
   ]}
 />;
 ```
 
-若要停用，请将其设为 `false`：
+若要禁用，请将其设为 `false`：
 
 ```tsx
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
@@ -133,8 +145,8 @@ import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 <DocsLayout tabs={false} />;
 ```
 
-<Callout title="想要进一步自订吗？">
-  您可以为[文件版面配置](/docs/ui/layouts/docs)元件指定 `banner`。
+<Callout title="想要进一步自定义吗？">
+  你可以为[文档布局](/docs/ui/layouts/docs)组件指定 `banner`。
 
   ```tsx
   import { DocsLayout, type DocsLayoutProps } from 'fumadocs-ui/layouts/docs';
@@ -161,7 +173,7 @@ import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 
 #### 装饰 [#decoration]
 
-变更版面配置页签的图示或样式。
+变更布局选项卡的图标或样式。
 
 ```tsx
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
@@ -175,7 +187,10 @@ import { DocsLayout } from 'fumadocs-ui/layouts/docs';
   }}
 />;
 ```
-页签会依[根类型](/docs/page-conventions#root-type)分组，目前页面路径上的每个根资料夹各有一个下拉选单。
+
+### 选项卡分组 [#tabs-groups]
+
+选项卡会依[根类型](/docs/page-conventions#root-type)分组，当前页面路径上的每个根文件夹各有一个下拉菜单。
 
 <Files>
   <Folder name="v2 (root: version)" defaultOpen>
@@ -195,17 +210,17 @@ import { DocsLayout } from 'fumadocs-ui/layouts/docs';
   </Folder>
 </Files>
 
-在 `v2/framework/quickstart.mdx` 页面上，侧边栏会显示两个下拉选单，一个用来切换版本，另一个用来切换区段：
+在 `v2/framework/quickstart.mdx` 页面上，侧边栏会显示两个下拉菜单，一个用来切换版本，另一个用来切换节：
 
 <div className="flex justify-center items-center *:max-w-[360px] bg-linear-to-br from-fd-primary/10 rounded-xl border">
-  ![页签群组](/docs/sidebar-tabs-groups.png)
+  ![选项卡分组](/docs/sidebar-tabs-groups.png)
 </div>
 
-选择选项后，会前往该根资料夹中的同一页面；若该页面不存在，则前往该资料夹的索引页面。完整范例请参阅[版本控制](/docs/navigation#versioning)。
+选择选项后，会前往该根文件夹中的同一页面；若该页面不存在，则前往该文件夹的索引页面。完整示例请参阅[版本控制](/docs/navigation#versioning)。
 
-### 侧边栏元件 [#sidebar-components]
+### 侧边栏组件 [#sidebar-components]
 
-您可以替换部分用来算绘页面树的元件。
+你可以替换部分用来渲染页面树的组件。
 
 ```tsx tab="layout.tsx"
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
@@ -242,45 +257,51 @@ export function SidebarSeparator({ className, style, children, ...props }: Compo
   );
 }
 ```
+
+### 参考 [#references-1]
+
 <auto-type-table cwd path="content/docs/ui/props.ts" name="SidebarProps" />
 
 ## AI 聊天 [#ai-chat]
 
-请将您的聊天面板及其开启状态传入 `aiChat`，版面配置会在宽萤幕上将面板放在页面旁边，在较小的萤幕上则让它浮动于页面上方。
+请将你的聊天面板及其打开状态传入 `aiChat`，布局会在宽屏幕上将面板放在页面旁边，在较小的屏幕上则让它浮动于页面上方。
 
 ```tsx
 <DocsLayout aiChat={{ open, onOpenChange: setOpen, panel: <MyChat />, trigger: true }} />
 ```
 
-此版面配置本身不含「询问 AI」按钮，`trigger` 会加入一个浮动按钮。
+此布局本身不含「询问 AI」按钮，`trigger` 会加入一个浮动按钮。
 
-如需现成的聊天介面，请参阅[询问 AI](/docs/integrations/llms#ask-ai)。
+如需现成的聊天界面，请参阅[询问 AI](/docs/integrations/llms#ask-ai)。
 
-## 进阶 [#advanced]
+## 高级 [#advanced]
 
-### 预先载入 (Prefetching)  [#prefetching]
+### 预先加载 (Prefetching)  [#prefetching]
 
-Fumadocs 使用您所用 React 框架的 `` 元件，并沿用其预设的预先载入行为。
+Fumadocs 使用你所用 React 框架的 `<Link />` 组件，并沿用其默认的预先加载行为。
 
-在 Vercel 上，预先载入请求可能会增加 Serverless Functions 与 Data Cache 的用量，
+在 Vercel 上，预先加载请求可能会增加 Serverless Functions 与 Data Cache 的用量，
 在其他部分托管平台上也可能触及用量上限。
 
-您可以停用预先载入以减少预先载入请求的数量，也可以明确启用：
+你可以禁用预先加载以减少预先加载请求的数量，也可以明确激活：
 
 ```tsx
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 
 <DocsLayout sidebar={{ prefetch: false }} />;
 ```
-处理版面配置并不容易，Fumadocs UI 需要一套具备以下特性的做法：
 
-* **可组合：** 版面配置元件应能轻松管理自身的位置与大小，最好能就地完成。
-* **弹性：** 系统应避免依赖固定数值或高度，让外部元件 (例如 AI 聊天介面) 能无缝整合。
-* **协调一致：** 元件应能回应其他元件的变化，例如以动画呈现侧边栏的收合。
-* **可预测：** 版面配置属性应集中管理，让您能从原始码轻易预期最终结果。
-* **相容：** 此解决方案应仅使用 Baseline Widely Available 的 CSS 功能，以便支援旧版浏览器。
+### 布局系统 [#the-layout-system]
 
-Fumadocs UI 透过网格系统来达成这些目标：
+处理布局并不容易，Fumadocs UI 需要一套具备以下特性的做法：
+
+* **可组合：** 布局组件应能轻松管理自身的位置与大小，最好能就地完成。
+* **弹性：** 系统应避免依赖固定数值或高度，让外部组件 (例如 AI 聊天界面) 能无缝集成。
+* **协调一致：** 组件应能回应其他组件的变化，例如以动画呈现侧边栏的收合。
+* **可预测：** 布局属性应集中管理，让你能从源代码轻易预期最终结果。
+* **兼容：** 此解决方案应仅使用 Baseline Widely Available 的 CSS 功能，以便支持旧版浏览器。
+
+Fumadocs UI 通过网格系统来达成这些目标：
 
 ```css
 #nd-docs-layout {
@@ -305,9 +326,9 @@ Fumadocs UI 透过网格系统来达成这些目标：
 }
 ```
 
-* 版面配置容器采用 grid 排版，并设定 `grid-template` 以产生可预期的结果。
+* 布局容器采用 grid 排版，并设置 `grid-template` 以生成可预期的结果。
 * `--fd-docs-row-*` 定义每一列的顶部偏移量，让带有 `position: sticky` 的元素能取得正确的顶部偏移量。
-* `--fd-*-width` 与 `--fd-*-height` 由版面配置元件透过 CSS 设定，对于维持 grid 结构或计算 `--fd-docs-row-*` 而言不可或缺。
+* `--fd-*-width` 与 `--fd-*-height` 由布局组件通过 CSS 设置，对于维持 grid 结构或计算 `--fd-docs-row-*` 而言不可或缺。
 * `--fd-*-col` 为动态值，会随状态变化而更新 (例如侧边栏收合时，`--fd-sidebar-col` 会变为 `0px`) 。
 
-预设版面配置与 Notebook 版面配置皆采用此系统。
+默认布局与 Notebook 布局皆采用此系统。

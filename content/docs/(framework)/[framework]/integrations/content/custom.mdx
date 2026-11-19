@@ -1,0 +1,126 @@
+---
+title: 自行构建
+description: 为 Fumadocs 打造你专属的内容来源。
+---
+
+## 简介 [#introduction]
+
+实现自定义内容来源的方式有两种：
+
+### 使用加载器 API [#using-loader-api]
+
+加载器 API 提供类似文件系统的界面，方便集成各种不同的内容来源。
+
+详情请参阅[加载器 API `source`](/docs/headless/source-api/source)。
+
+### 使用低级 API [#using-low-level-api]
+
+若需要更灵活的控制，你可以直接使用较低级的 API。
+
+#### 页面树 [step] [#page-tree]
+
+你可以将页面树直接写死在代码中，也可以撰写代码来生成。
+请参阅[页面树的定义](/docs/headless/page-tree)。
+
+在你的文档布局中，将页面树传给 `DocsLayout`：
+
+```tsx title="layout.tsx"
+import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <DocsLayout
+      // [!code ++:5]
+      tree={
+        {
+          // 你自己的页面树
+        }
+      }
+    >
+      {children}
+    </DocsLayout>
+  );
+}
+```
+
+页面树就像是更聪明的「侧边栏项目」，UI 中各处的导航元素 (例如页脚) 都会参照它。
+
+#### 页面内容 [step] [#page-content]
+
+文档页面的逻辑也相同：
+
+* 定义路径参数 (`slugs`) 。
+* 依据路径参数取得页面内容。
+* 渲染内容 (在 `DocsPage` 组件内) 。
+
+你可能还需要目录，可以自行生成，或使用 [`getTableOfContents`](/docs/headless/utils/get-toc) 工具函数 (仅限 Markdown/MDX) 。
+
+在你所用框架的文档路由中渲染内容：
+
+```tsx title="components/docs-page.tsx"
+import { DocsPage, DocsBody } from 'fumadocs-ui/layouts/docs/page';
+import { getPage } from './my-content-source';
+
+export function Page({ slugs }: { slugs: string[] }) {
+  const page = getPage(slugs);
+  // 使用框架提供的 API 回应 404
+  if (!page) return null;
+
+  return (
+    <DocsPage toc={page.tableOfContents}>
+      <DocsBody>{page.render()}</DocsBody>
+    </DocsPage>
+  );
+}
+```
+
+#### 预先渲染 [step] [#pre-rendering]
+
+预先渲染页面 (尤其是经常造访的页面) ，以缩短初始加载时间。
+
+<show when={props.framework === 'next'}>
+  定义 [`generateStaticParams`](https://nextjs.org/docs/app/api-reference/functions/generate-static-params) 函数，为动态路由与 catch-all 路由提供参数。
+</show>
+
+<show when={props.framework === 'react-router'}>
+  在 `react-router.config.ts` 的 `prerender` 中返回路径。
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  激活 `tanstackStart()` Vite 插件的 `prerender` 选项。
+</show>
+
+<show when={props.framework === 'waku'}>
+  从页面导出的 `getConfig` 中返回 `staticPaths`。
+</show>
+
+<show when={props.framework === 'astro'}>
+  从页面的 `getStaticPaths()` 返回参数。
+</show>
+
+从远程来源预先渲染页面时，请务必优化构建阶段的重复读取。
+例如，若你通过 GitHub API 截取内容，建议先将保存库内容复制 (clone) 到本地，再进行预先渲染。
+
+```text tab="Before"
+/docs/* -> GET github.com
+/docs/introduction -> GET github.com
+/docs/my-page -> GET github.com
+Error: API Ratelimit
+```
+
+```text tab="After"
+开始 -> git clone
+/docs/* -> ls
+/docs/introduction -> 读取文件
+/docs/my-page -> 读取文件
+```
+
+#### 文档搜索 [step] [#document-search]
+
+由于你的内容不一定是 Markdown/MDX，这部分可能较为棘手。
+若是 Markdown 与 MDX，内置的 [Search API](/docs/headless/search/orama) 搭配搜索索引即可满足大多数使用情境。
+若非如此，你就需要自行实现。
+
+我们推荐使用 Orama 或 Algolia Search 等第三方解决方案，它们比内置的 Search API 更具弹性，也更容易与远程来源集成。
+Fumadocs 提供了多种[搜索集成](/docs/headless/search)。

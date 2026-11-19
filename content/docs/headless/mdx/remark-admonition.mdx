@@ -4,17 +4,17 @@ description: 在 Fumadocs 中使用 Admonition
 ---
 
 Docusaurus 提供了 [Admonition 语法](https://docusaurus.io/docs/markdown-features/admonitions)。
-如果您是从 Docusaurus 迁移过来，可以启用这个 remark 外挂来支援 Admonition 语法。
+如果你是从 Docusaurus 迁移过来，可以启用这个 remark 插件来支持 Admonition 语法。
 
 ## 使用方式 [#usage]
 
-此功能需要使用 directive 语法。若您使用 unified，请安装 `remark-directive`：
+此功能需要使用 directive 语法。若你使用 unified，请安装 `remark-directive`：
 
 ```package-install
 remark-directive
 ```
 
-Sätteri 透过其 `directive` 功能解析指令，而 Fumadocs MDX 预设即会启用此功能。
+Sätteri 通过其 `directive` 功能解析指令，而 Fumadocs MDX 默认即会启用此功能。
 
 ```ts tab="unified" title="source.config.ts"
 import remarkDirective from 'remark-directive';
@@ -42,6 +42,9 @@ export default defineConfig({
   },
 });
 ```
+
+### 示例 [#example]
+
 ```md tab="Input"
 :::tip[This is a `title`]
 
@@ -74,8 +77,11 @@ Hello World
   </CalloutDescription>
 </CalloutContainer>
 ```
-我们强烈建议您改用 MDX 的 JSX 语法。
-它更有弹性，而且部分编辑器在 MDX 档案中支援 IntelliSense。
+
+### 使用时机 [#when-to-use]
+
+我们强烈建议你改用 MDX 的 JSX 语法。
+它更有弹性，而且部分编辑器在 MDX 文件中支持 IntelliSense。
 
 ```mdx
 <Callout type='warn'>

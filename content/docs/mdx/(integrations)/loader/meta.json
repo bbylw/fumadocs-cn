@@ -1,8 +1,3 @@
 {
-  "title": "执行阶段载入器",
-  "pages": [
-    "index",
-    "bun",
-    "node"
-  ]
+  "title": "运行时加载器"
 }

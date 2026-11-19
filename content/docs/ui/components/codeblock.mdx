@@ -1,8 +1,9 @@
 ---
-title: 程式码区块
-description: 显示经 Shiki 语法突显的程式码区块
+title: 代码块
+description: 显示经 Shiki 语法高亮的代码块
 ---
 
+<Wrapper>
   <div className="bg-fd-background rounded-lg prose-no-margin">
     ```js title="config.js"
     import createMDX from 'fumadocs-mdx/config';
@@ -19,20 +20,23 @@ description: 显示经 Shiki 语法突显的程式码区块
     export default withMDX(config);
     ```
   </div>
+</Wrapper>
 
-这是一个 **MDX 元件**，需搭配 [Rehype Code](/docs/headless/mdx/rehype-code) 使用，用来显示经语法突显的程式码区块。
-程式码区块的撰写语法请参考 [Markdown](/docs/markdown#codeblock)。
+<Installation name="codeblock" />
 
-支援的功能：
+这是一个 **MDX 组件**，需搭配 [Rehype Code](/docs/headless/mdx/rehype-code) 使用，用来显示经语法高亮的代码块。
+代码块的撰写语法请参考 [Markdown](/docs/markdown#codeblock)。
+
+支持的功能：
 
 * 复制按钮
-* 自订标题与图示
+* 自定义标题与图标
 
-> 如果您需要可在执行阶段进行语法突显的对应元件，请参阅 [Dynamic Code Block](/docs/ui/components/dynamic-codeblock)。
+> 如果你需要可在运行时进行语法高亮的对应组件，请参阅 [Dynamic Code Block](/docs/ui/components/dynamic-codeblock)。
 
 ## 使用方式 [#usage]
 
-请将 pre 元素包在 `` 中，作为程式码区块的外层容器。
+请将 pre 元素包在 `<CodeBlock />` 中，作为代码块的外层容器。
 
 ```tsx title="components/mdx.tsx"
 import defaultComponents from 'fumadocs-ui/mdx';
@@ -52,7 +56,10 @@ export function getMDXComponents(components?: MDXComponents) {
   } satisfies MDXComponents;
 }
 ```
-使用 Shiki 产生的背景色。
+
+### 保留背景 [#keep-background]
+
+使用 Shiki 生成的背景色。
 
 ```tsx
 import { Pre, CodeBlock } from 'fumadocs-ui/components/codeblock';
@@ -61,9 +68,12 @@ import { Pre, CodeBlock } from 'fumadocs-ui/components/codeblock';
   <Pre>{props.children}</Pre>
 </CodeBlock>;
 ```
-若要指定自订图示，请将 `icon` prop 传入 `CodeBlock` 元件。
 
-预设情况下，图示会由自订的 Shiki transformer 注入。
+### 图标 [#icons]
+
+若要指定自定义图标，请将 `icon` prop 传入 `CodeBlock` 组件。
+
+默认情况下，图标会由自定义的 Shiki transformer 注入。
 
 ```js title="config.js"
 console.log('js');

@@ -1,0 +1,91 @@
+---
+title: 数学公式
+description: 在 Markdown/MDX 中撰写数学公式。
+---
+
+## 开始使用 [#getting-started]
+
+### 安装 [#install]
+
+```package-install tab="unified"
+remark-math rehype-katex katex
+```
+
+```package-install tab="Sätteri"
+katex
+```
+
+### 添加插件 [#add-plugins]
+
+在 unified 中，`remark-math` 是负责解析数学语法的 remark 插件，而 `rehype-katex` 则是通过 KaTeX 渲染数学式的 rehype 插件。
+在 Sätteri 中，数学语法是由解析器直接支持的功能。只要启用此功能，默认组合就会使用 KaTeX 进行渲染。
+
+```ts tab="unified" title="source.config.ts"
+import rehypeKatex from 'rehype-katex';
+import remarkMath from 'remark-math';
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    remarkPlugins: [remarkMath],
+    // 请放在第一个，因为它必须在语法高亮器之前运行
+    rehypePlugins: (v) => [rehypeKatex, ...v],
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: {
+    compiler: 'satteri',
+  },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    features: { math: true },
+  },
+});
+```
+
+### 加入样式表 [#add-stylesheet]
+
+请在根布局中加入 KaTeX 样式表：
+
+```tsx title="layout.tsx"
+import 'katex/dist/katex.css';
+```
+
+### 完成 [#done]
+
+在你的文档中输入 TeX 数学式，例如毕氏定理：
+
+````mdx
+Inline: $$c = \pm\sqrt{a^2 + b^2}$$
+
+```math
+c = \pm\sqrt{a^2 + b^2}
+```
+````
+
+行内：$$c = \pm\sqrt{a^2 + b^2}$$
+
+```math
+c = \pm\sqrt{a^2 + b^2}
+```
+
+泰勒展开式 (以幂级数表示全纯函数 $$f(x)$$) ：
+
+```math
+\displaystyle {\begin{aligned}T_{f}(z)&=\sum _{k=0}^{\infty }{\frac {(z-c)^{k}}{2\pi i}}\int _{\gamma }{\frac {f(w)}{(w-c)^{k+1}}}\,dw\\&={\frac {1}{2\pi i}}\int _{\gamma }{\frac {f(w)}{w-c}}\sum _{k=0}^{\infty }\left({\frac {z-c}{w-c}}\right)^{k}\,dw\\&={\frac {1}{2\pi i}}\int _{\gamma }{\frac {f(w)}{w-c}}\left({\frac {1}{1-{\frac {z-c}{w-c}}}}\right)\,dw\\&={\frac {1}{2\pi i}}\int _{\gamma }{\frac {f(w)}{w-z}}\,dw=f(z),\end{aligned}}
+```
+
+<Callout title="提示">
+  你其实可以直接复制维基百科上的方程式，粘贴时会自动转换为 KaTeX 字符串。
+
+  ```math
+  \displaystyle S[{\boldsymbol {q}}]=\int _{a}^{b}L(t,{\boldsymbol {q}}(t),{\dot {\boldsymbol {q}}}(t))\,dt.
+  ```
+</Callout>

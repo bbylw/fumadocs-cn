@@ -1,9 +1,11 @@
 ---
 title: Remark 步骤
-description: 从标题产生步骤
+description: 从标题生成步骤
 ---
 
-Remark 步骤是一个 remark 外挂，请将它加入您的设定：
+## 使用方式 [#usage]
+
+Remark 步骤是一个 remark 插件，请将它加入你的设置：
 
 ```ts tab="unified" title="source.config.ts"
 import { defineConfig } from 'fumadocs-mdx/config';
@@ -30,7 +32,10 @@ export default defineConfig({
   },
 });
 ```
-建立步骤标题：
+
+### 输入 [#input]
+
+创建步骤标题：
 
 ```md tab="Using Tag"
 # Heading 1 [step]
@@ -51,7 +56,10 @@ export default defineConfig({
 
 # 2. 标题 2
 ```
-此外挂应会产生以下结构。
+
+### 输出 [#output]
+
+此插件应会生成以下结构。
 
 ```mdx
 <div className="fd-steps">

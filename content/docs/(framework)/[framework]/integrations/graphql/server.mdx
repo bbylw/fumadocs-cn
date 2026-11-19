@@ -1,0 +1,447 @@
+---
+title: createGraphQL()
+description: GraphQL 服务器实例。
+---
+
+## GraphQL 服务器 [#graphql-server]
+
+Fumadocs GraphQL 的主要设置。
+
+> 请勿在浏览器环境中引用此设置。
+
+### `input` [#input]
+
+要读取的 GraphQL schema，可以是：
+
+* 由 SDL 文件路径／URL 组成的数组。
+* schema ID -&gt; 输入的对应对象 (record) 。
+
+对象形式的输入可接受 SDL 文件路径／URL、SDL 文字、introspection 结果、`GraphQLSchema` 实例，以及返回上述任一项的函数。
+
+只有在此列出的 schema 才能加载，若传入其他 ID 给 `getSchema()`，将会抛出错误。
+
+```ts tab="Basic"
+import { createGraphQL } from '@fumadocs/graphql/server';
+
+export const graphql = createGraphQL({
+  input: ['./schema.graphql'],
+});
+```
+
+```ts tab="Record"
+import { createGraphQL } from '@fumadocs/graphql/server';
+
+export const graphql = createGraphQL({
+  input: {
+    // [id]：schema 输入来源
+    store: './store.graphql',
+    remote: 'https://example.com/schema.graphql',
+    // 也可以传入函数，例如下载 introspection 结果
+    galaxy: async () => {
+      const res = await fetch('https://example.com/introspection.json');
+      return res.json();
+    },
+  },
+});
+```
+
+你可以传入由多个 SDL 文件组成的数组，将它们合并为单一 schema，也支持类型扩展 (例如 `extend type Query`) 。
+
+```ts
+import { createGraphQL } from '@fumadocs/graphql/server';
+
+export const graphql = createGraphQL({
+  input: {
+    api: ['./base.graphql', './orders.graphql'],
+  },
+});
+```
+
+### `examples` [#examples]
+
+取自 GraphQL 文档的示例 operation，可以是文件路径、URL 或 GraphQL 文字。
+
+```ts tab="Basic"
+import { createGraphQL } from '@fumadocs/graphql/server';
+
+export const graphql = createGraphQL({
+  input: ['./schema.graphql'],
+  examples: ['./examples.graphql'],
+});
+```
+
+```ts tab="Record"
+import { createGraphQL } from '@fumadocs/graphql/server';
+
+export const graphql = createGraphQL({
+  input: {
+    store: './store.graphql',
+    admin: './admin.graphql',
+  },
+  examples: {
+    // [id]：对应 schema 的 GraphQL 文档
+    store: ['./examples/store.graphql'],
+  },
+});
+```
+
+数组会应用到所有 schema。每个具名 operation 都会成为示例，显示在它所选取的根字段页面上，并取代自动生成的示例：
+
+```graphql title="examples.graphql"
+# 客户的公开个人数据。
+query CustomerProfile($id: ID! = "cus_42") {
+  customer(id: $id) {
+    id
+    name
+  }
+}
+```
+
+| 示例          | 来源                                                         |
+| ----------- | ---------------------------------------------------------- |
+| title       | operation 名称，例如 `CustomerProfile` 会转为 **Customer Profile** |
+| description | operation 的 `"""` 描述，或其正上方的 `#` 注解，支持 Markdown             |
+| variables   | 变量的默认值 (不写入查找中) ，或为必要变量自动生成的值                              |
+| response    | 根据选取集自动生成                                                  |
+
+每个 operation 的名称都必须唯一，且必须符合 schema，否则构建会失败。
+
+根字段的参数必须是同名的变量，例如 `customer(id: $id)`，交互测试区才能编辑这些参数。
+
+### `disableCache` [#disablecache]
+
+禁用已加载之 schema 与示例的缓存。适合在开发期间使用，因为这些内容经常变动。
+
+```ts
+import { createGraphQL } from '@fumadocs/graphql/server';
+
+export const graphql = createGraphQL({
+  input: ['./schema.graphql'],
+  disableCache: true,
+});
+```
+
+## 只加载一次 schema [#loading-schemas-once]
+
+页面会通过 props 接收完整的 schema，因此每次加载页面、切换页面及预先截取时，都会重新发送一次。若 schema 较大，建议不要将其传入：
+
+```ts title="lib/graphql.ts"
+import { createGraphQL } from '@fumadocs/graphql/server';
+
+export const graphql = createGraphQL({
+  // ID 最终会出现在 URL 中，请确保只使用 URL 安全字符
+  input: { store: './store.graphql' },
+  includeSchema: false, // [!code ++]
+});
+```
+
+<show when={props.framework !== 'tanstack-start'}>
+  传入 `loadSchema`，即可让每个 schema 的 SDL 在每个浏览器工作阶段中只加载一次。此函数也会在服务端渲染时运行：
+</show>
+
+<show when={props.framework === 'next'}>
+  ```tsx title="components/api-page.tsx"
+  'use client';
+  import { preload } from 'react-dom';
+  import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+  export const GraphQLPage = createGraphQLPage({
+    async loadSchema(id) {
+      if (typeof window === 'undefined') {
+        // 浏览器会在加载页面时一并开始下载
+        preload(`/api/graphql-schema/${id}`, { as: 'fetch', crossOrigin: 'anonymous' });
+        const { graphql } = await import('@/lib/graphql');
+        return (await graphql.getSchema(id)).sdl;
+      }
+      return (await fetch(`/api/graphql-schema/${id}`)).text();
+    },
+  });
+  ```
+</show>
+
+<show when={props.framework === 'react-router' || props.framework === 'waku' || props.framework === 'astro'}>
+  ```tsx title="components/api-page.tsx"
+  'use client';
+  import { preload } from 'react-dom';
+  import { createGraphQLPage } from '@fumadocs/graphql/ui';
+
+  export const GraphQLPage = createGraphQLPage({
+    async loadSchema(id) {
+      if (import.meta.env.SSR) {
+        // 浏览器会在加载页面时一并开始下载
+        preload(`/api/graphql-schema/${id}`, { as: 'fetch', crossOrigin: 'anonymous' });
+        const { graphql } = await import('@/lib/graphql');
+        return (await graphql.getSchema(id)).sdl;
+      }
+      return (await fetch(`/api/graphql-schema/${id}`)).text();
+    },
+  });
+  ```
+</show>
+
+<show when={props.framework !== 'tanstack-start'}>
+  通过路由将 schema 提供给浏览器：
+</show>
+
+<show when={props.framework === 'next'}>
+  ```ts title="app/api/graphql-schema/[id]/route.ts"
+  import { graphql } from '@/lib/graphql';
+
+  export async function GET(_req: Request, { params }: RouteContext<'/api/graphql-schema/[id]'>) {
+    return new Response((await graphql.getSchema((await params).id)).sdl);
+  }
+
+  // 用于静态导出
+  export async function generateStaticParams() {
+    return Object.keys(await graphql.getSchemas()).map((id) => ({ id }));
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  ```ts tab="app/routes/graphql-schema.ts"
+  import type { Route } from './+types/graphql-schema';
+  import { graphql } from '@/lib/graphql';
+
+  export async function loader({ params }: Route.LoaderArgs) {
+    return new Response((await graphql.getSchema(params.id)).sdl);
+  }
+  ```
+
+  ```ts tab="app/routes.ts"
+  import { route, type RouteConfig } from '@react-router/dev/routes';
+
+  export default [
+    // [!code ++]
+    route('api/graphql-schema/:id', 'routes/graphql-schema.ts'),
+    // ...
+  ] satisfies RouteConfig;
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```ts title="src/pages/_api/api/graphql-schema/[id].ts"
+  import type { ApiContext } from 'waku/router';
+  import { graphql } from '@/lib/graphql';
+
+  export async function GET(_: Request, { params }: ApiContext<'/api/graphql-schema/[id]'>) {
+    return new Response((await graphql.getSchema(params.id)).sdl);
+  }
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```ts title="src/pages/api/graphql-schema/[id].ts"
+  import type { APIRoute, GetStaticPaths } from 'astro';
+  import { graphql } from '@/lib/graphql';
+
+  export const prerender = true;
+
+  export const getStaticPaths = (async () => {
+    return Object.keys(await graphql.getSchemas()).map((id) => ({ params: { id } }));
+  }) satisfies GetStaticPaths;
+
+  export const GET: APIRoute = async ({ params }) => {
+    return new Response((await graphql.getSchema(params.id!)).sdl);
+  };
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  TanStack Start 的路由加载器会同时在服务器与浏览器上运行，因此你的文档路由不需要 `loadSchema` 也能加载 schema。只有在浏览器尚未取得 schema 时，才需要调用 server function：
+
+  ```tsx title="src/routes/docs/$.tsx"
+  import { createServerFn } from '@tanstack/react-start';
+  import { graphql } from '@/lib/graphql';
+
+  // 浏览器已加载的 schema
+  const schemas = new Map<string, string>();
+
+  const getSchema = createServerFn({ method: 'GET' })
+    .validator((id: string) => id)
+    .handler(async ({ data: id }) => (await graphql.getSchema(id)).sdl);
+
+  export const Route = createFileRoute('/docs/$')({
+    component: Page,
+    loader: async ({ params }) => {
+      const data = await serverLoader({ data: params._splat?.split('/') ?? [] });
+      if (data.type === 'graphql') {
+        const { schema: id, payload } = data.props;
+        payload.sdl = schemas.get(id) ?? (await getSchema({ data: id }));
+      }
+      return data;
+    },
+  });
+
+  function Page() {
+    const page = useFumadocsLoader(Route.useLoaderData());
+    // 第一个页面的 schema 也要记录
+    if (page.type === 'graphql' && typeof window !== 'undefined')
+      schemas.set(page.props.schema, page.props.payload.sdl!);
+    // ...
+  }
+  ```
+</show>
+
+<show when={props.framework !== 'tanstack-start'}>
+  * 若使用[由 Fumadocs CLI 安装的 UI](/docs/integrations/graphql/api-page#full-ui)，请将 `loadSchema` 传入 `createGraphQLRenderer()`。
+  * 浏览器会保留每个 schema，直到重新加载页面为止。若启用 [`disableCache`](#disablecache)，请保持 `includeSchema` 打开。
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  * 浏览器会保留每个 schema，直到重新加载页面为止。若启用 [`disableCache`](#disablecache)，请保持 `includeSchema` 打开。
+</show>
+
+## 生成页面 [#generating-pages]
+
+`staticSource()` 和 `dynamicSource()` 会为你的 `loader()` 生成页面，两者的选项完全相同。
+
+```ts title="lib/source.ts"
+export const source = loader(
+  {
+    docs: docs.toFumadocsSource(),
+    graphql: await graphql.staticSource({
+      baseDir: 'graphql',
+    }),
+  },
+  // ...
+);
+```
+
+### `per` [#per]
+
+自定义每个页面涵盖的内容，默认为 `item`。
+
+| 模式     | 内容                                                   | 文件路径              |
+| ------ | ---------------------------------------------------- | ----------------- |
+| item   | 每个 operation，以及搭配 `includeTypes` 时的每个具名类型            | `{name}.mdx`      |
+| file   | 单一 schema 的所有 operation，以及搭配 `includeTypes` 时其所有具名类型 | `{file_name}.mdx` |
+| custom | 请参阅下方说明                                              | 不适用               |
+
+设为 `custom` 时，你可以传入函数来完全自定义生成流程：
+
+```ts
+import { graphql } from '@/lib/graphql';
+
+await graphql.staticSource({
+  per: 'custom',
+  toPages(builder) {
+    builder.create({
+      type: 'operation',
+      path: 'my-orders.mdx',
+      info: { title: 'My Orders' },
+      item: { kind: 'query', name: 'orders' },
+    });
+  },
+});
+```
+
+### `groupBy` [#groupby]
+
+当 `per: 'item'` 时，可自定义生成的页面要如何分组至文件夹，默认为 `kind`。
+
+| 模式   | 文件夹                              |
+| ---- | -------------------------------- |
+| kind | 依种类分组，例如 `queries/`、`mutations/` |
+| none | 不创建文件夹                           |
+
+你也可以传入一个函数，用来返回项目的分组名称：
+
+```ts
+import { graphql } from '@/lib/graphql';
+
+await graphql.staticSource({
+  groupBy: (entry) => (entry.type === 'operation' ? 'operations' : 'types'),
+});
+```
+
+### `includeOperations` &amp; `includeTypes` [#includeoperations--includetypes]
+
+筛选要生成文档的 operation (query/mutation/subscription 字段) 与具名类型。
+
+* `includeOperations`：在 `per: 'item'` 时为每个 operation 各生成一个页面，默认为 `true`。
+* `includeTypes`：具名类型。在 `per: 'item'` 时各自拥有独立页面，在 `per: 'file'` 时则放在该文件的页面中，默认为 `false`。无论采用哪种方式，operation 页面都会显示其使用的类型。
+
+类型页面会显示该类型的使用位置，并提供链接至其他类型及各个 operation。
+
+```ts
+import { graphql } from '@/lib/graphql';
+
+await graphql.staticSource({
+  // 略过订阅操作
+  includeOperations: (kind, field) => kind !== 'subscription',
+  // 为类型生成文档，但排除内部类型
+  includeTypes: (type) => !type.name.startsWith('Internal'),
+});
+```
+
+### `name` &amp; `slugify` [#name--slugify]
+
+自定义所生成页面的文件名。
+
+GraphQL 名称本身就可以安全地用于 URL，因此默认会保留原始名称 (包含大小写) 。
+
+```ts
+import { graphql } from '@/lib/graphql';
+
+await graphql.staticSource({
+  per: 'item',
+  name: (entry) => entry.item.name.toLowerCase(),
+});
+```
+
+`slugify` 会将分组名称 (默认也包含项目名称) 转换为适用于 URL 的路径片段。
+
+### `meta` [#meta]
+
+生成 `meta.json` 文件以自定义页面树，默认为禁用。
+
+| `folderStyle` | 页面树                  |
+| ------------- | -------------------- |
+| folder        | 每个分组各为一个文件夹 (默认)     |
+| separator     | 每个分组各以一个分隔符分隔，页面列于其下 |
+
+```ts
+import { graphql } from '@/lib/graphql';
+
+await graphql.staticSource({
+  meta: { folderStyle: 'separator' },
+});
+```
+
+## 供 LLM 使用的 Markdown [#markdown-for-llms]
+
+`page.data.getText()` 会以 Markdown 格式返回页面中的项目：包括 operation 及其签名、参数、示例和所用类型的 SDL，以及具名类型及其 SDL 和使用位置。例如在 [`docsLlms`](/docs/integrations/llms#docsllms) 中：
+
+```ts
+import { llms } from 'fumadocs-core/source';
+import { source } from '@/lib/source';
+
+export const docsLlms = llms(source, {
+  renderPage: async (page) => {
+    // [!code ++:3]
+    if (page.type === 'graphql') {
+      return `# ${page.data.title}\n\n${await page.data.getText('processed')}`;
+    }
+
+    // 以下为你原有的处理流程……
+  },
+});
+```
+
+## 加载器插件 [#loader-plugin]
+
+`loaderPlugin()` 会为页面树中的 GraphQL 页面加上以下标示：
+
+* 为每个 operation 页面加上 `query`/`mutation`/`subscription` 徽章。
+* 为已弃用的 operation 加上删除线。
+
+```ts title="lib/source.ts"
+export const source = loader(
+  // ...
+  {
+    baseUrl: '/docs',
+    plugins: [graphql.loaderPlugin()],
+  },
+);
+```

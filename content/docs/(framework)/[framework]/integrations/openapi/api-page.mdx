@@ -1,0 +1,323 @@
+---
+title: createOpenAPIPage()
+description: 用于渲染 OpenAPI 文档内容的组件
+---
+
+## 概览 [#overview]
+
+Fumadocs OpenAPI 使用 `<OpenAPIPage />` 组件来渲染页面内容，此组件应为客户端组件。
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createOpenAPIPage } from 'fumadocs-openapi/ui';
+
+export const OpenAPIPage = createOpenAPIPage({
+  // 设置
+});
+```
+
+### 生成代码使用示例 [#generate-code-usages]
+
+为每个 API 端点生成代码使用示例。
+
+```tsx title="components/api-page.tsx" twoslash
+// @noErrors
+'use client';
+import { createOpenAPIPage } from 'fumadocs-openapi/ui';
+import {
+  createCodeUsageGeneratorRegistry,
+  type CodeUsageGenerator,
+} from 'fumadocs-openapi/requests/generators';
+import { registerDefault } from 'fumadocs-openapi/requests/generators/all';
+
+const codeUsages = createCodeUsageGeneratorRegistry();
+
+// 加入默认生成器
+registerDefault(codeUsages);
+
+// 添加自定义生成器
+codeUsages.add('custom-id', {
+  label: 'My Example',
+  lang: 'js',
+  generate(data, { mediaAdapters }) {
+    // 请求数据
+    console.log(data);
+
+    return 'const response = "hello world";';
+  },
+});
+
+export const OpenAPIPage = createOpenAPIPage({
+  // [!code ++]
+  codeUsages,
+});
+```
+
+此外，你也可以通过 OpenAPI schema 指定代码示例。
+
+```yaml
+paths:
+  /plants:
+    get:
+      x-codeSamples:
+        - lang: js
+          label: JavaScript SDK
+          source: |
+            const planter = require('planter');
+            planter.list({ unwatered: true });
+```
+
+### 国际化 [#internationalization]
+
+假设你已在 UI 层级设置好[国际化](/docs/internationalization)：
+
+```tsx title="layout.shared.tsx"
+import { defineI18n } from 'fumadocs-core/i18n';
+import { uiTranslations } from 'fumadocs-ui/i18n';
+import { openapiTranslations } from 'fumadocs-openapi/i18n';
+
+const i18n = defineI18n({
+  languages: ['en', 'cn'],
+  defaultLanguage: 'en',
+});
+
+export const translations = i18n
+  .translations()
+  .extend(uiTranslations())
+  // [!code ++]
+  .extend(openapiTranslations())
+  .add({
+    cn: {
+      displayName: 'Chinese',
+      // [!code ++]
+      'Body(playground)': '请求正文',
+    },
+  });
+```
+
+详情请参阅[翻译](/docs/ui/translations)。
+
+## 媒体适配器 [#media-adapters]
+
+你可以创建媒体适配器，让 API 页面支持其他媒体类型。媒体适配器需实现以下功能：
+
+* 将值转换为对应媒体类型适用的 `fetch()` body。
+* 针对不同的编程语言／工具生成代码示例。
+
+其他媒体类型的请求 body 为只读：不会出现在代码使用示例中，也无法在交互测试区中送出。
+
+```tsx title="components/api-page.tsx" twoslash
+// @noErrors
+'use client';
+import { createOpenAPIPage } from 'fumadocs-openapi/ui';
+import type { MediaAdapter } from 'fumadocs-openapi';
+
+const mediaAdapters: Record<string, MediaAdapter> = {
+  // 示例：自定义 `application/json
+  'application/json': {
+    encode(data) {
+      return JSON.stringify(data.body);
+    },
+    // 返回用来初始化 `body` 变量的代码，作为请求 body 使用
+    generateExample(data, ctx) {
+      if (ctx.lang === 'js') {
+        return `const body = "hello world"`;
+      }
+
+      if (ctx.lang === 'python') {
+        return `body = "hello world"`;
+      }
+
+      if (ctx.lang === 'go' && 'addImport' in ctx) {
+        ctx.addImport('strings');
+
+        return `body := strings.NewReader("hello world")`;
+      }
+    },
+  },
+};
+
+export const OpenAPIPage = createOpenAPIPage({
+  // [!code ++]
+  mediaAdapters,
+});
+```
+
+## 授权 [#authorization]
+
+验证提供者 (auth provider) 负责处理交互测试区的安全性方案，包括其值的输入列，以及这些值的发送方式。
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createOpenAPIPage } from 'fumadocs-openapi/ui';
+import { Custom } from 'fumadocs-openapi/ui/playground/client';
+import type { AuthPanelProps } from 'fumadocs-openapi/playground';
+
+export const OpenAPIPage = createOpenAPIPage({
+  playground: {
+    authProviders: [
+      {
+        // 可为 scheme ID 或函数；省略时应用到所有 scheme
+        on: 'my-auth',
+        render: ({ Value, Panel }) => (
+          <>
+            <Value name="Authorization" type="header" start="Bearer" />
+            <Panel title="Sign in" component={SignIn} />
+          </>
+        ),
+      },
+    ],
+  },
+});
+
+function SignIn({ field, close }: AuthPanelProps) {
+  const { setValue } = Custom.useController(field.fieldName);
+
+  return (
+    <button
+      onClick={async () => {
+        const res = await fetch('/api/token');
+        setValue(await res.text());
+        close();
+      }}
+    >
+      Sign in
+    </button>
+  );
+}
+```
+
+| 选项          | 说明                                        |
+| ----------- | ----------------------------------------- |
+| `on`        | 它所处理的安全性方案                                |
+| `render`    | 它的各列，由 `Value` (值的输入字段) 与 `Panel` (面板) 组成 |
+| `onRequest` | 将值写入请求数据，供请求与代码使用示例使用 (会屏蔽显示)            |
+
+请在组件外部定义 provider，因为 provider 一旦变更，验证字段就会重新创建。
+
+各列与面板各自保有自己的状态，可通过 `Custom.useController(field.fieldName)` 读写该值。在选项卡打开期间，值会依方案分别保存。权杖会连同其方案一并送出，例如 `Bearer <token>`。
+
+<Accordions>
+  <Accordion title="需要离开页面的登录流程">
+    请使用 `useAuthRedirect()` 返回的函数离开页面。页面重新加载后，交互测试区会重新打开，各列则会在 `onReturn` 中取回数据。
+
+    ```tsx
+    import { Custom } from 'fumadocs-openapi/ui/playground/client';
+    import {
+      type AuthPanelProps,
+      type AuthRenderProps,
+      useAuthRedirect,
+    } from 'fumadocs-openapi/playground';
+
+    function Rows({ field, Value, Panel }: AuthRenderProps) {
+      const { setValue } = Custom.useController(field.fieldName);
+
+      useAuthRedirect(field, (url, state) => {
+        if (url.searchParams.get('state') === state)
+          setValue(url.searchParams.get('token')!);
+      });
+
+      return (
+        <>
+          <Value name="Authorization" type="header" start="Bearer" />
+          <Panel title="Sign in" component={SignIn} />
+        </>
+      );
+    }
+
+    function SignIn({ field }: AuthPanelProps) {
+      const redirect = useAuthRedirect(field);
+
+      return (
+        <button
+          onClick={() => {
+            const state = crypto.randomUUID();
+            redirect(`https://auth.example.com/login?state=${state}`, state);
+          }}
+        >
+          Sign in
+        </button>
+      );
+    }
+    ```
+  </Accordion>
+</Accordions>
+
+## 自定义 UI [#customise-ui]
+
+若现有选项无法满足你的自定义需求，你可以使用 [Fumadocs CLI](/docs/cli) 将 UI 安装到自己的代码库中。
+
+### 完整 UI [#full-ui]
+
+API 页面的完整 UI，构建于[无头式层](/docs/integrations/openapi/headless)之上。
+
+```npm
+npx @fumadocs/cli add openapi/page
+```
+
+它会直接安装 `<OpenAPIPage />`，因此不再需要 `components/api-page.tsx`。请更新 `<OpenAPIPage />` 的导入路径：
+
+```tsx
+import { OpenAPIPage } from '@/components/api-page'; // [!code --]
+import { OpenAPIPage } from '@/components/openapi/page'; // [!code ++]
+```
+
+### API 交互测试区 [#api-playground]
+
+交互测试区的 UI，其状态由 [`usePlayground()`](/docs/integrations/openapi/headless#playground) 提供。
+
+```npm
+npx @fumadocs/cli add openapi/playground
+```
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createOpenAPIPage } from 'fumadocs-openapi/ui';
+import PlaygroundClient from '@/components/openapi/playground';
+
+export const OpenAPIPage = createOpenAPIPage({
+  playground: {
+    render: () => <PlaygroundClient />,
+  },
+});
+```
+
+### Operation [#operation]
+
+operation 与 webhook 的 UI。
+
+```npm
+npx @fumadocs/cli add openapi/operation
+```
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createOpenAPIPage } from 'fumadocs-openapi/ui';
+import { Operation } from '@/components/openapi/operation';
+
+export const OpenAPIPage = createOpenAPIPage({
+  components: {
+    Operation,
+  },
+});
+```
+
+### 结构描述 UI [#schema-ui]
+
+用于呈现 JSON schema 的 UI，其状态来自 [`<SchemaUIProvider />`](/docs/integrations/openapi/headless#schema-ui)。
+
+```npm
+npx @fumadocs/cli add api-docs/schema
+```
+
+```tsx title="components/api-page.tsx"
+'use client';
+import { createOpenAPIPage } from 'fumadocs-openapi/ui';
+import { Schema } from '@/components/api/schema';
+
+export const OpenAPIPage = createOpenAPIPage({
+  components: {
+    SchemaUI: Schema,
+  },
+});
+```

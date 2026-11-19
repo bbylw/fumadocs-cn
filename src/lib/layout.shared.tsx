@@ -29,7 +29,7 @@ export const linkItems: LinkItemType[] = [
   {
     icon: <Scale />,
     text: '对比',
-    url: '/docs/comparisons',
+    url: '/docs/next/comparisons',
     active: 'nested-url',
   },
   {

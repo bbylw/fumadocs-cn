@@ -1,0 +1,512 @@
+---
+title: OpenAPI
+description: 根据 OpenAPI schema 生成文档。
+---
+
+## 设置 [#setup]
+
+请安装所需的包。
+
+```npm
+npm i fumadocs-openapi shiki
+```
+
+### 生成样式 [#generate-styles]
+
+请加入下面这一行：
+
+```css title="Tailwind CSS"
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+/* [!code ++] */
+@import 'fumadocs-openapi/css/preset.css';
+```
+
+### 设置插件 [#configure-plugin]
+
+创建 OpenAPI 服务器实例及 `<OpenAPIPage />` 组件。
+
+```ts tab="lib/openapi.ts"
+import { createOpenAPI } from 'fumadocs-openapi/server';
+
+// 注意：这是服务端 API
+export const openapi = createOpenAPI({
+  // OpenAPI schema，也可以改为提供外部 URL。
+  input: ['./openapi.json'],
+});
+```
+
+```tsx tab="components/api-page.tsx"
+'use client';
+import { createOpenAPIPage } from 'fumadocs-openapi/ui';
+
+export const OpenAPIPage = createOpenAPIPage();
+```
+
+如需了解可用选项，请参阅 [`createOpenAPI()`](/docs/integrations/openapi/server) 与 [`createOpenAPIPage()`](/docs/integrations/openapi/api-page)。
+
+### 生成页面 [#generate-pages]
+
+将 `staticSource()` 传入你的 [`loader()`](/docs/headless/source-api/source)，即可生成页面，而不必实际写入文件。
+
+<show when={props.framework === 'react-router' || props.framework === 'tanstack-start'}>
+  由于 `staticSource()` 会读取文件，`source.ts` 将变成仅限服务端使用。请将 `docs` 移至 `collections.ts`，让客户端代码可以导入。
+</show>
+
+<show when={props.framework === 'next'}>
+  ```ts title="lib/source.ts"
+  import { loader } from 'fumadocs-core/source';
+  import { defineDocs } from 'fumadocs-mdx/macro';
+  import { openapi } from '@/lib/openapi'; // [!code ++]
+
+  const docs = defineDocs({
+    dir: 'content/docs',
+  });
+
+  export const source = loader(
+    // [!code ++:6]
+    {
+      docs: docs.toFumadocsSource(),
+      openapi: await openapi.staticSource({
+        baseDir: 'openapi',
+      }),
+    },
+    {
+      baseUrl: '/docs',
+      // [!code ++:2] 可选：为页面树中的每个页面项目加上徽章
+      plugins: [openapi.loaderPlugin()],
+    },
+  );
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  ```ts tab="app/lib/source.ts"
+  import { loader } from 'fumadocs-core/source';
+  import { defineDocs } from 'fumadocs-mdx/macro'; // [!code --]
+  // [!code ++:2]
+  import { docs } from '@/lib/collections';
+  import { openapi } from '@/lib/openapi';
+
+  // [!code --:6]
+  export const docs = defineDocs({
+    dir: 'content/docs',
+    docs: {
+      async: true,
+    },
+  });
+
+  // 由于 `staticSource()` 会读取文档，现在仅限服务端使用 [!code ++]
+  export const source = loader(
+    // [!code ++:6]
+    {
+      docs: docs.toFumadocsSource(),
+      openapi: await openapi.staticSource({
+        baseDir: 'openapi',
+      }),
+    },
+    {
+      baseUrl: '/docs',
+      // [!code ++:2] 可选：为页面树中的每个页面项目加上徽章
+      plugins: [openapi.loaderPlugin()],
+    },
+  );
+  ```
+
+  ```ts tab="app/lib/collections.ts"
+  import { defineDocs } from 'fumadocs-mdx/macro';
+
+  export const docs = defineDocs({
+    dir: 'content/docs',
+    docs: {
+      async: true,
+    },
+  });
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  ```ts tab="src/lib/source.ts"
+  import { loader } from 'fumadocs-core/source';
+  import { defineDocs } from 'fumadocs-mdx/macro'; // [!code --]
+  // [!code ++:2]
+  import { docs } from '@/lib/collections';
+  import { openapi } from '@/lib/openapi';
+
+  // [!code --:6]
+  export const docs = defineDocs({
+    dir: 'content/docs',
+    docs: {
+      async: true,
+    },
+  });
+
+  // 由于 `staticSource()` 会读取文档，现在仅限服务端使用 [!code ++]
+  export const source = loader(
+    // [!code ++:6]
+    {
+      docs: docs.toFumadocsSource(),
+      openapi: await openapi.staticSource({
+        baseDir: 'openapi',
+      }),
+    },
+    {
+      baseUrl: '/docs',
+      // [!code ++:2] 可选：为页面树中的每个页面项目加上徽章
+      plugins: [openapi.loaderPlugin()],
+    },
+  );
+  ```
+
+  ```ts tab="src/lib/collections.ts"
+  import { defineDocs } from 'fumadocs-mdx/macro';
+
+  export const docs = defineDocs({
+    dir: 'content/docs',
+    docs: {
+      async: true,
+    },
+  });
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```ts title="src/lib/source.ts"
+  import { loader } from 'fumadocs-core/source';
+  import { defineDocs } from 'fumadocs-mdx/macro';
+  import { openapi } from '@/lib/openapi'; // [!code ++]
+
+  const docs = defineDocs({
+    dir: 'content/docs',
+  });
+
+  export const source = loader(
+    // [!code ++:6]
+    {
+      docs: docs.toFumadocsSource(),
+      openapi: await openapi.staticSource({
+        baseDir: 'openapi',
+      }),
+    },
+    {
+      baseUrl: '/docs',
+      // [!code ++:2] 可选：为页面树中的每个页面项目加上徽章
+      plugins: [openapi.loaderPlugin()],
+    },
+  );
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```ts title="src/lib/source.ts"
+  import { getCollection } from 'astro:content';
+  import { loader } from 'fumadocs-core/source';
+  import { toFumadocsSource } from '@fumadocs/astro/source';
+  import { openapi } from '@/lib/openapi'; // [!code ++]
+
+  export const source = loader(
+    // [!code ++:6]
+    {
+      docs: toFumadocsSource(await getCollection('docs'), await getCollection('meta')),
+      openapi: await openapi.staticSource({
+        baseDir: 'openapi',
+      }),
+    },
+    {
+      baseUrl: '/docs',
+      // [!code ++:2] 可选：为页面树中的每个页面项目加上徽章
+      plugins: [openapi.loaderPlugin()],
+    },
+  );
+  ```
+</show>
+
+`staticSource()` 默认会为每个 operation 生成一个页面。如需自定义，请参阅[生成页面](/docs/integrations/openapi/generate-files)。
+
+**`source` 的页面现在有 `docs` 与 `openapi` 两种类型。** 请更新所有使用到 `source` 的地方，例如为 LLM 返回文字的代码：
+
+```ts
+import { llms } from 'fumadocs-core/source';
+import { source } from '@/lib/source';
+
+export const docsLlms = llms(source, {
+  renderPage: (page) => {
+    // [!code ++:4]
+    if (page.type === 'openapi') {
+      // 例如：返回序列化为字符串的 OpenAPI schema
+      return JSON.stringify(page.data.getSchema().bundled, null, 2);
+    }
+
+    // 以下为你原本的流程……
+  },
+});
+```
+
+<show when={props.framework !== 'astro'}>
+  在你的文档页面中，使用 `<OpenAPIPage />` 渲染 OpenAPI 页面：
+</show>
+
+<show when={props.framework === 'astro'}>
+  将 OpenAPI 页面放在独立的 island 中渲染，并在该 island 中以文档布局包装 `<OpenAPIPage />`：
+</show>
+
+<show when={props.framework === 'next'}>
+  ```tsx title="app/docs/[[...slug]]/page.tsx"
+  import { OpenAPIPage } from '@/components/api-page'; // [!code ++]
+
+  export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
+    const params = await props.params;
+    const page = source.getPage(params.slug);
+    if (!page) notFound();
+
+    // [!code ++:10]
+    if (page.type === 'openapi') {
+      return (
+        <DocsPage full>
+          <DocsTitle>{page.data.title}</DocsTitle>
+          <DocsBody>
+            <OpenAPIPage {...page.data.getOpenAPIPageProps()} />
+          </DocsBody>
+        </DocsPage>
+      );
+    }
+
+    // ...
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  ```tsx title="app/routes/docs.tsx"
+  import { docs, source } from '@/lib/source'; // [!code --]
+  // [!code ++:3]
+  import { docs } from '@/lib/collections';
+  import { source } from '@/lib/source';
+  import { OpenAPIPage } from '@/components/api-page';
+
+  export async function loader({ params }: Route.LoaderArgs) {
+    const slugs = params['*'].split('/').filter((v) => v.length > 0);
+    const page = source.getPage(slugs);
+    if (!page) throw new Response('Not found', { status: 404 });
+
+    // [!code ++:9]
+    const pageTree = await source.serializePageTree(source.getPageTree());
+    if (page.type === 'openapi') {
+      return {
+        type: 'openapi' as const,
+        title: page.data.title,
+        props: page.data.getOpenAPIPageProps(),
+        pageTree,
+      };
+    }
+
+    return { type: 'docs' as const, path: page.path, pageTree }; // [!code highlight]
+  }
+
+  export default function Page({ loaderData }: Route.ComponentProps) {
+    const data = useFumadocsLoader(loaderData);
+
+    return (
+      <DocsLayout {...baseOptions()} tree={data.pageTree}>
+        {/* [!code ++:8] */}
+        {data.type === 'openapi' && (
+          <DocsPage full>
+            <DocsTitle>{data.title}</DocsTitle>
+            <DocsBody>
+              <OpenAPIPage {...data.props} />
+            </DocsBody>
+          </DocsPage>
+        )}
+        {/* [!code highlight] */}
+        {data.type === 'docs' && <Content path={data.path} />}
+      </DocsLayout>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  ```tsx title="src/routes/docs/$.tsx"
+  import { docs, source } from '@/lib/source'; // [!code --]
+  // [!code ++:3]
+  import { docs } from '@/lib/collections';
+  import { source } from '@/lib/source';
+  import { OpenAPIPage } from '@/components/api-page';
+
+  export const Route = createFileRoute('/docs/$')({
+    component: Page,
+    loader: async ({ params }) => {
+      const slugs = params._splat?.split('/') ?? [];
+      const data = await serverLoader({ data: slugs });
+      if (data.type === 'docs') await docs.getPage(data.path)?.preload(); // [!code highlight]
+      return data;
+    },
+  });
+
+  const serverLoader = createServerFn({
+    method: 'GET',
+  })
+    .validator((slugs: string[]) => slugs)
+    .handler(async ({ data: slugs }) => {
+      const page = source.getPage(slugs);
+      if (!page) throw notFound();
+
+      // [!code ++:9]
+      const pageTree = await source.serializePageTree(source.getPageTree());
+      if (page.type === 'openapi') {
+        return {
+          type: 'openapi',
+          title: page.data.title,
+          props: page.data.getOpenAPIPageProps(),
+          pageTree,
+        };
+      }
+
+      return { type: 'docs', path: page.path, pageTree }; // [!code highlight]
+    });
+
+  function Page() {
+    const data = useFumadocsLoader(Route.useLoaderData());
+
+    return (
+      <DocsLayout {...baseOptions()} tree={data.pageTree}>
+        {/* [!code ++:8] */}
+        {data.type === 'openapi' && (
+          <DocsPage full>
+            <DocsTitle>{data.title}</DocsTitle>
+            <DocsBody>
+              <OpenAPIPage {...data.props} />
+            </DocsBody>
+          </DocsPage>
+        )}
+        <Suspense>
+          {/* [!code highlight] */}
+          {data.type === 'docs' && <Content path={data.path} />}
+        </Suspense>
+      </DocsLayout>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```tsx title="src/pages/docs/[...slugs].tsx"
+  import { OpenAPIPage } from '@/components/api-page'; // [!code ++]
+
+  export default function Page({ slugs }: PageProps<'/docs/[...slugs]'>) {
+    const page = source.getPage(slugs);
+    if (!page) unstable_notFound();
+
+    // [!code ++:10]
+    if (page.type === 'openapi') {
+      return (
+        <DocsPage full>
+          <DocsTitle>{page.data.title}</DocsTitle>
+          <DocsBody>
+            <OpenAPIPage {...page.data.getOpenAPIPageProps()} />
+          </DocsBody>
+        </DocsPage>
+      );
+    }
+
+    // ...
+  }
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```astro tab="src/pages/docs/[...slug].astro"
+  ---
+  import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+  import Layout from '@/layouts/Layout.astro';
+  import { Docs } from '@/components/docs';
+  import { OpenAPIDocs } from '@/components/openapi-docs'; // [!code ++]
+  import { source } from '@/lib/source';
+
+  export const prerender = true;
+
+  export const getStaticPaths = (() => {
+    return source.getPages().map((page) => ({
+      params: { slug: decodeURI(page.slugs.join('/')) || undefined },
+      props: { page },
+    }));
+  }) satisfies GetStaticPaths;
+
+  type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+  const { page } = Astro.props;
+  const pageTree = await source.serializePageTree(source.getPageTree());
+  ---
+
+  {/* [!code ++:13] */}
+  {page.type === 'openapi' && (
+    <Layout title={page.data.title ?? 'My App'}>
+      <OpenAPIDocs
+        client:load
+        pathname={Astro.url.pathname}
+        params={Astro.params}
+        tree={pageTree}
+        title={page.data.title}
+        props={page.data.getOpenAPIPageProps()}
+      />
+    </Layout>
+  )}
+  ```
+
+  ```tsx tab="src/components/openapi-docs.tsx"
+  import { type SerializedPageTree, useFumadocsLoader } from 'fumadocs-core/source/client';
+  import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+  import { DocsBody, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+  import { OpenAPIPage } from '@/components/api-page';
+  import { Provider, type ProviderProps } from '@/components/provider';
+  import { baseOptions } from '@/lib/layout.shared';
+  import type { OpenAPIPageProps } from 'fumadocs-openapi/ui';
+
+  export function OpenAPIDocs({
+    tree,
+    title,
+    props,
+    ...rest
+  }: ProviderProps & { tree: SerializedPageTree; title?: string; props: OpenAPIPageProps }) {
+    const data = useFumadocsLoader({ tree });
+
+    return (
+      <Provider {...rest}>
+        <DocsLayout {...baseOptions()} tree={data.tree}>
+          <DocsPage full>
+            <DocsTitle>{title}</DocsTitle>
+            <DocsBody>
+              <OpenAPIPage {...props} />
+            </DocsBody>
+          </DocsPage>
+        </DocsLayout>
+      </Provider>
+    );
+  }
+  ```
+</show>
+
+<Callout type="warn" title="请确认已完成迁移！">
+  继续之前，请先运行类型检查：
+
+  ```npm
+  npm run types:check
+  ```
+</Callout>
+
+若想改为将 MDX 文件写入内容目录，请参阅 [MDX 文件](/docs/integrations/openapi/generate-files#mdx-files)。
+
+## 功能 [#features]
+
+官方 OpenAPI 集成支持：
+
+* 基本的 API 端点信息
+* API 交互测试区
+* 发送请求的示例代码 (支持多种编程语言) 
+* 回应示例与 TypeScript 类型定义
+* 根据 schema 生成的请求参数与 body
+
+### 示范 [#demo]
+
+[查看示例](https://www.fumadocs.dev/docs/openapi)。

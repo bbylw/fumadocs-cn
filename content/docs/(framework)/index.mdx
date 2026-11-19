@@ -1,0 +1,72 @@
+---
+title: 简介
+description: 专为 React 打造的文档框架
+---
+
+import { CpuIcon, PanelsTopLeftIcon, DatabaseIcon, TerminalIcon } from 'lucide-react';
+import { FrameworkLogo } from '@/components/framework-logo';
+import { SquareBookmark } from 'lucide-static';
+
+export const frontmatter = { icon: SquareBookmark };
+
+<AgentInstructions />
+
+Fumadocs <span className="text-fd-muted-foreground text-sm">(Foo-ma docs)</span> 是一个**文档框架**，以快速、灵活为设计目标，
+并能无缝融入你的 React 框架。它由多个层级组成：
+
+<Cards>
+  <Card icon={<CpuIcon className="text-purple-300" />} title="Fumadocs Core" href="/docs/headless">
+    负责大部分的逻辑，包括文档搜索、内容来源适配器，以及 Markdown 扩展功能。
+  </Card>
+
+  <Card icon={<PanelsTopLeftIcon className="text-blue-300" />} title="Fumadocs UI" href="/docs/ui">
+    Fumadocs 的默认主题，为文档网站与交互式组件提供美观的外观。
+  </Card>
+
+  <Card icon={<DatabaseIcon />} title="内容来源">
+    你的内容来源，可以是 CMS，也可以是本地数据层，例如 [Fumadocs MDX](/docs/mdx) (官方内容来源) 。
+  </Card>
+
+  <Card icon={<TerminalIcon />} title="Fumadocs CLI" href="/docs/cli">
+    用于安装 UI 组件及自动化作业的命令行工具，方便你自定义布局。
+  </Card>
+</Cards>
+
+<Callout title="想了解更多吗？">
+  请阅读我们的深入介绍：[什么是 Fumadocs](/docs/what-is-fumadocs)。
+</Callout>
+
+## 选择框架 [#choosing-a-framework]
+
+本指南依框架分别撰写。请选择你的应用所使用的框架；若是新项目，建议选择 Next.js：
+
+<Cards>
+  <Card icon={<FrameworkLogo framework="next" />} title="Next.js（推荐）" href="/docs/next">
+    功能强大且成熟，是新项目的默认选择。
+  </Card>
+
+  <Card icon={<FrameworkLogo framework="react-router" />} title="React Router" href="/docs/react-router">
+    适用于 React Router 应用。通过其 SPA 模式，可将网站以静态方式托管于 CDN。
+  </Card>
+
+  <Card icon={<FrameworkLogo framework="tanstack-start" />} title="TanStack Start" href="/docs/tanstack-start">
+    适用于 TanStack Start 应用。通过其 SPA 模式，可将网站以静态方式托管于 CDN。
+  </Card>
+
+  <Card icon={<FrameworkLogo framework="waku" />} title="Waku" href="/docs/waku">
+    快速又简洁，是构建于 Vite 之上、支持服务器组件的 React 框架。
+  </Card>
+
+  <Card icon={<FrameworkLogo framework="astro" />} title="Astro" href="/docs/astro">
+    适用于 Astro 网站，支持内容集合，并将 MDX 渲染为 React islands。
+  </Card>
+</Cards>
+
+<Callout title="以更简便的开发者体验试用 Fumadocs">
+  [Fumapress](https://press.fumadocs.dev) 是一款网站生成器，在 Fumadocs 之上代为管理更多功能。
+
+  * 内置自动路由、`llms.txt`、MCP 等基本功能。
+  * 基于 Vite ([Waku](https://waku.gg)) 。
+
+  它会强制使用自有的 React 框架，但换来更好的开发者体验。
+</Callout>

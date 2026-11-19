@@ -1,15 +1,17 @@
 ---
-title: 导览列
-description: 导览列／页首设定。
+title: 导航列
+description: 导航列／页眉设置。
 ---
 
-导览列 (页首) 的选项。
+## 设置 [#configurations]
+
+导航列 (页眉) 的选项。
 
 <auto-type-table cwd path="content/docs/ui/props.ts" type="Omit<NavbarProps, 'children'>" />
 
 ### 透明模式 [#transparent-mode]
 
-若要让导览列背景呈现透明，可以设定透明模式。
+若要让导航列背景呈现透明，可以设置透明模式。
 
 ```tsx tab="All" title="lib/layout.shared.tsx"
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
@@ -73,11 +75,11 @@ export default function Layout({ children }: { children: ReactNode }) {
 | -------- | --------------- |
 | `always` | 一律使用透明背景        |
 | `top`    | 仅在位于页面顶端时使用透明背景 |
-| `none`   | 停用透明背景 (预设)     |
+| `none`   | 禁用透明背景 (默认)     |
 
-### 替换导览列 [#replace-navbar]
+### 替换导航列 [#replace-navbar]
 
-若要替换各个版面配置中的导览列，请将 `nav.component` 设定为您自己的元件。
+若要替换各个布局中的导航列，请将 `nav.component` 设置为你自己的组件。
 
 ```tsx tab="All" title="lib/layout.shared.tsx"
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
@@ -136,9 +138,9 @@ export default function Layout({ children }: { children: ReactNode }) {
 }
 ```
 
-Fumadocs 使用 **CSS 变数**来共用版面配置元件的尺寸，让每个版面配置元件都能放在适当的位置。
+Fumadocs 使用 **CSS 变量**来共用布局组件的尺寸，让每个布局组件都能放在适当的位置。
 
-您需要将 `--fd-nav-height` 覆写为自订导览列的实际高度，可以透过 CSS 样式表来设定 (例如在 `global.css` 中) ：
+你需要将 `--fd-nav-height` 覆盖为自定义导航列的实际高度，可以通过 CSS 样式表来设置 (例如在 `global.css` 中) ：
 
 ```css
 :root {

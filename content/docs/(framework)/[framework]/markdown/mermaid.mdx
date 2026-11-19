@@ -1,0 +1,258 @@
+---
+title: Mermaid
+description: 在文档中渲染图表
+---
+
+## 设置 [#setup]
+
+Fumadocs 并未内置 Mermaid 包装组件，建议你直接使用 `mermaid`。
+
+你可以自行选择要设置的 Mermaid 渲染器：
+
+### 官方渲染器 [#official-renderer]
+
+```npm
+npm install mermaid
+```
+
+创建 Mermaid 组件：
+
+```tsx title="components/mdx/mermaid.tsx"
+'use client';
+
+import { use, useId, useSyncExternalStore } from 'react';
+
+export function Mermaid({ chart }: { chart: string }) {
+  // 在服务端及 hydration 期间为 `false`
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+
+  if (!isClient) return;
+  return <MermaidContent chart={chart} />;
+}
+
+const cache = new Map<string, Promise<unknown>>();
+
+function cachePromise<T>(key: string, setPromise: () => Promise<T>): Promise<T> {
+  const cached = cache.get(key);
+  if (cached) return cached as Promise<T>;
+
+  const promise = setPromise();
+  cache.set(key, promise);
+  return promise;
+}
+
+function subscribeTheme(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributeFilter: ['class'] });
+  return () => observer.disconnect();
+}
+
+function MermaidContent({ chart }: { chart: string }) {
+  const id = useId();
+  const theme = useSyncExternalStore(subscribeTheme, () =>
+    document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+  );
+  const { default: mermaid } = use(cachePromise('mermaid', () => import('mermaid')));
+
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'loose',
+    fontFamily: 'inherit',
+    themeCSS: 'margin: 1.5rem auto 0;',
+    theme,
+  });
+
+  const { svg, bindFunctions } = use(
+    cachePromise(`${chart}-${theme}`, () => {
+      return mermaid.render(id, chart.replaceAll('\\n', '\n'));
+    }),
+  );
+
+  return (
+    <div
+      ref={(container) => {
+        if (container) bindFunctions?.(container);
+      }}
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
+```
+
+### Pele [#pele]
+
+[Pele](https://pele.run) 是一款轻量的 Mermaid 渲染器，可输出能应用主题的 SVG。
+
+```npm
+npm install pele
+```
+
+<include cwd meta="title=&#x22;components/mdx/mermaid.tsx&#x22;">./src/components/mdx/mermaid.tsx</include>
+
+将它的字体与颜色对应至 Fumadocs，让图表随浅色／深色模式切换：
+
+<include cwd meta="title=&#x22;global.css&#x22;">./src/styles/global.css#pele</include>
+
+### Beautiful Mermaid [#beautiful-mermaid]
+
+[`beautiful-mermaid`](https://github.com/lukilabs/beautiful-mermaid) 是一款第三方 Mermaid 渲染器。
+
+```npm
+npm install beautiful-mermaid
+```
+
+```tsx title="components/mdx/mermaid.tsx"
+import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
+import { renderMermaidSVG } from 'beautiful-mermaid';
+
+export function Mermaid({ chart }: { chart: string }) {
+  try {
+    const svg = renderMermaidSVG(chart, {
+      bg: 'var(--color-fd-background)',
+      fg: 'var(--color-fd-foreground)',
+      interactive: true,
+      transparent: true,
+    });
+
+    return <div dangerouslySetInnerHTML={{ __html: svg }} />;
+  } catch {
+    return (
+      <CodeBlock title="Mermaid">
+        <Pre>{chart}</Pre>
+      </CodeBlock>
+    );
+  }
+}
+```
+
+## 使用方式 [#usage]
+
+将此组件加入 MDX 组件中：
+
+```tsx title="components/mdx.tsx"
+import defaultMdxComponents from 'fumadocs-ui/mdx';
+import { Mermaid } from '@/components/mdx/mermaid'; // [!code ++]
+import type { MDXComponents } from 'mdx/types';
+
+export function getMDXComponents(components?: MDXComponents) {
+  return {
+    ...defaultMdxComponents,
+    Mermaid, // [!code ++]
+    ...components,
+  } satisfies MDXComponents;
+}
+```
+
+接着，就可以在 MDX 文件中使用它。
+
+```mdx
+<Mermaid
+  chart="
+graph TD;
+subgraph AA [Consumers]
+A[Mobile app];
+B[Web app];
+C[Node.js client];
+end
+subgraph BB [Services]
+E[REST API];
+F[GraphQL API];
+G[SOAP API];
+end
+Z[GraphQL API];
+A --> Z;
+B --> Z;
+C --> Z;
+Z --> E;
+Z --> F;
+Z --> G;"
+/>
+```
+
+<Tabs items={['图表', '用户旅程']}>
+  <Tab>
+    <Mermaid
+      chart="
+
+graph TD;
+subgraph AA [Consumers]
+A[Mobile app];
+B[Web app];
+C[Node.js client];
+end
+subgraph BB [Services]
+E[REST API];
+F[GraphQL API];
+G[SOAP API];
+end
+Z[GraphQL API];
+A --> Z;
+B --> Z;
+C --> Z;
+Z --> E;
+Z --> F;
+Z --> G;"
+    />
+  </Tab>
+
+  <Tab>
+    <Mermaid
+      chart="
+
+journey
+title My working day
+section Go to work
+Make tea: 5: Me
+Go upstairs: 3: Me
+Do work: 1: Me, Cat
+section Go home
+Go downstairs: 5: Me
+Sit down: 5: Me
+"
+    />
+  </Tab>
+</Tabs>
+
+### 以代码块使用 [#as-codeblock]
+
+你可以使用 remark 插件 `remarkMdxMermaid`，将 `mermaid` 代码块转换为 MDX 的用法。
+
+```ts tab="unified" title="source.config.ts"
+import { remarkMdxMermaid } from 'fumadocs-core/mdx-plugins';
+import { defineConfig } from 'fumadocs-mdx/config';
+
+export default defineConfig({
+  mdxOptions: {
+    remarkPlugins: [remarkMdxMermaid],
+  },
+});
+```
+
+```ts tab="Sätteri" title="source.config.ts"
+import { remarkMdxMermaid } from '@fumadocs/satteri/remark-mdx-mermaid';
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({
+  docs: {
+    compiler: 'satteri',
+  },
+});
+
+export default defineConfig({
+  satteriOptions: {
+    mdastPlugins: [remarkMdxMermaid()],
+  },
+});
+```
+
+````md
+```mermaid
+graph TD;
+  A-->B;
+  A-->C;
+```
+````

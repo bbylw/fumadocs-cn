@@ -3,22 +3,19 @@ title: Content Collections
 description: 在 Fumadocs 中使用 Content Collections
 ---
 
-[Content Collections](https://www.content-collections.dev) 是一个函式库，能将您的内容转换成型别安全的资料集合。
+[Content Collections](https://www.content-collections.dev) 是一个函数库，能将你的内容转换成类型安全的数据集合。
 
-## 设定 [#setup]
+## 设置 [#setup]
 
-请依照 Content Collections 的[官方指南](https://content-collections.dev/docs)，在您的 React 框架中设定 Content Collections。
+请依照 Content Collections 的[官方指南](https://content-collections.dev/docs)，在你的 React 框架中设置 Content Collections。
 
-请确认您已设定好 MDX：
+请确认你已设置好 MDX：
 
 ```npm
 npm i @content-collections/mdx
 ```
 
-若要与 Fumadocs 整合，请在您的 `content-collections.ts` 中加入以下内容。
-
-
-
+若要与 Fumadocs 集成，请在你的 `content-collections.ts` 中加入以下内容。
 
 ```ts title="content-collections.ts"
 import { defineCollection, defineConfig } from '@content-collections/core';
@@ -46,13 +43,7 @@ export default defineConfig({
 });
 ```
 
-
-
-
-接著将它传入 `loader()`。
-
-
-
+接着将它传入 `loader()`。
 
 ```ts title="lib/source.ts"
 import { allDocs, allMetas } from 'content-collections';
@@ -65,10 +56,7 @@ export const source = loader({
 });
 ```
 
-
-
-
-大功告成！您现在可以透过 Source API 存取页面及产生的页面树。
+大功告成！你现在可以通过 Source API 访问页面及生成的页面树。
 
 ```ts
 import { getPage } from '@/lib/source';
@@ -81,10 +69,13 @@ page?.data.body;
 // 目录
 page?.data.toc;
 
-// 结构化资料，供 Search API 使用
+// 结构化数据，供 Search API 使用
 page?.data.structuredData;
 ```
-您可以在 `transformMDX` 函式中自订 MDX 选项。
+
+### MDX 选项 [#mdx-options]
+
+你可以在 `transformMDX` 函数中自定义 MDX 选项。
 
 ```ts
 import { defineCollection } from '@content-collections/core';
@@ -97,7 +88,10 @@ const docs = defineCollection({
     }),
 });
 ```
-若要使用其他套件 (例如 Fumadocs UI) 提供的元件，请将这些元件传入您的 `` 元件。
+
+### 导入组件 [#import-components]
+
+若要使用其他包 (例如 Fumadocs UI) 提供的组件，请将这些组件传入你的 `<MDXContent />` 组件。
 
 ```tsx
 import { MDXContent } from '@content-collections/mdx/react';
@@ -106,17 +100,17 @@ import { getMDXComponents } from '@/components/mdx';
 return <MDXContent code={page.data.body} components={getMDXComponents()} />;
 ```
 
-您也可以在 MDX 档案中汇入它们，但不建议这么做。
+你也可以在 MDX 文件中导入它们，但不建议这么做。
 
 <Callout title="深入探讨：为什么？">
-  Content Collections 使用 `mdx-bundler` 来打包 MDX 档案。
+  Content Collections 使用 `mdx-bundler` 来打包 MDX 文件。
 
-  为了支援从 node modules 汇入套件，Fumadocs 为 MDX Bundler 的 `cwd` 选项加入了预设值。
-  虽然这样运作良好，但我们仍然**不**建议在 MDX 档案中汇入元件。
+  为了支持从 node modules 导入包，Fumadocs 为 MDX Bundler 的 `cwd` 选项加入了默认值。
+  虽然这样运作良好，但我们仍然**不**建议在 MDX 文件中导入组件。
 
   原因如下：
 
-  * 这需要透过 esbuild 打包这些元件，但这项工作理应由框架的打包工具 (例如 Vite 或 Turbopack) 负责
-  * 您可以重构元件的汇入路径，而无须修改 MDX 档案。
-  * 使用远端来源 (Remote Sources) 时，在 MDX 档案中加入汇入并没有意义。
+  * 这需要通过 esbuild 打包这些组件，但这项工作理应由框架的打包工具 (例如 Vite 或 Turbopack) 负责
+  * 你可以重构组件的导入路径，而无须修改 MDX 文件。
+  * 使用远程来源 (Remote Sources) 时，在 MDX 文件中加入导入并没有意义。
 </Callout>

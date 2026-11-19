@@ -1,14 +1,8 @@
 {
-  "title": "搜寻",
+  "title": "搜索集成",
   "pages": [
-    "index",
-    "algolia",
-    "flexsearch",
-    "meilisearch",
-    "mixedbread",
     "orama",
-    "orama-cloud",
-    "trieve",
-    "typesense"
+    "...",
+    "custom"
   ]
 }

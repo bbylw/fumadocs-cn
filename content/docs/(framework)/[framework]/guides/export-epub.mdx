@@ -1,0 +1,273 @@
+---
+title: 导出 EPUB
+description: 将你的文档导出为 EPUB 格式，供电子阅读器阅读
+---
+
+## 简介 [#introduction]
+
+EPUB 集成可让你将 Fumadocs 文档导出为 EPUB 文件，方便读者下载你的文档，并在电子阅读器、平板电脑或任何支持 EPUB 的应用上阅读。
+
+此集成会将你的 MDX 内容转换为 HTML、解析图片，并生成符合标准且附有目录的 EPUB 文件。
+
+## 设置 [#setup]
+
+Fumadocs CLI 可以自动帮你完成设置。它会创建一个受 `EXPORT_SECRET` 保护的导出路由，并启用 `includeProcessedMarkdown`：
+
+```package-install
+npx @fumadocs/cli feature epub
+```
+
+或手动设置：
+
+### 安装 [#installation]
+
+```npm
+npm install fumadocs-epub
+```
+
+### 启用处理后的 Markdown [#enable-processed-markdown]
+
+<show when={props.framework !== 'astro'}>
+  若要导出 EPUB，必须在 docs 集合的设置中启用 `includeProcessedMarkdown`：
+
+  ```ts title="source.config.ts"
+  import { defineDocs } from 'fumadocs-mdx/config';
+
+  export const docs = defineDocs({
+    docs: {
+      postprocess: {
+        // [!code ++]
+        includeProcessedMarkdown: true,
+      },
+    },
+  });
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  若要导出 EPUB，必须在集成选项中启用 `includeProcessedMarkdown`：
+
+  ```js title="astro.config.mjs"
+  import { defineConfig } from 'astro/config';
+  import fumadocs from '@fumadocs/astro';
+
+  export default defineConfig({
+    integrations: [
+      fumadocs({
+        includeProcessedMarkdown: true, // [!code ++]
+      }),
+    ],
+  });
+  ```
+</show>
+
+### 创建导出路由 [#create-export-route]
+
+`createEpubExportAPI` 会创建路由处理程序，并以 `secret` 加以保护：若请求未带有相符的 `Authorization: Bearer <secret>` 标头，就会遭到拒绝；若未设置密钥，路由则会回应 `503`。
+
+<show when={props.framework === 'next'}>
+  ```ts title="app/export/epub/route.ts"
+  import { source } from '@/lib/source';
+  import { createEpubExportAPI } from 'fumadocs-epub';
+
+  export const revalidate = false;
+
+  export const { GET } = createEpubExportAPI({
+    source,
+    title: 'My Documentation',
+    author: 'My Team',
+    description: 'Documentation for my project',
+    cover: '/cover.png',
+    secret: process.env.EXPORT_SECRET,
+  });
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  ```ts tab="app/routes/export.epub.ts"
+  import type { Route } from './+types/export.epub';
+  import { source } from '@/lib/source';
+  import { createEpubExportAPI } from 'fumadocs-epub';
+
+  const api = createEpubExportAPI({
+    source,
+    title: 'My Documentation',
+    secret: process.env.EXPORT_SECRET,
+  });
+
+  export function loader({ request }: Route.LoaderArgs) {
+    return api.GET(request);
+  }
+  ```
+
+  ```ts tab="app/routes.ts"
+  import { route, type RouteConfig } from '@react-router/dev/routes';
+
+  export default [
+    // [!code ++]
+    route('export/epub', 'routes/export.epub.ts'),
+  ] satisfies RouteConfig;
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  ```ts title="src/routes/export/epub.ts"
+  import { createFileRoute } from '@tanstack/react-router';
+  import { source } from '@/lib/source';
+  import { createEpubExportAPI } from 'fumadocs-epub';
+
+  const api = createEpubExportAPI({
+    source,
+    title: 'My Documentation',
+    secret: process.env.EXPORT_SECRET,
+  });
+
+  export const Route = createFileRoute('/export/epub')({
+    server: {
+      handlers: {
+        GET: ({ request }) => api.GET(request),
+      },
+    },
+  });
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```ts title="src/pages/_api/export/epub.ts"
+  import { source } from '@/lib/source';
+  import { createEpubExportAPI } from 'fumadocs-epub';
+
+  export const { GET } = createEpubExportAPI({
+    source,
+    title: 'My Documentation',
+    secret: process.env.EXPORT_SECRET,
+  });
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```ts title="src/pages/export/epub.ts"
+  import type { APIRoute } from 'astro';
+  import { source } from '@/lib/source';
+  import { createEpubExportAPI } from 'fumadocs-epub';
+  import { getSecret } from 'astro:env/server';
+
+  // 每次请求时渲染，需要适配器
+  export const prerender = false;
+
+  const api = createEpubExportAPI({
+    source,
+    title: 'My Documentation',
+    secret: getSecret('EXPORT_SECRET'),
+  });
+
+  export const GET: APIRoute = ({ request }) => api.GET(request);
+  ```
+</show>
+
+若要提供公开端点，或想自行生成文件 (例如在脚本中) ，请直接调用 `exportEpub()` 并返回缓冲区。
+
+### 使用 CLI [#using-the-cli]
+
+你也可以通过 Fumadocs CLI 导出 EPUB：
+
+<show when={props.framework === 'next'}>
+  ```bash
+  fumadocs export epub --framework next
+  ```
+
+  此指令会从运行于连接端口 `3000` (或 `PORT`) 的服务器取得文件，并以 `EXPORT_SECRET` 环境变量作为密钥。
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```bash
+  fumadocs export epub --framework astro
+  ```
+
+  此指令会从运行于连接端口 `4321` (或 `PORT`) 的服务器取得文件，并以 `EXPORT_SECRET` 环境变量作为密钥。
+</show>
+
+<show when={props.framework === 'react-router'}>
+  ```bash
+  fumadocs export epub --framework react-router
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  ```bash
+  fumadocs export epub --framework tanstack-start
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```bash
+  fumadocs export epub --framework waku
+  ```
+</show>
+
+<show when={props.framework === 'react-router' || props.framework === 'tanstack-start' || props.framework === 'waku'}>
+  此指令会从构建输出复制文件，因此请先运行正式版构建。
+</show>
+
+## 选项 [#options]
+
+`exportEpub` 与 `createEpubExportAPI` 皆接受下列选项：
+
+| 选项             | 类型                   | 说明                                                 |
+| -------------- | -------------------- | -------------------------------------------------- |
+| `title`        | `string`             | **必填。** 书名                                         |
+| `author`       | `string \| string[]` | 作者名称 (可为多位) 。默认：`'anonymous'`                      |
+| `description`  | `string`             | 书籍说明                                               |
+| `language`     | `string`             | 语言代码 (例如 `'en'`) 。默认：`'en'`                        |
+| `publisher`    | `string`             | 出版者名称。默认：`'anonymous'`                             |
+| `isbn`         | `string`             | ISBN                                               |
+| `cover`        | `string`             | 封面图片。支持 `file://`、`http(s)://`、`/public/...` 或相对路径 |
+| `outputPath`   | `string`             | 若有设置，除了返回缓冲区外，也会将 EPUB 写入文件                        |
+| `includePages` | `(page) => boolean`  | 筛选：只纳入此函数返回 `true` 的页面                             |
+| `excludePages` | `(page) => boolean`  | 筛选：排除此函数返回 `true` 的页面                              |
+| `css`          | `string`             | EPUB 的自定义 CSS。若省略则使用 `defaultEpubStyles`            |
+| `publicDir`    | `string`             | 用于解析 `/public/...` 图片路径的 public 目录。默认：`./public`   |
+
+`createEpubExportAPI` 另外多了两个选项：`secret` (必填，用于保护路由) 与 `filename` (下载的文件名，默认为 `docs.epub`) 。
+
+### 自定义 CSS [#custom-css]
+
+你可以覆盖默认的 EPUB 样式：
+
+```ts
+import { exportEpub, defaultEpubStyles } from 'fumadocs-epub';
+
+const buffer = await exportEpub({
+  source,
+  title: 'My Docs',
+  author: 'Me',
+  css: `${defaultEpubStyles}
+/* 自定义覆盖样式 */
+body { font-size: 1.1em; }
+`,
+});
+```
+
+### 筛选页面 [#filtering-pages]
+
+使用 `includePages` 与 `excludePages` 控制要导出哪些文档：
+
+```ts
+const buffer = await exportEpub({
+  source,
+  title: 'My Docs',
+  author: 'Me',
+  // 仅纳入 /docs/getting-started 底下的文档
+  includePages: (page) => page.path.startsWith('getting-started'),
+  // 排除特定路径
+  excludePages: (page) => page.path === 'changelog',
+});
+```
+
+### 图片解析 [#image-resolution]
+
+MDX 中的图片会自动解析：
+
+* **相对路径** (例如 `./image.png`) ：以页面文件所在位置为基准解析
+* **公开路径** (例如 `/og.png`) ：从 `public` 目录解析
+* **远程 URL** (例如 `https://...`) ：原样嵌入

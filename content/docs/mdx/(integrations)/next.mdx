@@ -3,7 +3,9 @@ title: Next.js
 description: 在 Next.js 中使用 Fumadocs MDX
 ---
 
-为您的 Next.js 应用程式设定 Fumadocs MDX。
+## 设置 [#setup]
+
+为你的 Next.js 应用设置 Fumadocs MDX。
 
 <section id="setup-section">
   <div className="fd-steps [&_h3]:fd-step">
@@ -13,7 +15,7 @@ description: 在 Next.js 中使用 Fumadocs MDX
     npm i fumadocs-mdx fumadocs-core @types/mdx
     ```
 
-    在 Next.js 设定中加入外挂：
+    在 Next.js 设置中加入插件：
 
     ```js title="next.config.mjs"
     import { createMDX } from 'fumadocs-mdx/next';
@@ -30,15 +32,15 @@ description: 在 Next.js 中使用 Fumadocs MDX
     export default withMDX(config);
     ```
 
-    <Callout title="仅支援 ESM" type="warn">
-      Fumadocs MDX 仅支援 ESM，建议使用 `next.config.mjs`，以确保 ESM 能正确解析。
+    <Callout title="仅支持 ESM" type="warn">
+      Fumadocs MDX 仅支持 ESM，建议使用 `next.config.mjs`，以确保 ESM 能正确解析。
 
-      若要使用 TypeScript 设定档，则需启用 Node.js 原生 TypeScript 解析器，详情请参阅 [Next.js 文件](https://nextjs.org/docs/app/api-reference/config/typescript#using-nodejs-native-typescript-resolver-for-nextconfigts)。
+      若要使用 TypeScript 配置文件，则需启用 Node.js 原生 TypeScript 解析器，详情请参阅 [Next.js 文档](https://nextjs.org/docs/app/api-reference/config/typescript#using-nodejs-native-typescript-resolver-for-nextconfigts)。
     </Callout>
 
-    ### 与 Fumadocs 整合 [#integrate-with-fumadocs]
+    ### 与 Fumadocs 集成 [#integrate-with-fumadocs]
 
-    建立 `lib/source.ts` 档案：
+    创建 `lib/source.ts` 文件：
 
     ```ts title="lib/source.ts"
     import { defineDocs } from 'fumadocs-mdx/macro';
@@ -53,7 +55,10 @@ description: 在 Next.js 中使用 Fumadocs MDX
       source: docs.toFumadocsSource(),
     });
     ```
-现在您可以开始在 `content/docs` 资料夹中撰写内容了。
+
+    ### 完成 [#done]
+
+    现在你可以开始在 `content/docs` 文件夹中撰写内容了。
   </div>
 </section>
 
@@ -61,14 +66,14 @@ description: 在 Next.js 中使用 Fumadocs MDX
 
 <Cards>
   <Card title="Macro API" href="/docs/mdx/macro">
-    使用 `fumadocs-mdx/macro` 在应用程式模组中定义集合。
+    使用 `fumadocs-mdx/macro` 在应用模块中定义集合。
   </Card>
 
   <Card title="Config API" href="/docs/mdx/collections">
-    在 `source.config.ts` 中定义集合，并透过产生的进入点档案存取。
+    在 `source.config.ts` 中定义集合，并通过生成的进入点文件访问。
   </Card>
 
-  <Card title="延迟载入" href="/docs/mdx/async">
-    遇到效能瓶颈了吗？您可以试试延迟载入。
+  <Card title="延迟加载" href="/docs/mdx/async">
+    遇到性能瓶颈了吗？你可以试试延迟加载。
   </Card>
 </Cards>

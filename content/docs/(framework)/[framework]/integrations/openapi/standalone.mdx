@@ -1,0 +1,107 @@
+---
+title: 独立模式
+description: 直接从你的 OpenAPI 文档生成 API 文档，无需创建文档网站。
+---
+
+`@fumadocs/openapi-standalone` 会使用 Fumadocs UI 渲染你的 OpenAPI 文档，并以静态 HTML 文件或 [Hono](https://hono.dev) 服务器的形式提供。
+
+## CLI [#cli]
+
+```bash
+npx @fumadocs/openapi-standalone build ./openapi.yaml
+```
+
+```bash
+npx @fumadocs/openapi-standalone serve ./openapi.yaml --port 8080
+```
+
+| 选项                    | 说明                          |
+| --------------------- | --------------------------- |
+| `-o, --out <dir>`     | `build` 的输出目录，默认值：`out`     |
+| `--base-url <path>`   | 提供文档时使用的 URL 路径             |
+| `-p, --port <port>`   | `serve` 的连接端口，默认值：`8080`     |
+| `--host <host>`       | `serve` 的主机，默认值：`localhost` |
+| `-c, --config <file>` | 配置文件                         |
+
+`serve` 会为 API 交互测试区加入 CORS 代理服务器，且只会将请求转送至你文档中 `servers` 所列的绝对 URL。
+
+### 配置文件 [#config-file]
+
+若未提供输入，CLI 会读取 `fumadocs-openapi.config.ts` (或 `.mts`、`.js`、`.mjs`) ，而命令行标志会覆盖其中的设置。
+
+```ts title="fumadocs-openapi.config.ts"
+import type { Config } from '@fumadocs/openapi-standalone';
+
+export default {
+  input: ['./openapi.yaml'],
+  outDir: 'out',
+} satisfies Config;
+```
+
+## 静态 HTML [#static-html]
+
+```ts
+import { generateStatic } from '@fumadocs/openapi-standalone';
+
+await generateStatic({
+  input: ['./openapi.yaml'],
+  outDir: 'out',
+});
+```
+
+```txt title="Output"
+out/
+├── index.html                   # 文档总览
+├── pets/listPets/index.html     # 每个 operation 各有一个页面
+├── 404.html
+└── _fumadocs/                   # 脚本、样式、文档与搜索索引
+```
+
+## Hono [#hono]
+
+```ts
+import { Hono } from 'hono';
+import { createApp } from '@fumadocs/openapi-standalone/hono';
+
+const app = new Hono();
+
+// 路由位于 `baseUrl` 之下
+app.route(
+  '/',
+  createApp({
+    input: ['./openapi.yaml'],
+    baseUrl: '/docs',
+    // 供 API 交互测试区使用的 CORS 代理服务器，只会将请求转发至 `servers` 中的绝对 URL
+    proxy: true,
+  }),
+);
+
+export default app;
+```
+
+页面会在收到请求时才进行渲染，且应用会从磁盘读取脚本，因此请在 Node.js、Bun 或 Deno 上运行。
+
+## 选项 [#options]
+
+```ts
+await generateStatic({
+  // 文档路径与 URL，或是文档 ID -> 文档路径、URL 或文档对象的对应表
+  input: ['./openapi.yaml', './billing.yaml'],
+  // 写入前会先清空
+  outDir: 'out',
+  // 依每个 'operation'（默认）、'tag' 或 'file' 各生成一个页面
+  per: 'operation',
+  // operation 页面的文档夹分组方式：'tag'（operation 有标签时为默认）、'route' 或 'none'
+  groupBy: 'tag',
+  // 文档提供服务的 URL 路径，默认：'/'
+  baseUrl: '/docs',
+  // 默认：文档的 `info.title`
+  title: 'Acme API',
+  // 供 API 交互测试区使用的 `createProxy()` 路由
+  proxyUrl: 'https://example.com/api/proxy',
+});
+```
+
+若有多份文档，每份文档都会在侧边栏中各自对应一个文件夹与一个选项卡。
+
+关于 `proxyUrl`，请参阅[创建代理服务器](/docs/integrations/openapi/server#creating-proxy)。

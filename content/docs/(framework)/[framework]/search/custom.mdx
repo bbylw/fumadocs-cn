@@ -1,0 +1,24 @@
+---
+title: 自定义搜索
+description: 适用于其他搜索方案。
+---
+
+## 概览 [#overview]
+
+你可以将任何搜索引擎集成到 Fumadocs 中。
+
+### 搜索索引 [#search-indexes]
+
+<show when={props.framework !== 'astro'}>
+  Fumadocs MDX 会在运行时提供你页面的搜索索引。
+</show>
+
+<show when={props.framework === 'astro'}>
+  `@fumadocs/astro` 会在运行时提供你页面的搜索索引。
+</show>
+
+若要将其静态导出，请添加一个预先渲染的 `static.json` 路由，并在每次构建后以脚本处理其中的记录：
+
+<feature>search/custom</feature>
+
+`structured` 字段包含每个页面的标题与段落，可用来生成精确的搜索索引。

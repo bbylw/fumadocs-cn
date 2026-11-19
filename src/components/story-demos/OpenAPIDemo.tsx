@@ -23,7 +23,7 @@ export function OpenAPIDemo() {
   );
 
   return (
-    <Screen title="搜索文档内容 — POST /v1/docs/search" docs="/docs/integrations/openapi">
+    <Screen title="搜索文档内容 — POST /v1/docs/search" docs="/docs/next/integrations/openapi">
       <div className="grid h-full min-h-0 gap-4 @2xl:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         <div className="flex flex-col gap-3 rounded-xl border border-fd-border bg-fd-card p-4">
           <div className="flex items-center justify-between gap-2 rounded-lg border border-fd-border bg-fd-background px-3 py-2">

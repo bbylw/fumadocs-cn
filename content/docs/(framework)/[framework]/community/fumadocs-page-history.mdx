@@ -1,0 +1,65 @@
+---
+title: 页面历史记录
+description: 在文档页面上显示贡献者与 Git 历史记录。
+---
+
+> 此为社区维护的集成。
+
+[fumadocs-page-history](https://github.com/shenxianovo/fumadocs-page-history) 可在文档页面上显示贡献者，以及可折叠的变更历史记录。它会在构建时读取 Git 历史记录，并支持 Fumadocs MDX 与 Sätteri。
+
+[查看在线示范](https://fumadocs-page-history.vercel.app)。
+
+## 设置 [#setup]
+
+需要 Node.js 24.14 以上版本，以及 16.x 版本系列中 16.17 以上的 Fumadocs。
+
+### 1. 安装包 [#install-the-package]
+
+```package-install
+fumadocs-page-history
+```
+
+### 2. 导入样式 [#import-the-styles]
+
+请在 Fumadocs 样式之后加入以下导入语句：
+
+```css title="app/global.css"
+@import 'fumadocs-page-history/css/preset.css';
+```
+
+### 3. 注册插件 [#register-the-plugin]
+
+将 `remarkGitChangelog` 加入你的 docs 集合，并将 `repoURL` 设为你的保存库 URL。既有的 schema 与编译器选项请保持不变。
+
+```ts title="source.config.ts"
+import { applyMdxPreset, defineDocs } from 'fumadocs-mdx/config';
+import { remarkGitChangelog } from 'fumadocs-page-history/remark';
+
+export const docs = defineDocs({
+  dir: 'content/docs',
+  docs: {
+    mdxOptions: applyMdxPreset({
+      remarkPlugins: [[remarkGitChangelog, { repoURL: 'https://github.com/owner/repository' }]],
+    }),
+  },
+});
+```
+
+现在，此集合中每份文档的结尾都会显示贡献者与页面历史记录。无需修改页面模板。
+
+## Git 历史记录 [#git-history]
+
+构建环境需要安装 Git，并取得保存库的完整历史记录。在 GitHub Actions 中，请设置 `fetch-depth: 0`：
+
+```yaml
+- uses: actions/checkout@v6
+  with:
+    fetch-depth: 0
+```
+
+* 请在构建前先 commit 新文件，才能纳入其历史记录。
+* 有新的 commit 后请重新构建。开发期间，请重新启动服务器，才能读取仅存在于 Git 中的变更。
+
+## 设置 [#configuration]
+
+你可以分别启用或禁用贡献者与历史记录、自定义翻译文字，也可以选择解析 GitHub 大头贴与个人文件链接。

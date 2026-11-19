@@ -1,36 +1,42 @@
 ---
-title: Typesense 搜寻
-description: 将 Typesense 搜寻整合至 Fumadocs
+title: Typesense 搜索
+description: 将 Typesense 搜索集成至 Fumadocs
 ---
 
-> 此整合由社群维护。
+> 此集成由社区维护。
 
-## 设定 [#setup]
+## 设置 [#setup]
 
-### 安装相依套件 [#install-dependencies]
+### 安装依赖包 [#install-dependencies]
 
 ```package-install
 typesense typesense-fumadocs-adapter
 ```
-您可以自行架设 Typesense 伺服器，或使用其云端服务。请依照官方的[入门指南](https://typesense.org/docs/guide/install-typesense.html)设定伺服器，并将认证资讯储存在 `.env.local` 中 (在 Vite 框架中请将 `NEXT_PUBLIC_` 改为 `VITE_`，在 Astro 中则改为 `PUBLIC_`) ：
+
+### 启动 Typesense 服务器 [#start-typesense-server]
+
+你可以自行架设 Typesense 服务器，或使用其云端服务。请依照官方的[入门指南](https://typesense.org/docs/guide/install-typesense.html)设置服务器，并将认证信息保存在 `.env.local` 中 (在 Vite 框架中请将 `NEXT_PUBLIC_` 改为 `VITE_`，在 Astro 中则改为 `PUBLIC_`) ：
 
 ```dotenv
 NEXT_PUBLIC_TYPESENSE_URL="server URL"
 NEXT_PUBLIC_TYPESENSE_SEARCH_KEY="search-only API key"
 TYPESENSE_API_KEY="API key with write access"
 ```
-透过预先算绘的 `static.json` 路由汇出搜寻索引，并在每次建置后以指令码将其同步至 Typesense：
+
+### 同步数据集 [#sync-dataset]
+
+通过预先渲染的 `static.json` 路由导出搜索索引，并在每次构建后以脚本将其同步至 Typesense：
 
 <feature>search/typesense</feature>
 
-`build` 指令码会在每次建置时执行同步，因此请在您的部署平台上设定相同的变数。
+`build` 脚本会在每次构建时运行同步，因此请在你的部署平台上设置相同的变量。
 
-### 搜寻 UI [#search-ui]
+### 搜索 UI [#search-ui]
 
-若要实作搜寻 UI，您可以：
+若要实现搜索 UI，你可以：
 
-* 使用 [Fumadocs UI 搜寻对话方块](/docs/search/typesense)。
-* 使用 Typesense 搜寻用户端 hook，自行打造搜寻 UI。
+* 使用 [Fumadocs UI 搜索对话框](/docs/search/typesense)。
+* 使用 Typesense 搜索客户端 hook，自行打造搜索 UI。
 
   ```ts
   import { Client } from 'typesense';
@@ -46,22 +52,25 @@ TYPESENSE_API_KEY="API key with write access"
     client,
   });
   ```
+
+## 选项 [#options]
+
 ### 标签筛选 [#tag-filter]
 
-若要设定标签筛选，请在 `static.json` 路由中为各份文件加上 `tag` 值：
+若要设置标签筛选，请在 `static.json` 路由中为各份文档加上 `tag` 值：
 
 ```ts
 documents.push({
-  // 其他栏位……
+  // 其他字段……
   // [!code ++]
   tag: '<your value>',
 });
 ```
 
-接著更新您的搜寻用户端：
+接着更新你的搜索客户端：
 
-* **Fumadocs UI**：在搜寻 UI 中启用[标签筛选](/docs/search/typesense#tag-filter)。
-* **搜寻用户端**：您可以依下列方式加入标签筛选：
+* **Fumadocs UI**：在搜索 UI 中启用[标签筛选](/docs/search/typesense#tag-filter)。
+* **搜索客户端**：你可以依下列方式加入标签筛选：
 
   ```ts
   import { useTypesenseSearch } from 'typesense-fumadocs-adapter/client';
@@ -70,7 +79,10 @@ documents.push({
     // ...
   });
   ```
-文件会包含所属页面的 `locale`，请将 `locale` 传入搜寻用户端：
+
+### 国际化 (i18n)  [#internationalization-i18n]
+
+文档会包含所属页面的 `locale`，请将 `locale` 传入搜索客户端：
 
 ```ts
 import { useI18n } from 'fumadocs-ui/contexts/i18n';
@@ -80,8 +92,8 @@ const { locale } = useI18n();
 const { search, setSearch, query } = useTypesenseSearch({
   // [!code ++]
   locale,
-  // 其他栏位...
+  // 其他字段...
 });
 ```
 
-在底层，Typesense 会为每个语系分别建立集合，集合名称会加上 `_{locale}` 后缀 (例如 `docs_en`、`docs_fr`) 。
+在底层，Typesense 会为每个语系分别创建集合，集合名称会加上 `_{locale}` 后缀 (例如 `docs_en`、`docs_fr`) 。

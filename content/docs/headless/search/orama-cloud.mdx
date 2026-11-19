@@ -1,17 +1,17 @@
 ---
 title: Orama Cloud
-description: 整合 Orama Cloud
+description: 集成 Orama Cloud
 ---
 
-首先，请在 Orama Cloud 上建立帐号。
+首先，请在 Orama Cloud 上创建帐号。
 
 ## REST API [#rest-api]
 
-使用 REST API 整合时，您的文件网站需要自行上传索引。
+使用 REST API 集成时，你的文档网站需要自行上传索引。
 
-1. 在 Orama Cloud 主控台建立一个以 **REST API** 作为资料来源的新专案。
+1. 在 Orama Cloud 控制台创建一个以 **REST API** 作为数据源的新项目。
 
-   将您的认证资讯储存在 `.env.local` 中，例如 (在 Vite 框架上 `NEXT_PUBLIC_` 改为 `VITE_`，在 Astro 上则为 `PUBLIC_`) ：
+   将你的认证信息保存在 `.env.local` 中，例如 (在 Vite 框架上 `NEXT_PUBLIC_` 改为 `VITE_`，在 Astro 上则为 `PUBLIC_`) ：
 
    ```dotenv
    NEXT_PUBLIC_ORAMA_DATASOURCE_ID="Rest API data source ID"
@@ -21,19 +21,19 @@ description: 整合 Orama Cloud
    ORAMA_PRIVATE_API_KEY="private API key"
    ```
 
-2. 预先算绘 `static.json` 路由，以便在建置时汇出搜寻索引，并在每次建置后透过指令码将索引同步至 Orama Cloud：
+2. 预先渲染 `static.json` 路由，以便在构建时导出搜索索引，并在每次构建后通过脚本将索引同步至 Orama Cloud：
 
    <feature>search/orama-cloud</feature>
 
-   `build` 指令码会在每次建置时进行同步，因此请在您的部署平台上设定相同的变数。
+   `build` 脚本会在每次构建时进行同步，因此请在你的部署平台上设置相同的变量。
 
-### 搜寻用户端 [#search-client]
+### 搜索客户端 [#search-client]
 
-若要在用户端搜寻文件，可以考虑以下方式：
+若要在客户端搜索文档，可以考虑以下方式：
 
-* 使用 [Fumadocs UI 搜寻对话方块](/docs/search/orama-cloud)。
+* 使用 [Fumadocs UI 搜索对话框](/docs/search/orama-cloud)。
 
-* 使用 Fumadocs 内建的 hook 自订搜寻 UI：
+* 使用 Fumadocs 内置的 hook 自定义搜索 UI：
 
   ```ts
   import { useOramaCloudSearch } from 'fumadocs-core/search/client';
@@ -45,7 +45,7 @@ description: 整合 Orama Cloud
   });
 
   const params = {
-    // 选用的搜寻参数
+    // 可选的搜索参数
   };
 
   const { search, onSearchChange, isLoading, data } = useOramaCloudSearch({
@@ -54,16 +54,16 @@ description: 整合 Orama Cloud
   });
   ```
 
-* 直接使用 Orama 提供的搜寻用户端。
+* 直接使用 Orama 提供的搜索客户端。
 
-## 网路爬虫 [#web-crawler]
+## 网络爬虫 [#web-crawler]
 
-1. 在主控台中建立 Crawler 资料来源，并套用「Documentation」预设范本，完成正确设定。
-2. 从主控台复制认证资讯。
+1. 在控制台中创建 Crawler 数据源，并应用「Documentation」默认模板，完成正确设置。
+2. 从控制台复制认证信息。
 
-### 搜寻用户端 [#search-client-1]
+### 搜索客户端 [#search-client-1]
 
-设定方式与 REST API 整合相同，但请务必将 `index` 设为 `crawler`。
+设置方式与 REST API 集成相同，但请务必将 `index` 设为 `crawler`。
 
 ```ts
 import { useOramaCloudSearch } from 'fumadocs-core/search/client';
@@ -75,7 +75,7 @@ const orama = new OramaCloud({
 });
 
 const params = {
-  // 选用的搜寻参数
+  // 可选的搜索参数
 };
 
 const { search, onSearchChange, isLoading, data } = useOramaCloudSearch({

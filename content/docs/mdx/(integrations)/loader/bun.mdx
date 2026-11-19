@@ -1,9 +1,11 @@
 ---
 title: Bun
-description: 在 Bun 中存取内容。
+description: 在 Bun 中访问内容。
 ---
 
-在预载指令码中注册外挂：
+## 设置 [#setup]
+
+在预载脚本中注册插件：
 
 ```toml tab="bunfig.toml"
 preload = ["./scripts/preload.ts"]
@@ -15,16 +17,16 @@ import { createMdxPlugin } from 'fumadocs-mdx/bun';
 await Bun.plugin(createMdxPlugin());
 ```
 
-此外挂会在执行阶段载入 MDX 与 meta 档案。由于其初始化是非同步的，请务必加上 `await`。若未使用 `await`，您的指令码会在外挂就绪前就汇入 `lib/source.ts`，导致 [Macro API](/docs/mdx/macro) 掷出错误。
+此插件会在运行时加载 MDX 与 meta 文件。由于其初始化是异步的，请务必加上 `await`。若未使用 `await`，你的脚本会在插件就绪前就导入 `lib/source.ts`，导致 [Macro API](/docs/mdx/macro) 抛出错误。
 
-完成后，使用 Bun 执行任何指令码时，您都可以直接存取内容档案。
+完成后，使用 Bun 运行任何脚本时，你都可以直接访问内容文件。
 
-### 重新产生 `.source` 资料夹 [#re-generate-source-folder]
+### 重新生成 `.source` 文件夹 [#re-generate-source-folder]
 
-您也可以视需要重新产生 `.source` 资料夹。
+你也可以按需重新生成 `.source` 文件夹。
 
-这在该资料夹可能不存在，
-或您使用的是 Vite 框架 (React Router、TanStack Start、Waku) 时特别实用，因为这些框架预设会以 Vite 专属的 API 产生程式码。
+这在该文件夹可能不存在，
+或你使用的是 Vite 框架 (React Router、TanStack Start、Waku) 时特别实用，因为这些框架默认会以 Vite 专属的 API 生成代码。
 
 ```ts title="scripts/preload.ts" tab="Next.js"
 import { postInstall } from 'fumadocs-mdx/next';

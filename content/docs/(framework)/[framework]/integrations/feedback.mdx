@@ -1,0 +1,481 @@
+---
+title: 意见反馈
+description: 收集用户的意见反馈
+---
+
+## 概览 [#overview]
+
+通过意见反馈，你可以了解读者对文档的看法，以及哪些页面需要改进。
+Fumadocs 提供多种组件，可针对页面及内容块收集意见反馈。
+
+## 安装 [#installation]
+
+请使用 **Fumadocs CLI** 安装。若侦测到你的文档页面，CLI 也会自动将此组件加入该页面：
+
+```npm
+npx @fumadocs/cli feature feedback
+```
+
+或者，你也可以只安装此组件：
+
+```npm
+npx @fumadocs/cli@latest add feedback
+```
+
+### 页面意见反馈 [#page-feedback]
+
+在文档页面底部加入 `<Feedback />`。读者送出意见反馈时，会运行 `onSendAction` 回调函数。
+
+<show when={props.framework === 'next' || props.framework === 'waku'}>
+  请在 server action 中处理意见反馈。例如，以 `on_rate_docs` 事件回报至 PostHog：
+
+  ```tsx
+  import { DocsPage } from 'fumadocs-ui/layouts/docs/page';
+  import { Feedback } from '@/components/feedback/client';
+
+  export default async function Page() {
+    return (
+      <DocsPage>
+        {/* 放在页面底部 */}
+        <Feedback
+          onSendAction={async (feedback) => {
+            'use server';
+
+            console.log(feedback);
+            return {};
+          }}
+        />
+      </DocsPage>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  请在 server function 中处理意见反馈。例如，以 `on_rate_docs` 事件回报至 PostHog：
+
+  ```tsx
+  import { createServerFn } from '@tanstack/react-start';
+  import { DocsPage } from 'fumadocs-ui/layouts/docs/page';
+  import { Feedback } from '@/components/feedback/client';
+  import { type PageFeedback, pageFeedback } from '@/components/feedback/schema';
+
+  const sendFeedback = createServerFn({ method: 'POST' })
+    .validator((feedback: PageFeedback) => pageFeedback.parse(feedback))
+    .handler(async ({ data: feedback }) => {
+      console.log(feedback);
+      return {};
+    });
+
+  function Content() {
+    return (
+      <DocsPage>
+        {/* 放在页面底部 */}
+        <Feedback onSendAction={(feedback) => sendFeedback({ data: feedback })} />
+      </DocsPage>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router' || props.framework === 'astro'}>
+  将意见反馈发送至你应用中的端点：
+
+  ```tsx
+  import { DocsPage } from 'fumadocs-ui/layouts/docs/page';
+  import { Feedback } from '@/components/feedback/client';
+
+  function Content() {
+    return (
+      <DocsPage>
+        {/* 放在页面底部 */}
+        <Feedback
+          onSendAction={async (feedback) => {
+            const res = await fetch('/api/feedback', {
+              method: 'POST',
+              body: JSON.stringify(feedback),
+            });
+
+            return res.json();
+          }}
+        />
+      </DocsPage>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  请在 [resource route](https://reactrouter.com/how-to/resource-routes) 中处理意见反馈。例如，以 `on_rate_docs` 事件回报至 PostHog：
+
+  ```ts tab="app/routes/api.feedback.ts"
+  import type { Route } from './+types/api.feedback';
+  import { pageFeedback } from '@/components/feedback/schema';
+
+  export async function action({ request }: Route.ActionArgs) {
+    const feedback = pageFeedback.parse(await request.json());
+
+    console.log(feedback);
+    return Response.json({});
+  }
+  ```
+
+  ```ts tab="app/routes.ts"
+  import { route, type RouteConfig } from '@react-router/dev/routes';
+
+  export default [
+    // [!code ++]
+    route('api/feedback', 'routes/api.feedback.ts'),
+  ] satisfies RouteConfig;
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  请在端点中处理意见反馈。例如，以 `on_rate_docs` 事件回报至 PostHog。此端点会在收到请求时才渲染，因此你的项目需要设置[适配器](https://docs.astro.build/en/guides/on-demand-rendering/)。
+
+  ```ts title="src/pages/api/feedback.ts"
+  import type { APIRoute } from 'astro';
+  import { pageFeedback } from '@/components/feedback/schema';
+
+  export const prerender = false;
+
+  export const POST: APIRoute = async ({ request }) => {
+    const feedback = pageFeedback.parse(await request.json());
+
+    console.log(feedback);
+    return Response.json({});
+  };
+  ```
+</show>
+
+<show when={props.framework === 'next' || props.framework === 'waku'}>
+  <Callout type="warn">
+    任何人都能以任意输入调用 server action，因此请在保存或发送意见反馈前先进行验证。
+  </Callout>
+</show>
+
+### 块意见反馈 [#feedback-block]
+
+块意见反馈可让读者针对特定内容块提供意见：读者选取文字时，会打开一个弹出窗口。
+
+加入 `remarkBlockId`，这是一个为每个块指定 ID 的 remark 插件：
+
+<show when={props.framework !== 'astro'}>
+  ```ts tab="unified" title="source.config.ts"
+  import {
+    remarkBlockId,
+    type RemarkBlockIdOptions,
+  } from 'fumadocs-core/mdx-plugins/remark-block-id';
+  import { defineConfig } from 'fumadocs-mdx/config';
+
+  const blockIdOptions: RemarkBlockIdOptions = {
+    addDataAttribute: 'feedback',
+  };
+
+  export default defineConfig({
+    mdxOptions: {
+      remarkPlugins: [
+        // [!code ++]
+        [remarkBlockId, blockIdOptions],
+      ],
+    },
+  });
+  ```
+
+  ```ts tab="Sätteri" title="source.config.ts"
+  import { remarkBlockId } from '@fumadocs/satteri/remark-block-id';
+  import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
+
+  export const docs = defineDocs({
+    docs: {
+      compiler: 'satteri',
+    },
+  });
+
+  export default defineConfig({
+    satteriOptions: {
+      mdastPlugins: [
+        // [!code ++]
+        remarkBlockId({ addDataAttribute: 'feedback' }),
+      ],
+    },
+  });
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```js title="astro.config.mjs"
+  import { defineConfig } from 'astro/config';
+  import fumadocs from '@fumadocs/astro';
+  import { remarkBlockId } from '@fumadocs/satteri/remark-block-id';
+
+  export default defineConfig({
+    integrations: [
+      fumadocs({
+        // [!code ++]
+        mdastPlugins: [remarkBlockId({ addDataAttribute: 'feedback' })],
+      }),
+    ],
+  });
+  ```
+</show>
+
+接着用 `<FeedbackText />` 包住你的页面内容。读者针对某个块送出意见反馈时，便会运行 `onSendAction` 回调函数。
+
+<show when={props.framework === 'next' || props.framework === 'waku'}>
+  ```tsx
+  import { DocsPage } from 'fumadocs-ui/layouts/docs/page';
+  import { FeedbackText } from '@/components/feedback/client';
+
+  export default async function Page() {
+    return (
+      <DocsPage>
+        <FeedbackText
+          onSendAction={async (feedback) => {
+            'use server';
+
+            console.log(feedback);
+            return {};
+          }}
+        >
+          {/* 页面内容 */}
+        </FeedbackText>
+      </DocsPage>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  ```tsx
+  import { createServerFn } from '@tanstack/react-start';
+  import { DocsPage } from 'fumadocs-ui/layouts/docs/page';
+  import { FeedbackText } from '@/components/feedback/client';
+  import { type BlockFeedback, blockFeedback } from '@/components/feedback/schema';
+
+  const sendBlockFeedback = createServerFn({ method: 'POST' })
+    .validator((feedback: BlockFeedback) => blockFeedback.parse(feedback))
+    .handler(async ({ data: feedback }) => {
+      console.log(feedback);
+      return {};
+    });
+
+  function Content() {
+    return (
+      <DocsPage>
+        <FeedbackText onSendAction={(feedback) => sendBlockFeedback({ data: feedback })}>
+          {/* 页面内容 */}
+        </FeedbackText>
+      </DocsPage>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router' || props.framework === 'astro'}>
+  ```tsx
+  import { DocsPage } from 'fumadocs-ui/layouts/docs/page';
+  import { FeedbackText } from '@/components/feedback/client';
+
+  function Content() {
+    return (
+      <DocsPage>
+        <FeedbackText
+          onSendAction={async (feedback) => {
+            const res = await fetch('/api/feedback/block', {
+              method: 'POST',
+              body: JSON.stringify(feedback),
+            });
+
+            return res.json();
+          }}
+        >
+          {/* 页面内容 */}
+        </FeedbackText>
+      </DocsPage>
+    );
+  }
+  ```
+
+  请比照页面意见反馈，另建一个端点来处理，并改用 `blockFeedback` 解析请求 body。
+</show>
+
+<Callout type="info" title="小提示">
+  `remark-block-id` 会根据块的内容及其在页面中的顺序生成块 ID，因此第三方服务也能追踪这些块。
+</Callout>
+
+### 与 GitHub Discussion 集成 [#integrating-with-github-discussion]
+
+若要将意见反馈回报至 GitHub Discussion，你可以复制此文件作为起点：
+
+```ts title='lib/github.ts'
+import { App, Octokit } from 'octokit';
+import {
+  blockFeedback,
+  BlockFeedback,
+  pageFeedback,
+  type ActionResponse,
+  type PageFeedback,
+} from '@/components/feedback/schema';
+
+export const repo = 'fumadocs';
+export const owner = 'fuma-nama';
+export const DocsCategory = 'Docs Feedback';
+
+let instance: Octokit | undefined;
+
+async function getOctokit(): Promise<Octokit> {
+  if (instance) return instance;
+  const appId = process.env.GITHUB_APP_ID;
+  const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
+
+  if (!appId || !privateKey) {
+    throw new Error('No GitHub keys provided for Github app, docs feedback feature will not work.');
+  }
+
+  const app = new App({
+    appId,
+    privateKey,
+  });
+
+  const { data } = await app.octokit.request('GET /repos/{owner}/{repo}/installation', {
+    owner,
+    repo,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
+
+  instance = await app.getInstallationOctokit(data.id);
+  return instance;
+}
+
+interface RepositoryInfo {
+  id: string;
+  discussionCategories: {
+    nodes: {
+      id: string;
+      name: string;
+    }[];
+  };
+}
+
+let cachedDestination: RepositoryInfo | undefined;
+async function getFeedbackDestination() {
+  if (cachedDestination) return cachedDestination;
+  const octokit = await getOctokit();
+
+  const {
+    repository,
+  }: {
+    repository: RepositoryInfo;
+  } = await octokit.graphql(`
+  query {
+    repository(owner: "${owner}", name: "${repo}") {
+      id
+      discussionCategories(first: 25) {
+        nodes { id name }
+      }
+    }
+  }
+`);
+
+  return (cachedDestination = repository);
+}
+
+export async function onPageFeedbackAction(feedback: PageFeedback): Promise<ActionResponse> {
+  'use server';
+  feedback = pageFeedback.parse(feedback);
+  const url = new URL(feedback.url);
+
+  return createDiscussionThread(
+    url.pathname,
+    `[${feedback.opinion}] ${feedback.message}\n\n> Forwarded from user feedback.`,
+  );
+}
+
+export async function onBlockFeedbackAction(feedback: BlockFeedback): Promise<ActionResponse> {
+  'use server';
+  feedback = blockFeedback.parse(feedback);
+  const url = new URL(feedback.url);
+  url.hash = feedback.blockId;
+
+  return createDiscussionThread(
+    url.pathname,
+    `> ${feedback.blockBody}\n\n${feedback.message}\n\n> [Forwarded from user feedback](${url.href}).`,
+  );
+}
+
+async function createDiscussionThread(pageId: string, body: string) {
+  const octokit = await getOctokit();
+  const destination = await getFeedbackDestination();
+  const category = destination.discussionCategories.nodes.find(
+    (category) => category.name === DocsCategory,
+  );
+
+  if (!category) throw new Error(`Please create a "${DocsCategory}" category in GitHub Discussion`);
+
+  const title = `Feedback for ${pageId}`;
+  const queryResult: {
+    search: {
+      nodes: { id: string; title: string; url: string }[];
+    };
+  } = await octokit.graphql(`
+          query {
+            search(type: DISCUSSION, query: ${JSON.stringify(`"${title}" in:title repo:${owner}/${repo} author:@me`)}, first: 10) {
+              nodes {
+                ... on Discussion { id, title, url }
+              }
+            }
+          }`);
+
+  const discussion = queryResult.search.nodes.find((item) => item.title === title);
+
+  if (discussion) {
+    const result: {
+      addDiscussionComment: {
+        comment: { id: string; url: string };
+      };
+    } = await octokit.graphql(`
+            mutation {
+              addDiscussionComment(input: { body: ${JSON.stringify(body)}, discussionId: "${discussion.id}" }) {
+                comment { id, url }
+              }
+            }`);
+
+    return {
+      githubUrl: result.addDiscussionComment.comment.url,
+    };
+  } else {
+    const result: {
+      createDiscussion: {
+        discussion: { id: string; url: string };
+      };
+    } = await octokit.graphql(`
+            mutation {
+              createDiscussion(input: { repositoryId: "${destination.id}", categoryId: "${category.id}", body: ${JSON.stringify(body)}, title: ${JSON.stringify(title)} }) {
+                discussion { id, url }
+              }
+            }`);
+
+    return {
+      githubUrl: result.createDiscussion.discussion.url,
+    };
+  }
+}
+```
+
+1. 创建你自己的 GitHub App，并取得其 App ID 与私密密钥。
+2. 填入必要的环境变量。
+3. 替换 `owner`、`repo` 与 `DocsCategory` 等常量。
+4. <show when={props.framework === 'next' || props.framework === 'waku'}>
+     在你的意见反馈组件中使用 `onPageFeedbackAction` 与 `onBlockFeedbackAction`。
+   </show>
+   <show when={props.framework === 'tanstack-start'}>
+     移除 `'use server'` 指示词，并在你的 server function 中调用 `onPageFeedbackAction` 与
+     `onBlockFeedbackAction`。
+   </show>
+   <show when={props.framework === 'react-router' || props.framework === 'astro'}>
+     移除 `'use server'` 指示词，并在你的端点中调用 `onPageFeedbackAction` 与
+     `onBlockFeedbackAction`。
+   </show>

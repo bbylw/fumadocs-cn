@@ -1,14 +1,19 @@
 ---
 title: 手风琴
-description: 在您的文件中加入手风琴元件
+description: 在你的文档中加入手风琴组件
+preview: accordion
 ---
 
+<Installation name="accordion" />
+
+## 使用方式 [#usage]
+
 以
-[Base UI Accordion](https://base-ui.com/react/components/accordion) 为基础，适合用于常见问题 (FAQ) 区块。
+[Base UI Accordion](https://base-ui.com/react/components/accordion) 为基础，适合用于常见问题 (FAQ) 块。
 
-> 若使用 Radix UI 套件，则改以 [Radix UI Accordion](https://www.radix-ui.com/primitives/docs/components/accordion) 为基础。
+> 若使用 Radix UI 包，则改以 [Radix UI Accordion](https://www.radix-ui.com/primitives/docs/components/accordion) 为基础。
 
-您可以在 MDX 档案中使用，也可以将其当作一般的 React 元件使用。
+你可以在 MDX 文件中使用，也可以将其当作一般的 React 组件使用。
 
 ```mdx tab="MDX"
 ---
@@ -33,15 +38,18 @@ export default function Page() {
   );
 }
 ```
+
+### 手风琴 [#accordions]
+
 <auto-type-table cwd path="content/docs/ui/props.ts" name="AccordionsProps" />
 
 ### 手风琴 [#accordion]
 
 <auto-type-table cwd path="content/docs/ui/props.ts" name="AccordionProps" />
 
-### 连结至手风琴 [#linking-to-accordion]
+### 链接至手风琴 [#linking-to-accordion]
 
-您可以为手风琴指定 `id`。当使用者前往该页面，且网址 hash 参数带有指定的 `id` 时，手风琴会自动展开。
+你可以为手风琴指定 `id`。当用户前往该页面，且网址 hash 参数带有指定的 `id` 时，手风琴会自动展开。
 
 ```mdx
 <Accordions>
@@ -53,4 +61,4 @@ My Content
 </Accordions>
 ```
 
-> 手风琴的值预设与标题相同。若有指定 id，则会改以 id 作为值。
+> 手风琴的值默认与标题相同。若有指定 id，则会改以 id 作为值。

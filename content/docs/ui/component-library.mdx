@@ -1,15 +1,21 @@
 ---
-title: 元件库
-description: 底层所使用的无头式元件库。
+title: 组件库
+description: 底层所使用的无头式组件库。
 ---
 
-Fumadocs UI 同时支援 [Base UI](https://base-ui.com) 与 [Radix UI](https://radix-ui.com/primitives)，预设使用 Base UI。
+import { Library } from 'lucide-static';
 
-若您使用 Fumadocs CLI 自订元件，设定方式可能会有所不同。
+export const frontmatter = { icon: Library };
+
+## 概览 [#overview]
+
+Fumadocs UI 同时支持 [Base UI](https://base-ui.com) 与 [Radix UI](https://radix-ui.com/primitives)，默认使用 Base UI。
+
+若你使用 Fumadocs CLI 自定义组件，设置方式可能会有所不同。
 
 ### Base UI [#base-ui]
 
-Base UI 是预设的元件库。若您选择手动安装，请将 `fumadocs-ui` 设定为 `@fumadocs/base-ui` 套件的别名：
+Base UI 是默认的组件库。若你选择手动安装，请将 `fumadocs-ui` 设置为 `@fumadocs/base-ui` 包的别名：
 
 ```json title="package.json"
 {
@@ -21,14 +27,17 @@ Base UI 是预设的元件库。若您选择手动安装，请将 `fumadocs-ui` 
 }
 ```
 
-在 Fumadocs CLI 中，这是 `uiLibrary` 的预设值：
+在 Fumadocs CLI 中，这是 `uiLibrary` 的默认值：
 
 ```json title="cli.json"
 {
   "uiLibrary": "base-ui"
 }
 ```
-若要改用 Radix UI，可以直接安装 `fumadocs-ui` 套件：
+
+### Radix UI [#radix-ui]
+
+若要改用 Radix UI，可以直接安装 `fumadocs-ui` 包：
 
 ```json title="package.json"
 {
@@ -38,7 +47,7 @@ Base UI 是预设的元件库。若您选择手动安装，请将 `fumadocs-ui` 
 }
 ```
 
-若使用 Fumadocs CLI，请在 `cli.json` 设定档中进行设定：
+若使用 Fumadocs CLI，请在 `cli.json` 配置文件中进行设置：
 
 ```json title="cli.json"
 {

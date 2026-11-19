@@ -1,0 +1,264 @@
+---
+title: 快速入门
+description: 开始使用 Fumadocs
+---
+
+import { frameworkName } from '@/lib/framework';
+import { Rocket } from 'lucide-static';
+
+export const frontmatter = { icon: Rocket };
+
+<AgentInstructions framework={props.framework} />
+
+## 术语 [#terminology]
+
+**Markdown/MDX：** Markdown 是一种用来撰写格式化文字的标记语言。Fumadocs 原生支持 Markdown 与 MDX (Markdown 的超集) 。
+
+**[Bun](https://bun.sh)：** 一种 JavaScript 运行时环境，本指南会使用它来运行脚本。如果你偏好使用 Node.js，可以改用 [unrun](https://gugustinette.github.io/unrun/guide/getting-started.html#cli)。
+
+若要进一步自定义，具备一些 React.js 的基础知识会很有帮助。
+
+## 自动安装 [#automatic-installation]
+
+需要 Node.js 22 或以上版本。
+
+```npm
+npm create fumadocs-app
+```
+
+系统会询问你要使用哪个内置模板：
+
+* **框架**：Next.js、React Router、TanStack Start、Waku 和 Astro。
+* **内容来源**：Fumadocs MDX 或 Astro 内容集合。
+
+接着会初始化一个新的 Fumadocs 应用，并默认设置好以下功能：
+
+* [LLM 集成](/docs/integrations/llms)。
+* [动态元数据图片](/docs/integrations/og)。
+
+<Callout title="要从现有的代码库开始？">
+  你可以参考[手动安装](/docs/manual-installation)指南开始使用。
+</Callout>
+
+### 尽情享用吧！ [#enjoy]
+
+请在 docs 文件夹中创建你的第一个 MDX 文件。
+
+```mdx title="content/docs/index.mdx"
+---
+title: Hello World
+---
+
+## Yo what's up
+```
+
+以开发模式运行应用：
+
+```npm
+npm run dev
+```
+
+<show when={props.framework === 'react-router'}>
+  打开 http://localhost:5173/docs 即可查看你的页面。
+</show>
+
+<show when={props.framework === 'astro'}>
+  打开 http://localhost:4321/docs 即可查看你的页面。
+</show>
+
+<show when={props.framework === 'next' || props.framework === 'tanstack-start' || props.framework === 'waku'}>
+  打开 http://localhost:3000/docs 即可查看你的页面。
+</show>
+
+## 常见问题 [#faq]
+
+以下整理了一些你可能会遇到的常见问题。
+
+<Accordions>
+  <Accordion id="upgrade-fumadocs" title="遇到 API 缺失或程序错误吗？">
+    该 API 或修正可能只在较新的版本中提供。请[升级 Fumadocs](/docs/upgrade) 后再试一次。
+  </Accordion>
+
+  <Accordion id="change-base-url" title="如何变更文档的基础路由？">
+    路由由 {frameworkName(props.framework)} 负责处理。请先迁移 docs 路由 (`/docs/*` -&gt; `/info/*`) 。
+
+    <show when={props.framework === 'next'}>
+      重命名路由：
+
+      <Files>
+        <Folder name="app/docs" defaultOpen className="opacity-50" disabled>
+          <File name="layout.tsx" />
+        </Folder>
+
+        <Folder name="app/info" defaultOpen>
+          <File name="layout.tsx" />
+        </Folder>
+      </Files>
+
+      或使用路由分组，将 `/docs/*` 改为 `/*`：
+
+      <Files>
+        <Folder name="app/(docs)" defaultOpen>
+          <File name="layout.tsx" />
+        </Folder>
+      </Files>
+    </show>
+
+    <show when={props.framework === 'react-router'}>
+      ```ts title="app/routes.ts"
+      import { route, type RouteConfig } from '@react-router/dev/routes';
+
+      export default [
+        route('info/*', 'routes/docs.tsx'), // [!code highlight]
+        // ...
+      ] satisfies RouteConfig;
+      ```
+    </show>
+
+    <show when={props.framework === 'tanstack-start'}>
+      将 `src/routes/docs/$.tsx` 移至 `src/routes/info/$.tsx`。
+    </show>
+
+    <show when={props.framework === 'waku' || props.framework === 'astro'}>
+      将 `src/pages/docs` 移至 `src/pages/info`。
+    </show>
+
+    最后，在 `source.ts` 中更新页面的基础 URL：
+
+    ```ts title="lib/source.ts"
+    import { loader } from 'fumadocs-core/source';
+
+    export const source = loader({
+      baseUrl: '/info', // 改为新值 [!code highlight]
+    });
+    ```
+
+    模板在 `lib/shared.ts` 中将此值定义为 `docsRoute`，请在该处修改，Markdown 链接才会跟着更新。
+  </Accordion>
+
+  <Accordion id="multi-docs" title="如何实现多组文档？">
+    建议使用[布局选项卡](/docs/ui/layouts/docs#layout-tabs)。
+  </Accordion>
+
+  <show when={props.framework === 'next' || props.framework === 'astro'}>
+    <Accordion id="custom-layout-docs-page" title="如何在 /docs 中创建不使用文档布局的页面？">
+      <show when={props.framework === 'next'}>
+        做法与在 Next.js App Router 中管理布局相同：请先从内容目录 (`/content/docs`) 中移除原本的 MDX 文件，
+        以免重复的页面引发错误。
+
+        接着，你可以将页面加入另一个不隶属于文档布局的路由分组。
+
+        例如，若要取代 `/docs/test`：
+
+        <Files>
+          <File name="(home)/docs/test/page.tsx" />
+
+          <Folder name="docs" defaultOpen>
+            <File name="layout.tsx" />
+
+            <File name="[[...slug]]/page.tsx" />
+          </Folder>
+        </Files>
+
+        若要取代 `/docs`，则需要将 catch-all 路由改为非可选：
+
+        <Files>
+          <File name="(home)/docs/page.tsx" />
+
+          <Folder name="docs" defaultOpen>
+            <File name="layout.tsx" />
+
+            <File name="[...slug]/page.tsx" />
+          </Folder>
+        </Files>
+      </show>
+
+      <show when={props.framework === 'astro'}>
+        在 `src/pages/docs/` 中创建一个不使用 `Docs` island 的独立 `.astro` 页面，并从 `content/docs` 中移除对应的 MDX 文件，以免同一个 URL 重复出现。
+      </show>
+    </Accordion>
+  </show>
+
+  <show when={props.framework === 'react-router' || props.framework === 'tanstack-start' || props.framework === 'waku'}>
+    <Accordion id="vite-context-error" title="使用 React context 时发生错误？">
+      Vite 的预先打包 (pre-bundling) 有一些奇怪的问题：[#3910](https://github.com/vitejs/vite/issues/3910)。
+      请务必将 Fumadocs 排除在预先打包之外，并将其加入 `noExternal`：
+
+      ```ts title="vite.config.ts"
+      import { defineConfig } from 'vite';
+
+      export default defineConfig({
+        resolve: {
+          // 按需加入其他 Fumadocs 依赖包
+          noExternal: ['fumadocs-core', 'fumadocs-ui', 'fumadocs-openapi', '@fumadocs/base-ui'],
+        },
+      });
+      ```
+    </Accordion>
+  </show>
+
+  <show when={props.framework === 'next'}>
+    <Accordion id="node-issues" title="已知的 Node.js 问题">
+      如果你遇到类似以下的 Turbopack 错误：
+
+      ```
+      JSON file not found: FileSystemPath { ... path: "lib/locales/sources/file.json.json" }
+      ```
+
+      这通常是因为不支持 `require(esm)` ([#3312](https://github.com/fuma-nama/fumadocs/issues/3312)) ，请升级至 Node.js 22+。
+
+      在 Node.js 23.1 上，如果你在构建正式版本时遇到以下错误：
+
+      ```
+      Could not find a production build in the '.next' directory.
+      ```
+
+      这是已知问题，详见 [#1021](https://github.com/fuma-nama/fumadocs/issues/1021)，你可以将 Node.js 升级至 23.6.0+ 版本。
+    </Accordion>
+
+    <Accordion id="dynamic-route" title="使用动态路由会影响性能吗？">
+      设置 `generateStaticParams` 后，Next.js 会将动态路由转换为静态路由，
+      因此速度与静态页面一样快。
+
+      你可以[启用静态导出](/docs/deploying/static)，以取得静态的构建输出。
+    </Accordion>
+  </show>
+</Accordions>
+
+## 深入了解 [#learn-more]
+
+第一次接触吗？别担心，我们非常欢迎你提出问题。
+
+如果有任何不清楚的地方，欢迎到 [Github Discussion](https://github.com/fuma-nama/fumadocs/discussions) 提供你的意见反馈！
+
+### 撰写内容 [#writing-content]
+
+编写文档前，请务必阅读：
+
+<Cards>
+  <Card href="/docs/markdown" title="Markdown">
+    Fumadocs 提供了一些额外的内容撰写功能。
+  </Card>
+
+  <Card href="/docs/navigation" title="导航">
+    了解如何自定义导航结构。
+  </Card>
+
+  <Card href="/docs/page-conventions" title="页面 Slug 与页面树">
+    了解如何组织内容。
+  </Card>
+
+  <Card href="/docs/ui/components" title="组件" description="查看所有可用的组件，让你的文档更加完善" />
+</Cards>
+
+### 特殊需求 [#special-needs]
+
+<Cards>
+  <Card href="/docs/deploying/static" title="设置静态导出" description="了解如何为你的文档网站启用静态导出" />
+
+  <Card href="/docs/internationalization" title="国际化" description="了解如何启用 i18n" />
+
+  <Card href="/docs/ui/theme" title="色彩主题" description="为 Fumadocs UI 加入主题" />
+
+  <Card href="/docs/ui/layouts" title="布局" description="自定义你的 Fumadocs UI 布局" />
+</Cards>

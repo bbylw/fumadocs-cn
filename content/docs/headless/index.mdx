@@ -1,15 +1,21 @@
 ---
 title: 简介
-description: 开始使用核心函式库
+description: 开始使用内核函数库
 ---
 
-Fumadocs Core 提供伺服器端函式与无头式元件，让您在 Next.js、React Router、TanStack Start、Waku 和 Astro 等 React.js 框架上建立文件。
+import { SquareBookmark } from 'lucide-static';
 
-* [搜寻](/docs/headless/search)
-* Breadcrumb、侧边栏、目录元件
-* Remark/Rehype 外挂
-* [MCP 工具](/docs/headless/utils/mcp)：让 AI 代理搜寻与阅读文件
-* [其他工具函式](/docs/headless/utils)
+export const frontmatter = { icon: SquareBookmark };
+
+## 这是什么？ [#what-is-this]
+
+Fumadocs Core 提供服务端函数与无头式组件，让你在 Next.js、React Router、TanStack Start、Waku 和 Astro 等 React.js 框架上创建文档。
+
+* [搜索](/docs/headless/search)
+* Breadcrumb、侧边栏、目录组件
+* Remark/Rehype 插件
+* [MCP 工具](/docs/headless/utils/mcp)：让 AI 代理搜索与阅读文档
+* [其他工具函数](/docs/headless/utils)
 
 <Callout title="提示">
   它不需搭配 Fumadocs UI 也能使用，换句话说，它是无头式的。
@@ -19,20 +25,20 @@ Fumadocs Core 提供伺服器端函式与无头式元件，让您在 Next.js、R
 
 ## 安装 [#installation]
 
-请安装核心套件。部分整合可能需要额外的相依套件，详见各整合的指南。
+请安装内核包。部分集成可能需要额外的依赖包，详见各集成的指南。
 
 ```package-install
 fumadocs-core
 ```
 
-部分元件需要搭配框架 provider 才能使用：
+部分组件需要搭配框架 provider 才能使用：
 
 ```tsx tab="Next.js"
 import type { ReactNode } from 'react';
 import { NextProvider } from 'fumadocs-core/framework/next';
 
 export function RootLayout({ children }: { children: ReactNode }) {
-  // 若您使用 Fumadocs UI，请改用 `<RootProvider />`
+  // 若你使用 Fumadocs UI，请改用 `<RootProvider />`
   return <NextProvider>{children}</NextProvider>;
 }
 ```
@@ -69,7 +75,7 @@ import { navigate } from 'astro:transitions/client';
 import type { ReactNode } from 'react';
 import { AstroProvider } from 'fumadocs-core/framework/astro';
 
-// 于 React island 内算绘时，请从 Astro 页面传入 pathname 与 params。
+// 于 React island 内渲染时，请从 Astro 页面传入 pathname 与 params。
 export function Root({
   pathname,
   params,
@@ -87,16 +93,16 @@ export function Root({
 }
 ```
 
-探索各项 API 与元件：
+探索各项 API 与组件：
 
 <Cards>
-  <Card title="Breadcrumb" href="/docs/headless/components/breadcrumb" description="位于画面顶端的导览元件" />
+  <Card title="Breadcrumb" href="/docs/headless/components/breadcrumb" description="位于画面顶端的导航组件" />
 
-  <Card title="目录" href="/docs/headless/components/toc" description="可侦测目前作用中锚点的目录" />
+  <Card title="目录" href="/docs/headless/components/toc" description="可侦测当前活动锚点的目录" />
 
-  <Card title="Source API" href="/docs/headless/source-api" description="处理内容来源的统一介面" />
+  <Card title="Source API" href="/docs/headless/source-api" description="处理内容来源的统一界面" />
 
-  <Card title="搜寻" href="/docs/headless/search" description="实作文件搜寻功能" />
+  <Card title="搜索" href="/docs/headless/search" description="实现文档搜索功能" />
 
-  <Card title="MCP" href="/docs/headless/utils/mcp" description="向 AI 代理提供页面探索、Markdown 内容与搜寻功能" />
+  <Card title="MCP" href="/docs/headless/utils/mcp" description="向 AI 代理提供页面探索、Markdown 内容与搜索功能" />
 </Cards>

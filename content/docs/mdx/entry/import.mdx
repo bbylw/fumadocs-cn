@@ -1,19 +1,21 @@
 ---
-title: 汇入 MDX 档案
-description: 直接汇入 MDX 档案。
+title: 导入 MDX 文件
+description: 直接导入 MDX 文件。
 ---
 
-MDX 档案会编译成 JavaScript，并包含以下汇出：
+## 简介 [#introduction]
 
-* `default`：主要元件。
-* `frontmatter`：frontmatter 资料。
-* 由 remark/rehype 外挂产生的其他属性。
+MDX 文件会编译成 JavaScript，并包含以下导出：
 
-因此，您可以将它们当作页面使用，也可以当作元件汇入。
+* `default`：主要组件。
+* `frontmatter`：frontmatter 数据。
+* 由 remark/rehype 插件生成的其他属性。
 
-### 作为元件使用 [#using-as-component]
+因此，你可以将它们当作页面使用，也可以当作组件导入。
 
-您可以将它们作为元件汇入：
+### 作为组件使用 [#using-as-component]
+
+你可以将它们作为组件导入：
 
 ```tsx title="app/my-page.tsx"
 import MyPage from '@/content/page.mdx';
@@ -22,13 +24,16 @@ import { getMDXComponents } from '@/components/mdx';
 export default function Page() {
   return (
     <div className="prose">
-      {/* 传入 MDX 元件并算绘 */}
+      {/* 传入 MDX 组件并渲染 */}
       <MyPage components={getMDXComponents()} />
     </div>
   );
 }
 ```
-在 Next.js 中，您可以使用 `page.mdx` 取代 `page.tsx`，在 app 目录下建立新页面。
+
+### 作为页面使用 [#using-as-page]
+
+在 Next.js 中，你可以使用 `page.mdx` 取代 `page.tsx`，在 app 目录下创建新页面。
 
 ```mdx tab="app/my-page/page.mdx"
 ---
@@ -54,7 +59,7 @@ export default function Content(props: ComponentProps<'main'>) {
 }
 ```
 
-它预设不包含 **MDX 元件**，您需要自行提供：
+它默认不包含 **MDX 组件**，你需要自行提供：
 
 ```tsx tab="components/mdx.tsx"
 import defaultMdxComponents from 'fumadocs-ui/mdx';
@@ -67,7 +72,7 @@ export function getMDXComponents(components?: MDXComponents) {
   } satisfies MDXComponents;
 }
 
-// 汇出会回传 MDX 元件的 `useMDXComponents()`
+// 导出会返回 MDX 组件的 `useMDXComponents()`
 export const useMDXComponents = getMDXComponents; // [!code ++]
 ```
 
@@ -76,12 +81,12 @@ import { defineConfig } from 'fumadocs-mdx/config';
 
 export default defineConfig({
   mdxOptions: {
-    // 用来汇入上方 `components/mdx.tsx` 的路径 [!code ++:2]
+    // 用来导入上方 `components/mdx.tsx` 的路径 [!code ++:2]
     providerImportSource: '@/components/mdx',
   },
 });
 ```
 
 <Callout title="其他框架？">
-  若使用 React Router、TanStack Start 或 Waku，请改为在页面中将 MDX 档案当作元件汇入。
+  若使用 React Router、TanStack Start 或 Waku，请改为在页面中将 MDX 文件当作组件导入。
 </Callout>

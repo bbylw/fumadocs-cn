@@ -1,10 +1,10 @@
 ---
-title: 套件安装
-description: 产生安装套件用的程式码区块
+title: 包安装
+description: 生成安装包用的代码块
 ---
 
 <Callout type="warn" title="已弃用">
-  请改用 [Remark NPM](/docs/headless/mdx/remark-npm)。它可以直接取代本功能，且在 Fumadocs MDX 中已预设启用。
+  请改用 [Remark NPM](/docs/headless/mdx/remark-npm)。它可以直接取代本功能，且在 Fumadocs MDX 中已默认启用。
 </Callout>
 
 ## 使用方式 [#usage]
@@ -13,7 +13,7 @@ description: 产生安装套件用的程式码区块
 fumadocs-docgen
 ```
 
-`remarkInstall` 是 remark 外挂，目前没有 Sätteri 版本。请加入此外挂，并停用会抢先处理 `package-install` 程式码区块的 Remark NPM：
+`remarkInstall` 是 remark 插件，目前没有 Sätteri 版本。请加入此插件，并禁用会抢先处理 `package-install` 代码块的 Remark NPM：
 
 ```ts title="source.config.ts"
 import { remarkInstall } from 'fumadocs-docgen';
@@ -27,7 +27,7 @@ export default defineConfig({
 });
 ```
 
-定义所需的元件。
+定义所需的组件。
 
 ```tsx title="components/mdx.tsx"
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
@@ -45,7 +45,7 @@ export function getMDXComponents(components?: MDXComponents) {
 }
 ```
 
-建立语言设为 `package-install` 的程式码区块。
+创建语言设为 `package-install` 的代码块。
 
 ````mdx
 ```package-install
@@ -67,9 +67,12 @@ npm i my-package -D
   <Tab value="bun">...</Tab>
 </Tabs>
 ```
+
+## 选项 [#options]
+
 ### 持久保存 [#persistent]
 
-搭配 Fumadocs UI 使用时，您可以透过 `persist` 选项启用持久保存。
+搭配 Fumadocs UI 使用时，你可以通过 `persist` 选项启用持久化。
 
 ```ts title="source.config.ts"
 import { remarkInstall } from 'fumadocs-docgen';
@@ -83,7 +86,7 @@ export default defineConfig({
 });
 ```
 
-这样则会改为产生：
+这样则会改为生成：
 
 ```mdx
 <Tabs groupId="some-id" persist items={[...]}>

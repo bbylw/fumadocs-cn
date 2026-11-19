@@ -1,38 +1,40 @@
 ---
 title: 使用指南
-description: 可自动完成设定并安装元件的 CLI 工具。
+description: 可自动完成设置并安装组件的 CLI 工具。
 ---
 
-初始化 CLI 的设定档：
+## 安装 [#installation]
+
+初始化 CLI 的配置文件：
 
 ```package-install
 npx @fumadocs/cli
 ```
 
-您可以在设定档中变更元件的输出路径。
+你可以在配置文件中变更组件的输出路径。
 
 ### 初始化 [#init]
 
-在现有的应用程式中设定 Fumadocs，支援 Next.js、React Router、TanStack Start、Waku 及 Astro。
+在现有的应用中设置 Fumadocs，支持 Next.js、React Router、TanStack Start、Waku 及 Astro。
 
 ```package-install
 npx @fumadocs/cli init
 ```
 
-为了避免与您的应用程式发生冲突，文件页面会放在专属的路由群组中 (例如 Next.js 上的 `app/(docs)`) ，并拥有各自的 provider 与版面配置；搜寻 API 等路由处理常式则依照[范例](https://github.com/fuma-nama/fumadocs/tree/dev/examples)建立。现有档案只会有少量修改：
+为了避免与你的应用发生冲突，文档页面会放在专属的路由分组中 (例如 Next.js 上的 `app/(docs)`) ，并拥有各自的 provider 与布局；搜索 API 等路由处理程序则依照[示例](https://github.com/fuma-nama/fumadocs/tree/dev/examples)创建。现有文件只会有少量修改：
 
-* 在您的框架设定中加入 Fumadocs MDX 外挂。
-* 在您的全域 CSS 中加入 Fumadocs UI 样式。
-* 在根版面配置的 `<html>` 元素上加入 `suppressHydrationWarning`，以支援主题切换。
+* 在你的框架设置中加入 Fumadocs MDX 插件。
+* 在你的全域 CSS 中加入 Fumadocs UI 样式。
+* 在根布局的 `<html>` 元素上加入 `suppressHydrationWarning`，以支持主题切换。
 * 在 `.gitignore` 中加入 `.source`。
 
-传入 `--i18n` 即可设定[国际化](/docs/internationalization)：文件路由会加上语系区段 (若路由器支援，预设语系可省略此区段) ，并建立 `lib/i18n.ts` 设定档；在 Next.js 上还会加入一个仅作用于文件路由的代理伺服器。其他功能则会沿用您专案的 i18n 设定。
+传入 `--i18n` 即可设置[国际化](/docs/internationalization)：文档路由会加上语系节 (若路由器支持，默认语系可省略此节) ，并创建 `lib/i18n.ts` 配置文件；在 Next.js 上还会加入一个仅作用于文档路由的代理服务器。其他功能则会沿用你项目的 i18n 设置。
 
-覆写档案前会先询问您；传入 `--yes` 可略过提示，传入 `--no-install` 则只会将相依套件写入 `package.json`，而不会安装。
+覆盖文件前会先询问你；传入 `--yes` 可略过提示，传入 `--no-install` 则只会将依赖包写入 `package.json`，而不会安装。
 
 ### 功能 [#features]
 
-为您的专案设定某项功能后，即会安装所需的元件与路由，并将其整合至您的应用程式中。
+为你的项目设置某项功能后，即会安装所需的组件与路由，并将其集成至你的应用中。
 
 ```package-install
 npx @fumadocs/cli feature ai --provider openrouter
@@ -40,89 +42,98 @@ npx @fumadocs/cli feature ai --provider openrouter
 
 | 功能         | 说明                                                                           |
 | ---------- | ---------------------------------------------------------------------------- |
-| `docs`     | 设定 Fumadocs，与 `init` 相同。                                                     |
-| `ai`       | [询问 AI](/docs/integrations/llms#ask-ai) 对话方块，`--provider`。                   |
+| `docs`     | 设置 Fumadocs，与 `init` 相同。                                                     |
+| `ai`       | [询问 AI](/docs/integrations/llms#ask-ai) 对话框，`--provider`。                   |
 | `llms`     | [LLM 路由](/docs/integrations/llms)：`llms.txt`、`llms-full.txt` 与各页面的 Markdown。 |
-| `mcp`      | 用于搜寻与阅读文件的 [MCP 伺服器](/docs/integrations/llms#mcp-server)。                    |
+| `mcp`      | 用于搜索与阅读文档的 [MCP 服务器](/docs/integrations/llms#mcp-server)。                    |
 | `webmcp`   | 供浏览器中 AI 代理使用的 [WebMCP](/docs/integrations/llms#webmcp) 工具 (实验性功能) 。         |
-| `og`       | 使用 Takumi 或 next/og (仅限 Next.js) 产生 Open Graph 图片，`--engine`。                |
-| `search`   | 第三方[搜寻方案](/docs/search)，`--provider`。                                        |
-| `feedback` | 文件页面上的[意见回馈](/docs/integrations/feedback)元件。                                 |
-| `epub`     | 用于[汇出 EPUB](/docs/guides/export-epub) 的路由。                                   |
-| `lint`     | 设定 ESLint (仅限 Next.js) 、Biome 或 Oxlint，`--linter`。                           |
+| `og`       | 使用 Takumi 或 next/og (仅限 Next.js) 生成 Open Graph 图片，`--engine`。                |
+| `search`   | 第三方[搜索方案](/docs/search)，`--provider`。                                        |
+| `feedback` | 文档页面上的[意见反馈](/docs/integrations/feedback)组件。                                 |
+| `epub`     | 用于[导出 EPUB](/docs/guides/export-epub) 的路由。                                   |
+| `lint`     | 设置 ESLint (仅限 Next.js) 、Biome 或 Oxlint，`--linter`。                           |
 
-功能会依您的专案设定自动调整：
+功能会依你的项目设置自动调整：
 
 * 使用 [Macro API](/docs/mdx/macro) 或 `source.config.ts` 的 Fumadocs MDX；其他内容来源无法使用 `llms`、`mcp` 与 `epub`。
-* 文件的 `baseUrl`、`src/` 目录、`next.config.ts`、i18n、静态汇出与 SPA 模式。
-* 使用档案式路由的 React Router：改为输出需要注册的路由。
-* 使用 `@fumadocs/astro` 集合的 Astro：无法使用 `ai`，且 `mcp` 与 `epub` 需要转接器。
+* 文档的 `baseUrl`、`src/` 目录、`next.config.ts`、i18n、静态导出与 SPA 模式。
+* 使用文件式路由的 React Router：改为输出需要注册的路由。
+* 使用 `@fumadocs/astro` 集合的 Astro：无法使用 `ai`，且 `mcp` 与 `epub` 需要适配器。
 
-路由路径会定义在 `lib/shared.ts` 的常数中。
+路由路径会定义在 `lib/shared.ts` 的常量中。
 
 请参阅说明以了解可用的选项：
 
 ```package-install
 npx @fumadocs/cli feature -h
 ```
-选择并安装元件。
+
+### 组件 [#components]
+
+选择并安装组件。
 
 ```package-install
 npx @fumadocs/cli add
 ```
 
-您可以直接传入元件名称。
+你可以直接传入组件名称。
 
 ```package-install
 npx @fumadocs/cli add banner files
 ```
-CLI 会从 Fumadocs registry (`https://fumadocs.dev/registry`) 取得最新版本的元件。
-因此您安装的元件保证都是最新版本。
 
-此外，CLI 也会转换汇入路径。
+#### 背后的原理是什么？ [#how-the-magic-works]
+
+CLI 会从 Fumadocs registry (`https://fumadocs.dev/registry`) 取得最新版本的组件。
+因此你安装的组件保证都是最新版本。
+
+此外，CLI 也会转换导入路径。
 请务必使用最新版本的 CLI
 
 > 这套做法深受 Shadcn UI 启发。
 
-### 自订 [#customize]
+### 自定义 [#customize]
 
-以简单的方式自订 Fumadocs 版面配置。
+以简单的方式自定义 Fumadocs 布局。
 
 ```package-install
 npx @fumadocs/cli customize
 ```
 
-这会将版面配置安装到 `layouts`，并将路由档案中的汇入改为指向该版面配置。
+这会将布局安装到 `layouts`，并将路由文件中的导入改为指向该布局。
 
 ### Shadcn UI [#shadcn-ui]
 
-在含有 `components.json` 的专案中，CLI 会沿用 Shadcn UI 的别名，并且：
+在含有 `components.json` 的项目中，CLI 会沿用 Shadcn UI 的别名，并且：
 
-* 安装 `shadcn` 预设组合，让 Fumadocs UI 套用您的主题色彩。
-* 重复使用您 `ui` 目录中的 `button`、`popover` 与 `collapsible`，因为它们与 Shadcn UI 的 API 相同。
-* 从您的 `utils` 别名汇入 `cn`。
+* 安装 `shadcn` 默认组合，让 Fumadocs UI 应用你的主题色彩。
+* 重复使用你 `ui` 目录中的 `button`、`popover` 与 `collapsible`，因为它们与 Shadcn UI 的 API 相同。
+* 从你的 `utils` 别名导入 `cn`。
 
-只有在您尚未拥有这些元件时，才会安装 Fumadocs 提供的版本。
+只有在你尚未拥有这些组件时，才会安装 Fumadocs 提供的版本。
 
 ### Tree [#tree]
 
-在终端机中使用 `tree` 指令，为 Fumadocs UI 的 `Files` 元件产生档案树。
+在终端机中使用 `tree` 指令，为 Fumadocs UI 的 `Files` 组件生成文件树。
 
 ```package-install
 npx @fumadocs/cli tree ./my-dir ./output.tsx
 ```
 
-您也可以输出 MDX 档案：
+你也可以输出 MDX 文件：
 
 ```package-install
 npx @fumadocs/cli tree ./my-dir ./output.mdx
 ```
 
-如需更多详细资讯，请参阅说明：
+如需更多详细信息，请参阅说明：
 
 ```package-install
 npx @fumadocs/cli tree -h
 ```
+
+#### 输出示例 [#example-output]
+
 ```tsx title="output.tsx"
 import { File, Folder, Files } from 'fumadocs-ui/components/files';
 

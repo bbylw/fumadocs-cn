@@ -1,9 +1,6 @@
 {
-  "title": "元件",
+  "title": "组件",
   "pages": [
-    "index",
-    "breadcrumb",
-    "link",
-    "toc"
+    "..."
   ]
 }

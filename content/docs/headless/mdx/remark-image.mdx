@@ -3,34 +3,34 @@ title: Remark Image
 description: 为图片加上尺寸属性。
 ---
 
-这是一个 remark 外挂，会为您的图片元素加上 `width` 与 `height` 属性；在 Next.js 及部分其他框架中，必须具备这两个属性才能进行图片最佳化 (Image Optimization) 。
+这是一个 remark 插件，会为你的图片元素加上 `width` 与 `height` 属性；在 Next.js 及部分其他框架中，必须具备这两个属性才能进行图片优化 (Image Optimization) 。
 
 ## 使用方式 [#usage]
 
-Fumadocs MDX 预设会启用此功能。您可以透过 `remarkImageOptions` 传入选项。无论使用 unified 或 Sätteri，选项皆相同。
+Fumadocs MDX 默认会启用此功能。你可以通过 `remarkImageOptions` 传入选项。无论使用 unified 或 Sätteri，选项皆相同。
 
-支援：
+支持：
 
-* 本机图片
+* 本地图片
 * 外部 URL
-* Next.js 静态汇入
+* Next.js 静态导入
 
 ### 运作原理 [#how-it-works]
 
-使用 `useImport` 时，本机图片会转换为**静态汇入**，交由您的打包工具处理。Fumadocs MDX 预设会启用此功能，但 `dynamic` 集合除外。
-在 Next.js 上，这些图片会由内建的图片载入器处理，并支援 Next.js Image 的 `placeholder` 选项。
+使用 `useImport` 时，本地图片会转换为**静态导入**，交由你的打包工具处理。Fumadocs MDX 默认会启用此功能，但 `dynamic` 集合除外。
+在 Next.js 上，这些图片会由内置的图片加载器处理，并支持 Next.js Image 的 `placeholder` 选项。
 
-其他情况下，则会透过档案系统或 HTTP 请求下载图片，以取得图片尺寸。
+其他情况下，则会通过文件系统或 HTTP 请求下载图片，以取得图片尺寸。
 
 <Callout type="warn">
-  请勿传入不受信任的图片 URL。这些图片会在编译时被撷取，私有主机上的图片也不例外。设定 `external: false` 即可略过外部图片。
+  请勿传入不受信任的图片 URL。这些图片会在编译时被截取，私有主机上的图片也不例外。设置 `external: false` 即可略过外部图片。
 </Callout>
 
 ### 选项 [#options]
 
 <auto-type-table path="../props.ts" name="RemarkImageOptions" />
 
-### 范例：使用汇入 [#example-with-imports]
+### 示例：使用导入 [#example-with-imports]
 
 ```mdx
 ![Hello](/hello.png)
@@ -48,9 +48,9 @@ import HelloImage from './public/hello.png';
 
 其中 `./public/hello.png` 指向 public 目录中的图片。
 
-### 范例：不使用汇入 [#example-without-imports]
+### 示例：不使用导入 [#example-without-imports]
 
-若使用 Next.js，您可以停用本机图片的静态汇入。
+若使用 Next.js，你可以禁用本地图片的静态导入。
 
 ```ts tab="unified" title="source.config.ts"
 import { defineConfig } from 'fumadocs-mdx/config';
@@ -91,19 +91,22 @@ export default defineConfig({
 <img alt="Hello" src="/hello.png" width="1980" height="1080" />
 <img alt="Test" src="https://example.com/image.png" width="1980" height="1080" />
 ```
-启用 `useImport` 后，您可以使用相对路径来引用本机图片。
+
+### 示例：相对路径 [#example-relative-paths]
+
+激活 `useImport` 后，你可以使用相对路径来引用本地图片。
 
 ```mdx
 ![Hello](./hello.png)
 ```
 
-请注意，若停用 `useImport`，此用法**将无法运作**。
-除非您已在程式码中汇入图片，否则 Next.js 不会将其加入公开资源。
-至于 public 目录中的图片，您可以直接引用，无须使用相对路径。
+请注意，若禁用 `useImport`，此用法**将无法运作**。
+除非你已在代码中导入图片，否则 Next.js 不会将其加入公开资源。
+至于 public 目录中的图片，你可以直接引用，无须使用相对路径。
 
-### 范例：public 目录 [#example-public-directory]
+### 示例：public 目录 [#example-public-directory]
 
-自订 public 目录的路径。
+自定义 public 目录的路径。
 
 ```ts tab="unified" title="source.config.ts"
 import { defineConfig } from 'fumadocs-mdx/config';

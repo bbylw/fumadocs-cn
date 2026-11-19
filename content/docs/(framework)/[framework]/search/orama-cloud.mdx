@@ -1,0 +1,76 @@
+---
+title: Orama Cloud
+description: 在 Fumadocs UI 中使用 Orama Cloud。
+---
+
+## 设置 [#setup]
+
+Fumadocs CLI 可以帮你完成设置，它会创建搜索对话框、`static.json` 路由，以及一个在每次构建后同步搜索索引的脚本：
+
+```package-install
+npx @fumadocs/cli feature search --provider orama-cloud
+```
+
+或手动设置：
+
+1. 集成 [Orama Cloud](/docs/headless/search/orama-cloud)。
+
+2. 创建搜索对话框，并将 `endpoint` 与 `api_key` 替换为你要使用的值。
+
+   ```tsx title="components/search.tsx"
+   'use client';
+
+   import {
+     SearchDialog,
+     SearchDialogClose,
+     SearchDialogContent,
+     SearchDialogFooter,
+     SearchDialogHeader,
+     SearchDialogIcon,
+     SearchDialogInput,
+     SearchDialogList,
+     SearchDialogOverlay,
+     type SharedProps,
+   } from 'fumadocs-ui/components/dialog/search';
+   import { useOramaCloudSearch } from 'fumadocs-core/search/client';
+   import { OramaCloud } from '@orama/core';
+   import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+   const orama = new OramaCloud({
+     projectId: '',
+     apiKey: '',
+   });
+
+   export default function CustomSearchDialog(props: SharedProps) {
+     const { locale } = useI18n(); // (optional) for i18n
+     const search = useOramaCloudSearch({
+       client: orama,
+       locale,
+     });
+
+     return (
+       <SearchDialog {...search} {...props}>
+         <SearchDialogOverlay />
+         <SearchDialogContent>
+           <SearchDialogHeader>
+             <SearchDialogIcon />
+             <SearchDialogInput />
+             <SearchDialogClose />
+           </SearchDialogHeader>
+           <SearchDialogList />
+           <SearchDialogFooter>
+             <a
+               href="https://orama.com"
+               rel="noreferrer noopener"
+               className="ms-auto text-xs text-fd-muted-foreground"
+             >
+               Search powered by Orama
+             </a>
+           </SearchDialogFooter>
+         </SearchDialogContent>
+       </SearchDialog>
+     );
+   }
+   ```
+
+<include>.shared.mdx</include>

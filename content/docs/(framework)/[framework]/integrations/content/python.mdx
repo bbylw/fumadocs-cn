@@ -1,0 +1,210 @@
+---
+title: Python
+description: 从 Python 包生成 API 参考文档。
+staticParams:
+  - framework: next
+  - framework: waku
+---
+
+<Callout type="warn" title="实验性功能">
+  Python 文档生成 (docgen) 功能仍处于实验阶段，请谨慎使用。
+</Callout>
+
+## 简介 [#introduction]
+
+`fumadocs-python` 会根据 Python 包的源代码与 docstring 生成文档。通过一个 Python 指令将包内容收集成 JSON 文件后，你可以直接将它作为运行时的内容来源提供，或将其转换为 MDX 文件。
+
+每个模块与类别都会生成一个页面，其中的函数、属性与参数则由内附的组件负责渲染。
+
+## 设置 [#setup]
+
+请安装包：
+
+```package-install
+fumadocs-python shiki
+```
+
+### 生成 JSON [#generate-json]
+
+请安装 Python 指令，它会从你的 Python 包收集文档：
+
+```bash
+pip install ./node_modules/fumadocs-python
+```
+
+生成包的 JSON 文件：
+
+```bash
+fumapy-generate httpx
+```
+
+此指令会将 `httpx.json` 写入当前目录，若要变更位置，请传入 `--dir`。
+
+`Parameters:` 和 `Returns:` 等 docstring 节会以 Google 风格解析；若要使用其他风格，请传入 `--docstring-style numpy` 或 `--docstring-style sphinx`。不属于这些风格的 docstring 则会以 Markdown 渲染。
+
+### 样式 [#styles]
+
+这些组件以 Tailwind CSS 撰写样式，请加入默认集 (preset) ：
+
+```css title="Tailwind CSS"
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+/* [!code ++] */
+@import 'fumadocs-python/preset.css';
+```
+
+### 设置来源 [#configure-source]
+
+从 JSON 文件创建来源，并将它传入 `loader()`：
+
+```ts title="lib/source.ts"
+import { loader } from 'fumadocs-core/source';
+import { createPython } from 'fumadocs-python';
+
+const python = createPython({
+  file: './httpx.json',
+  // 页面会依根模块名称分组到同名目录中，例如 `httpx._client.Client` 的网址为 `/docs/httpx/_client/Client`。
+  // 设为 "none" 则会改将页面放在来源的根层级。
+  groupBy: 'module',
+});
+
+export const source = loader(await python.staticSource(), {
+  baseUrl: '/docs',
+  // 为生成的页面加上 `module` 或 `class` 徽章
+  plugins: [python.loaderPlugin()],
+});
+```
+
+接着加载并渲染页面：
+
+<show when={props.framework === 'next'}>
+  ```tsx title="app/docs/[[...slug]]/page.tsx"
+  import { source } from '@/lib/source';
+  import { notFound } from 'next/navigation';
+  import { DocsBody, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+
+  export default async function Page({ params }: PageProps<'/docs/[[...slug]]'>) {
+    const page = source.getPage((await params).slug);
+    if (!page) notFound();
+
+    const data = await page.data.load();
+    const { body, toc } = await data.render();
+
+    return (
+      <DocsPage toc={toc}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsBody>{body}</DocsBody>
+      </DocsPage>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```tsx title="src/pages/docs/[...slugs].tsx"
+  import type { PageProps } from 'waku/router';
+  import { unstable_notFound } from 'waku/router/server';
+  import { DocsBody, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+  import { source } from '@/lib/source';
+
+  export default async function Page({ slugs }: PageProps<'/docs/[...slugs]'>) {
+    const page = source.getPage(slugs);
+    if (!page) unstable_notFound();
+
+    const data = await page.data.load();
+    const { body, toc } = await data.render();
+
+    return (
+      <DocsPage toc={toc}>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsBody>{body}</DocsBody>
+      </DocsPage>
+    );
+  }
+
+  export async function getConfig() {
+    return {
+      render: 'static',
+      staticPaths: source.generateParams().map((item) => item.slug),
+    } as const;
+  }
+  ```
+</show>
+
+### Dynamic 来源 [#dynamic-source]
+
+`staticSource()` 只会读取 JSON 文件一次。若想在不重新启动的情况下应用重新生成的文件，请改用 `dynamicSource()` 搭配 `dynamicLoader()`：
+
+```ts title="lib/source.ts"
+import { dynamicLoader } from 'fumadocs-core/source';
+import { createPython } from 'fumadocs-python';
+
+const python = createPython({
+  file: './httpx.json',
+});
+
+const pythonLoader = dynamicLoader(python.dynamicSource(), {
+  baseUrl: '/docs',
+});
+
+export function getSource() {
+  return pythonLoader.get();
+}
+```
+
+调用 `pythonLoader.invalidate()` 后会重新读取文件；在此之前，`getSource()` 都会返回同一个[内容加载器](/docs/headless/source-api)实例。
+
+### 编译器 [#compiler]
+
+源代码与 docstring 示例会使用 [Shiki](https://shiki.style) 进行语法高亮，可通过 `rehypeCodeOptions` 调整相关设置。你也可以传入 remark/rehype 插件：
+
+```ts title="lib/source.ts"
+import { createPython } from 'fumadocs-python';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+
+const python = createPython({
+  file: './httpx.json',
+  rehypeCodeOptions: {
+    themes: {
+      light: 'github-light',
+      dark: 'github-dark',
+    },
+  },
+  remarkPlugins: [remarkMath],
+  rehypePlugins: [rehypeKatex],
+});
+```
+
+## 生成 MDX 文件 [#generate-mdx-files]
+
+你也可以改为将 JSON 转换成 MDX 文件，并与其他内容放在一起。模块与类别之间的链接会直接写入文件，因此 `baseUrl` 必须与输出目录实际对外提供的路径一致：
+
+```js tab="scripts/generate-docs.mjs"
+import { rimraf } from 'rimraf';
+import * as Python from 'fumadocs-python';
+import * as fs from 'node:fs/promises';
+
+const content = JSON.parse(await fs.readFile('./httpx.json', 'utf-8'));
+// 清除先前的输出
+await rimraf('content/docs/httpx');
+
+await Python.write(Python.convert(content, { baseUrl: '/docs' }), 'content/docs');
+```
+
+```tsx tab="components/mdx.tsx"
+import defaultMdxComponents from 'fumadocs-ui/mdx';
+import type { MDXComponents } from 'mdx/types';
+import * as Python from 'fumadocs-python/components';
+
+const { createPythonComponents, ...PythonComponents } = Python;
+
+export function getMDXComponents(components?: MDXComponents): MDXComponents {
+  return {
+    ...defaultMdxComponents,
+    ...PythonComponents,
+    ...components,
+  };
+}
+```

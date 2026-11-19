@@ -1,0 +1,166 @@
+---
+title: 搜索 UI
+description: 用于搜索文档的 UI
+---
+
+## 概览 [#overview]
+
+你可以通过 [`<RootProvider />`](/docs/ui/layouts/root-provider) 自定义搜索 UI。
+
+```tsx title="app/layout.tsx"
+import { RootProvider } from 'fumadocs-ui/provider/<framework>';
+import type { ReactNode } from 'react';
+import { SearchDialog } from '@/components/my-search-dialog';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <html>
+      <body>
+        <RootProvider
+          // [!code highlight:4]
+          search={{
+            enabled: false, // 完全禁用搜索
+            SearchDialog, // 替换搜索对话框
+          }}
+        >
+          {children}
+        </RootProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### 快捷键 [#hot-keys]
+
+你可以自定义打开搜索对话框的快捷键，默认为 <kbd>⌘</kbd> <kbd>K</kbd> 或 <kbd>Ctrl</kbd> <kbd>K</kbd>。
+
+```tsx
+import { RootProvider } from 'fumadocs-ui/provider/<framework>';
+
+<RootProvider
+  search={{
+    hotKey: [
+      {
+        display: 'K',
+        key: 'k', // 按键代码，或用来判断按键是否被点击的函数
+      },
+    ],
+  }}
+>
+  {children}
+</RootProvider>;
+```
+
+### 参考资料 [#references]
+
+完整的选项列表。
+
+<auto-type-table cwd path="content/docs/ui/props.ts" name="SearchProps" />
+
+## 自定义 UI [#custom-ui]
+
+Fumadocs UI 也提供较底层的 `<SearchDialog />` 组件供高级使用，你可以借此创建自己的搜索对话框，取代默认的版本。
+
+```tsx twoslash
+'use client';
+import React from 'react';
+import { useFetchSearch } from 'fumadocs-core/search/client';
+import {
+  SearchDialog,
+  SearchDialogClose,
+  SearchDialogContent,
+  SearchDialogHeader,
+  SearchDialogFooter,
+  SearchDialogIcon,
+  SearchDialogInput,
+  SearchDialogList,
+  SearchDialogOverlay,
+  type SharedProps,
+} from 'fumadocs-ui/components/dialog/search';
+import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+export default function DefaultSearchDialog(props: SharedProps) {
+  const { locale } = useI18n(); // （可选）用于 i18n
+  const search = useFetchSearch({
+    locale,
+  });
+
+  return (
+    <SearchDialog {...search} {...props}>
+      <SearchDialogOverlay />
+      <SearchDialogContent>
+        <SearchDialogHeader>
+          <SearchDialogIcon />
+          <SearchDialogInput />
+          <SearchDialogClose />
+        </SearchDialogHeader>
+        <SearchDialogList />
+      </SearchDialogContent>
+      <SearchDialogFooter>{/* 页脚项目 */}</SearchDialogFooter>
+    </SearchDialog>
+  );
+}
+```
+
+### 内容渲染器 [#content-renderer]
+
+若想自行渲染搜索项目的 Markdown 内容，请传入 `renderMarkdown`。
+
+```tsx title="components/search.tsx"
+<SearchDialogList
+  // [!code highlight:8]
+  Item={(props) => (
+    <SearchDialogListItem
+      {...props}
+      renderMarkdown={(text) => {
+        // ...
+      }}
+    />
+  )}
+/>
+```
+
+### 表格 [#tables]
+
+自定义结果中表格的渲染方式。自定义的 `Table` 会自行渲染各列数据：
+
+```tsx title="components/search.tsx"
+<SearchDialogList
+  // 不使用卡片，直接显示各列
+  Table={({ table, Item, onSelect }) =>
+    table.rows.map((row) => (
+      <Fragment key={row.id}>{Item({ item: row, onClick: () => onSelect(row) })}</Fragment>
+    ))
+  }
+/>
+```
+
+### 醒目标示 [#highlights]
+
+搜索关键字的符合结果会通过 [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API) 醒目标示，你可以使用 `::highlight(fd-search)` 自定义其样式。
+
+```css title="global.css"
+::highlight(fd-search) {
+  color: var(--color-fd-primary-foreground);
+  background-color: var(--color-fd-primary);
+}
+```
+
+`<SearchDialogList />` 会高亮 `<SearchDialog />` 的 `data` 中的查找字词；若未提供，则改为高亮搜索输入框中的内容。
+
+若你自行渲染搜索结果，请使用 `useHighlightQuery()` 进行高亮。
+
+```tsx title="components/search-result.tsx"
+'use client';
+import { useHighlightQuery } from 'fumadocs-core/search/client';
+import type { ReactNode } from 'react';
+
+export function SearchResult({ query, children }: { query: string; children: ReactNode }) {
+  const ref = useHighlightQuery(query);
+
+  return <div ref={ref}>{children}</div>;
+}
+```
+
+带有 `data-highlight-ignore` 属性的元素，其内部文字不会被高亮，例如组件的徽章。

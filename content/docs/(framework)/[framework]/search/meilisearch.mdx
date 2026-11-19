@@ -1,0 +1,120 @@
+---
+title: Meilisearch
+description: 搭配 Fumadocs UI 使用 Meilisearch。
+---
+
+## 设置 [#setup]
+
+Fumadocs CLI 可以帮你完成设置，包括创建搜索对话框、`static.json` 路由，以及在每次构建后同步搜索索引的脚本：
+
+```package-install
+npx @fumadocs/cli feature search --provider meilisearch
+```
+
+或手动设置：
+
+1. 集成 [Meilisearch](/docs/headless/search/meilisearch)。
+
+2. 创建搜索对话框，并将 `host` 和 `apiKey` 替换为你的主机 URL 与搜索 API 密钥。
+
+   ```tsx title="components/search.tsx"
+   'use client';
+   import { Meilisearch } from 'meilisearch';
+   import {
+     SearchDialog,
+     SearchDialogClose,
+     SearchDialogContent,
+     SearchDialogFooter,
+     SearchDialogHeader,
+     SearchDialogIcon,
+     SearchDialogInput,
+     SearchDialogList,
+     SearchDialogOverlay,
+     type SharedProps,
+   } from 'fumadocs-ui/components/dialog/search';
+   import { useMeilisearch } from 'fumadocs-core/search/client';
+   import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+   const client = new Meilisearch({
+     host: 'replace me',
+     apiKey: 'replace me',
+   });
+
+   export default function CustomSearchDialog(props: SharedProps) {
+     const { locale } = useI18n(); // (optional) for i18n
+     const search = useMeilisearch({
+       client,
+       indexName: 'docs',
+       locale,
+     });
+
+     return (
+       <SearchDialog {...search} {...props}>
+         <SearchDialogOverlay />
+         <SearchDialogContent>
+           <SearchDialogHeader>
+             <SearchDialogIcon />
+             <SearchDialogInput />
+             <SearchDialogClose />
+           </SearchDialogHeader>
+           <SearchDialogList />
+           <SearchDialogFooter>
+             <a
+               href="https://www.meilisearch.com"
+               rel="noreferrer noopener"
+               className="ms-auto text-xs text-fd-muted-foreground"
+             >
+               Search powered by Meilisearch
+             </a>
+           </SearchDialogFooter>
+         </SearchDialogContent>
+       </SearchDialog>
+     );
+   }
+   ```
+
+<include>.shared.mdx</include>
+
+### 标签筛选 [#tag-filter]
+
+你也可以按需加入依标签筛选结果的 UI。请先在文档上设置[标签筛选](/docs/headless/search/meilisearch#tag-filter)，再加入以下内容：
+
+```tsx
+'use client';
+
+import {
+  SearchDialog,
+  SearchDialogContent,
+  SearchDialogFooter,
+  SearchDialogOverlay,
+  type SharedProps,
+  TagsList,
+  TagsListItem,
+} from 'fumadocs-ui/components/dialog/search';
+import { useState } from 'react';
+import { useMeilisearch } from 'fumadocs-core/search/client';
+
+export default function CustomSearchDialog(props: SharedProps) {
+  // [!code ++]
+  const [tag, setTag] = useState<string | undefined>();
+  const search = useMeilisearch({
+    tag, // [!code ++]
+    // 其他选项……
+  });
+
+  return (
+    <SearchDialog {...search} {...props}>
+      <SearchDialogOverlay />
+      <SearchDialogContent>
+        ...
+        <SearchDialogFooter className="flex flex-row">
+          {/* [!code ++:3] */}
+          <TagsList tag={tag} onTagChange={setTag}>
+            <TagsListItem value="my-value">My Value</TagsListItem>
+          </TagsList>
+        </SearchDialogFooter>
+      </SearchDialogContent>
+    </SearchDialog>
+  );
+}
+```

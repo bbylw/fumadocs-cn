@@ -1,0 +1,126 @@
+---
+title: Typesense
+description: 搭配 Fumadocs UI 使用 Typesense。
+---
+
+> 此集成由社区维护。
+
+## 设置 [#setup]
+
+Fumadocs CLI 可以帮你完成设置，包括创建搜索对话框、`static.json` 路由，以及在每次构建后同步搜索索引的脚本：
+
+```package-install
+npx @fumadocs/cli feature search --provider typesense
+```
+
+或手动设置：
+
+1. 集成 [Typesense Search](/docs/headless/search/typesense)。
+
+2. 创建搜索对话框组件。
+
+   ```tsx title="components/search.tsx"
+   'use client';
+   import {
+     SearchDialog,
+     SearchDialogClose,
+     SearchDialogContent,
+     SearchDialogFooter,
+     SearchDialogHeader,
+     SearchDialogIcon,
+     SearchDialogInput,
+     SearchDialogList,
+     SearchDialogOverlay,
+     type SharedProps,
+   } from 'fumadocs-ui/components/dialog/search';
+   import { useI18n } from 'fumadocs-ui/contexts/i18n';
+   import { Client } from 'typesense';
+   import { useTypesenseSearch } from 'typesense-fumadocs-adapter/client';
+
+   const client = new Client({
+     nodes: [{ url: 'YOUR_TYPESENSE_SERVER_URL' }],
+     apiKey: 'YOUR_TYPESENSE_SEARCH_ONLY_API_KEY',
+   });
+
+   export default function TypesenseSearchDialog(props: SharedProps) {
+     const { locale } = useI18n(); // 可选
+     const { search, setSearch, query } = useTypesenseSearch({
+       typesenseCollectionName: 'docs',
+       locale,
+       legacy: false, // 可选，若 fumadocs-ui 版本低于 16.6.0，请设为 true
+       client,
+     });
+
+     return (
+       <SearchDialog
+         search={search}
+         onSearchChange={setSearch}
+         isLoading={query.isLoading}
+         {...props}
+       >
+         <SearchDialogOverlay />
+         <SearchDialogContent>
+           <SearchDialogHeader>
+             <SearchDialogIcon />
+             <SearchDialogInput />
+             <SearchDialogClose />
+           </SearchDialogHeader>
+           <SearchDialogList items={query.data !== 'empty' ? query.data : null} />
+           <SearchDialogFooter>
+             <div className="w-full text-right text-xs text-fd-muted-foreground">
+               <a href="https://typesense.org" rel="noreferrer noopener" target="_blank">
+                 Search powered by Typesense
+               </a>
+             </div>
+           </SearchDialogFooter>
+         </SearchDialogContent>
+       </SearchDialog>
+     );
+   }
+   ```
+
+<include>.shared.mdx</include>
+
+### 标签筛选 [#tag-filter]
+
+你也可以按需加入依标签筛选结果的 UI。请在搜索服务器上设置[标签筛选](/docs/headless/search/typesense#tag-filter)，并加入以下内容：
+
+```tsx
+'use client';
+
+import {
+  SearchDialog,
+  SearchDialogContent,
+  SearchDialogFooter,
+  SearchDialogOverlay,
+  type SharedProps,
+  TagsList,
+  TagsListItem,
+} from 'fumadocs-ui/components/dialog/search';
+import { useState } from 'react';
+import { useTypesenseSearch } from 'typesense-fumadocs-adapter/client';
+
+export default function TypesenseSearchDialog(props: SharedProps) {
+  // [!code ++]
+  const [tag, setTag] = useState<string | undefined>();
+  const { search, setSearch, query } = useTypesenseSearch({
+    tag, // [!code ++]
+    // 其他选项……
+  });
+
+  return (
+    <SearchDialog>
+      <SearchDialogOverlay />
+      <SearchDialogContent>
+        ...
+        <SearchDialogFooter className="flex flex-row">
+          {/* [!code ++:3] */}
+          <TagsList tag={tag} onTagChange={setTag}>
+            <TagsListItem value="my-value">My Value</TagsListItem>
+          </TagsList>
+        </SearchDialogFooter>
+      </SearchDialogContent>
+    </SearchDialog>
+  );
+}
+```

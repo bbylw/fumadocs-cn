@@ -1,0 +1,233 @@
+---
+title: createAsyncAPI()
+description: AsyncAPI 服务器实例。
+---
+
+## AsyncAPI 服务器 [#asyncapi-server]
+
+Fumadocs AsyncAPI 的主要设置。
+
+> 请勿在浏览器环境中引用此设置。
+
+### `input` [#input]
+
+要读取的 AsyncAPI schema。
+
+* 文件路径
+* 外部 URL
+* 函数 (详见下文) 
+
+只有列于此处的 schema 才能加载，若将其他 ID 传入 `getSchema()`，或由页面预先加载其他 ID，都会抛出错误。
+
+<Callout type="warn">
+  请勿将不受信任的 schema 传给 `input`，因为其中的 `$ref` 能读取本地文件并截取任意 URL，连私有主机也不例外。
+</Callout>
+
+```ts tab="Basic"
+import { createAsyncAPI } from '@fumadocs/asyncapi/server';
+
+export const asyncapi = createAsyncAPI({
+  input: ['./streetlights.yaml'],
+});
+```
+
+```ts tab="Functions"
+import { createAsyncAPI } from '@fumadocs/asyncapi/server';
+
+export const asyncapi = createAsyncAPI({
+  input: {
+    // [id]：下载后的 AsyncAPI schema
+    galaxy: async () => {
+      const res = await fetch('https://example.com/asyncapi.yaml');
+      return res.text();
+    },
+  },
+});
+```
+
+### `disableCache` [#disablecache]
+
+禁用已加载 schema 的缓存。适合在开发阶段 schema 频繁变动时使用。
+
+```ts
+import { createAsyncAPI } from '@fumadocs/asyncapi/server';
+
+export const asyncapi = createAsyncAPI({
+  input: ['./asyncapi.yaml'],
+  disableCache: true,
+});
+```
+
+## 只加载一次文档 [#loading-documents-once]
+
+页面会通过 props 接收完整的文档，因此每次加载页面、导航或预先截取时，都会再发送一次文档。若文档较大，建议不要通过 props 传递：
+
+```ts title="lib/asyncapi.ts"
+import { createAsyncAPI } from '@fumadocs/asyncapi/server';
+
+export const asyncapi = createAsyncAPI({
+  // ID 最终会出现在 URL 中，请确保可安全用于 URL
+  input: { streetlights: './streetlights.yaml' },
+  includeDocument: false, // [!code ++]
+});
+```
+
+<show when={props.framework !== 'tanstack-start'}>
+  传入 `loadDocument`，即可让每份文档在每个浏览器工作阶段中只加载一次。此函数也会在服务端渲染期间运行：
+</show>
+
+<show when={props.framework === 'next'}>
+  ```tsx title="components/api-page.tsx"
+  'use client';
+  import { preload } from 'react-dom';
+  import { createAsyncAPIPage } from '@fumadocs/asyncapi/ui';
+
+  export const AsyncAPIPage = createAsyncAPIPage({
+    async loadDocument(id) {
+      if (typeof window === 'undefined') {
+        // 浏览器会在加载页面时一并开始下载
+        preload(`/api/asyncapi/${id}`, { as: 'fetch', crossOrigin: 'anonymous' });
+        const { asyncapi } = await import('@/lib/asyncapi');
+        return (await asyncapi.getSchema(id)).bundled;
+      }
+      return (await fetch(`/api/asyncapi/${id}`)).json();
+    },
+  });
+  ```
+</show>
+
+<show when={props.framework === 'react-router' || props.framework === 'waku' || props.framework === 'astro'}>
+  ```tsx title="components/api-page.tsx"
+  'use client';
+  import { preload } from 'react-dom';
+  import { createAsyncAPIPage } from '@fumadocs/asyncapi/ui';
+
+  export const AsyncAPIPage = createAsyncAPIPage({
+    async loadDocument(id) {
+      if (import.meta.env.SSR) {
+        // 浏览器会在加载页面时一并开始下载
+        preload(`/api/asyncapi/${id}`, { as: 'fetch', crossOrigin: 'anonymous' });
+        const { asyncapi } = await import('@/lib/asyncapi');
+        return (await asyncapi.getSchema(id)).bundled;
+      }
+      return (await fetch(`/api/asyncapi/${id}`)).json();
+    },
+  });
+  ```
+</show>
+
+<show when={props.framework !== 'tanstack-start'}>
+  通过路由将文档提供给浏览器：
+</show>
+
+<show when={props.framework === 'next'}>
+  ```ts title="app/api/asyncapi/[id]/route.ts"
+  import { asyncapi } from '@/lib/asyncapi';
+
+  export async function GET(_req: Request, { params }: RouteContext<'/api/asyncapi/[id]'>) {
+    return Response.json((await asyncapi.getSchema((await params).id)).bundled);
+  }
+
+  // 用于静态导出
+  export async function generateStaticParams() {
+    return Object.keys(await asyncapi.getSchemas()).map((id) => ({ id }));
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  ```ts tab="app/routes/asyncapi.ts"
+  import type { Route } from './+types/asyncapi';
+  import { asyncapi } from '@/lib/asyncapi';
+
+  export async function loader({ params }: Route.LoaderArgs) {
+    return Response.json((await asyncapi.getSchema(params.id)).bundled);
+  }
+  ```
+
+  ```ts tab="app/routes.ts"
+  import { route, type RouteConfig } from '@react-router/dev/routes';
+
+  export default [
+    // [!code ++]
+    route('api/asyncapi/:id', 'routes/asyncapi.ts'),
+    // ...
+  ] satisfies RouteConfig;
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```ts title="src/pages/_api/api/asyncapi/[id].ts"
+  import type { ApiContext } from 'waku/router';
+  import { asyncapi } from '@/lib/asyncapi';
+
+  export async function GET(_: Request, { params }: ApiContext<'/api/asyncapi/[id]'>) {
+    return Response.json((await asyncapi.getSchema(params.id)).bundled);
+  }
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```ts title="src/pages/api/asyncapi/[id].ts"
+  import type { APIRoute, GetStaticPaths } from 'astro';
+  import { asyncapi } from '@/lib/asyncapi';
+
+  export const prerender = true;
+
+  export const getStaticPaths = (async () => {
+    return Object.keys(await asyncapi.getSchemas()).map((id) => ({ params: { id } }));
+  }) satisfies GetStaticPaths;
+
+  export const GET: APIRoute = async ({ params }) => {
+    return Response.json((await asyncapi.getSchema(params.id!)).bundled);
+  };
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  TanStack Start 的路由加载器会同时在服务器与浏览器上运行，因此你的文档路由不需要 `loadDocument` 也能加载文档。只有在浏览器尚未取得文档时，才需要调用 server function：
+
+  ```tsx title="src/routes/docs/$.tsx"
+  import { createServerFn } from '@tanstack/react-start';
+  import type { AsyncAPI } from '@fumadocs/asyncapi';
+  import { asyncapi } from '@/lib/asyncapi';
+
+  // 浏览器已加载的文档
+  const documents = new Map<string, AsyncAPI.AsyncAPIObject>();
+
+  const getDocument = createServerFn({ method: 'GET' })
+    .validator((id: string) => id)
+    .handler(async ({ data: id }) => (await asyncapi.getSchema(id)).bundled);
+
+  export const Route = createFileRoute('/docs/$')({
+    component: Page,
+    loader: async ({ params }) => {
+      const data = await serverLoader({ data: params._splat?.split('/') ?? [] });
+      if (data.type === 'asyncapi') {
+        const { document: id, payload } = data.props;
+        payload.bundled = documents.get(id) ?? (await getDocument({ data: id }));
+      }
+      return data;
+    },
+  });
+
+  function Page() {
+    const page = useFumadocsLoader(Route.useLoaderData());
+    // 第一个页面的文档也要记录
+    if (page.type === 'asyncapi' && typeof window !== 'undefined')
+      documents.set(page.props.document, page.props.payload.bundled!);
+    // ...
+  }
+  ```
+</show>
+
+<show when={props.framework !== 'tanstack-start'}>
+  * `loadDocument` 同样适用于生成的 MDX 文件。
+  * 若使用[由 Fumadocs CLI 安装的 UI](/docs/integrations/asyncapi/api-page#full-ui)，请将 `loadDocument` 传入 `createAsyncAPIRenderer()`。
+  * 浏览器会保留每份文档，直到页面重新加载为止。使用 [`disableCache`](#disablecache) 时，请保持打开 `includeDocument`。
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  * 若使用生成的 MDX 文件，请改将文档放入 `preloaded.docs`。
+  * 浏览器会保留每份文档，直到页面重新加载为止。使用 [`disableCache`](#disablecache) 时，请保持打开 `includeDocument`。
+</show>

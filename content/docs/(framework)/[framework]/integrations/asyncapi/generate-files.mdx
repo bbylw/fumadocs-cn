@@ -1,0 +1,430 @@
+---
+title: 生成页面
+description: 从 AsyncAPI schema 生成页面。
+---
+
+`staticSource()` 与 `dynamicSource()` 会为你的 [`loader()`](/docs/integrations/asyncapi#generate-pages) 生成页面，而 `generateFiles()` 则会将页面以 MDX 文件的形式写入你的内容目录。这几个函数接受相同的选项。
+
+页面内容仍由 `<AsyncAPIPage />` 负责渲染，生成器只负责编排每个页面中的 operation。
+
+## 选项 [#options]
+
+### `per` [#per]
+
+自定义每个页面包含的内容，默认为 `operation`。
+
+<Callout>
+  Operation 指的是具有特定动作的 AsyncAPI operation，例如
+  `receiveLightMeasurement:receive`。
+</Callout>
+
+| 模式        | 内容                          | 文件路径                |
+| --------- | --------------------------- | ------------------- |
+| tag       | 具有相同标签的 operation           | `{tag_name}.mdx`    |
+| file      | 位于同一个 schema 文件中的 operation | `{file_name}.mdx`   |
+| operation | 每个 operation                | `{operationId}.mdx` |
+| custom    | 请参阅下方说明                     | 不适用                 |
+
+```ts
+import { asyncapi } from '@/lib/asyncapi';
+
+await asyncapi.staticSource({
+  per: 'tag',
+});
+```
+
+设为 `custom` 时，你可以传入一个函数，完全自定义生成流程：
+
+```ts title="Example"
+import { asyncapi } from '@/lib/asyncapi';
+
+await asyncapi.staticSource({
+  per: 'custom',
+  toPages(builder) {
+    for (const [id, item] of Object.entries(builder.document.operations ?? {})) {
+      const operation = builder.dereferenceShallow(item);
+
+      builder.create({
+        type: 'operation',
+        schemaId: builder.id,
+        item: { id, action: operation.action },
+        path: `${id}.mdx`,
+        info: {
+          title: operation.title ?? id,
+          description: operation.description,
+        },
+      });
+    }
+  },
+});
+```
+
+设为 `tag` 时，会依名称比对标签。你可以在 `info.tags` 中定义标签，为对应页面加上描述，并通过 `x-displayName` 控制标题。没有标签的 operation 会归类在 `unknown` 之下。
+
+```yaml title="asyncapi.yaml"
+info:
+  tags:
+    - name: lighting
+      description: Operations related to streetlights.
+      x-displayName: Lighting
+```
+
+### `groupBy` [#groupby]
+
+在 `operation` 模式下，你可以用文件夹将输出文件分组。
+
+| 值          | 输出                                |
+| ---------- | --------------------------------- |
+| tag        | `{tag}/{operationId}.mdx`         |
+| channel    | `{channel key}/{operationId}.mdx` |
+| none (默认)  | `{operationId}.mdx`               |
+
+```ts
+import { asyncapi } from '@/lib/asyncapi';
+
+await asyncapi.staticSource({
+  per: 'operation',
+  groupBy: 'tag',
+});
+```
+
+### `name` [#name]
+
+用来控制所生成页面文件名的函数。
+
+```ts
+import { asyncapi } from '@/lib/asyncapi';
+
+await asyncapi.staticSource({
+  name(output) {
+    if (output.type === 'operation') {
+      const operation = this.dereferenceShallow(this.document.operations?.[output.item.id]);
+      console.log(operation);
+
+      return `my-dir/${output.item.id}`;
+    }
+
+    return 'my-dir/filename';
+  },
+});
+```
+
+你也可以使用 `algorithm` 选项：
+
+```ts
+import { asyncapi } from '@/lib/asyncapi';
+
+await asyncapi.staticSource({
+  // v2（默认）：使用 operation ID
+  // v1：使用 `{operationId}/{action}`
+  name: { algorithm: 'v1' },
+});
+```
+
+### `meta` [#meta]
+
+自动生成 [`meta.json`](/docs/page-conventions#meta) 文件。
+
+你随时都可以手动定义 `meta.json` 文件，以保有最大的弹性。
+
+```ts
+import { asyncapi } from '@/lib/asyncapi';
+
+await asyncapi.staticSource({
+  meta: true,
+});
+```
+
+或是自定义文件夹的呈现方式：
+
+```ts
+import { asyncapi } from '@/lib/asyncapi';
+
+await asyncapi.staticSource({
+  meta: {
+    folderStyle: 'separator',
+  },
+});
+```
+
+## MDX 文件 [#mdx-files]
+
+若要将页面输出为 MDX 文件，请创建一个脚本：
+
+```ts title="scripts/generate-docs.ts"
+import { generateFiles } from '@fumadocs/asyncapi';
+import { asyncapi } from '@/lib/asyncapi';
+
+void generateFiles({
+  input: asyncapi,
+  output: './content/docs',
+  // 建议启用此选项
+  // 请确保 operation 的描述不会破坏 MDX 语法。
+  includeDescription: true,
+});
+```
+
+使用脚本生成文档：
+
+```bash
+bun ./scripts/generate-docs.ts
+```
+
+将 `AsyncAPIPage` 组件加入你的 MDX 组件中。生成的文件会使用 `<AsyncAPIPage />` 标签。
+
+<show when={props.framework === 'next'}>
+  ```tsx title="app/docs/[[...slug]]/page.tsx"
+  // [!code ++:2]
+  import { asyncapi } from '@/lib/asyncapi';
+  import { AsyncAPIPage } from '@/components/api-page';
+
+  export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
+    // ...
+    <MDX
+      components={getMDXComponents({
+        // [!code ++:3]
+        AsyncAPIPage: async (props) => (
+          <AsyncAPIPage {...await asyncapi.preloadAsyncAPIPage(page)} {...props} />
+        ),
+      })}
+    />;
+  }
+  ```
+</show>
+
+<show when={props.framework === 'react-router'}>
+  ```tsx title="app/routes/docs.tsx"
+  // [!code ++:3]
+  import type { MDXComponents } from 'mdx/types';
+  import { asyncapi } from '@/lib/asyncapi';
+  import { AsyncAPIPage } from '@/components/api-page';
+
+  export async function loader({ params }: Route.LoaderArgs) {
+    // ...
+    return {
+      path: page.path,
+      pageTree: await source.serializePageTree(source.getPageTree()),
+      ...(await asyncapi.preloadAsyncAPIPage(page)), // [!code ++]
+    };
+  }
+
+  // [!code highlight]
+  function Content({ path, components }: { path: string; components?: MDXComponents }) {
+    // ...
+    <MDX components={useMDXComponents(components)} />; // [!code highlight]
+  }
+
+  export default function Page({ loaderData }: Route.ComponentProps) {
+    const { path, pageTree, preloaded } = useFumadocsLoader(loaderData); // [!code highlight]
+
+    return (
+      <DocsLayout {...baseOptions()} tree={pageTree}>
+        <Content
+          path={path}
+          // [!code ++:3]
+          components={{
+            AsyncAPIPage: (props) => <AsyncAPIPage {...props} preloaded={preloaded} />,
+          }}
+        />
+      </DocsLayout>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'tanstack-start'}>
+  ```tsx title="src/routes/docs/$.tsx"
+  // [!code ++:4]
+  import type { MDXComponents } from 'mdx/types';
+  import { asyncapi } from '@/lib/asyncapi';
+  import { AsyncAPIPage } from '@/components/api-page';
+  import type { AsyncAPI } from '@fumadocs/asyncapi';
+
+  // [!code ++:7]
+  // server function 返回值的类型检查无法验证 AsyncAPI 文档，
+  // 因此须将其注册为可序列化（若无法解析 `@tanstack/router-core`，请先安装）
+  declare module '@tanstack/router-core' {
+    interface SerializableExtensions {
+      asyncapiDocument: AsyncAPI.AsyncAPIObject;
+    }
+  }
+
+  const serverLoader = createServerFn({
+    method: 'GET',
+  })
+    .validator((slugs: string[]) => slugs)
+    .handler(async ({ data: slugs }) => {
+      // ...
+      return {
+        path: page.path,
+        pageTree: await source.serializePageTree(source.getPageTree()),
+        ...(await asyncapi.preloadAsyncAPIPage(page)), // [!code ++]
+      };
+    });
+
+  // [!code highlight]
+  function Content({ path, components }: { path: string; components?: MDXComponents }) {
+    // ...
+    <MDX components={useMDXComponents(components)} />; // [!code highlight]
+  }
+
+  function Page() {
+    const { path, pageTree, preloaded } = useFumadocsLoader(Route.useLoaderData()); // [!code highlight]
+
+    return (
+      <DocsLayout {...baseOptions()} tree={pageTree}>
+        <Suspense>
+          <Content
+            path={path}
+            // [!code ++:3]
+            components={{
+              AsyncAPIPage: (props) => <AsyncAPIPage {...props} preloaded={preloaded} />,
+            }}
+          />
+        </Suspense>
+      </DocsLayout>
+    );
+  }
+  ```
+</show>
+
+<show when={props.framework === 'waku'}>
+  ```tsx title="src/pages/docs/[...slugs].tsx"
+  // [!code ++:2]
+  import { asyncapi } from '@/lib/asyncapi';
+  import { AsyncAPIPage } from '@/components/api-page';
+
+  export default function Page({ slugs }: PageProps<'/docs/[...slugs]'>) {
+    // ...
+    <MDX
+      components={getMDXComponents({
+        // [!code ++:3]
+        AsyncAPIPage: async (props) => (
+          <AsyncAPIPage {...await asyncapi.preloadAsyncAPIPage(page)} {...props} />
+        ),
+      })}
+    />;
+  }
+  ```
+</show>
+
+<show when={props.framework === 'astro'}>
+  ```tsx title="src/components/mdx.tsx"
+  import { AsyncAPIPage } from '@/components/api-page'; // [!code ++]
+
+  export default getMDXComponents({
+    wrapper: DocsBody,
+    // [!code ++]
+    AsyncAPIPage: (props) => <AsyncAPIPage {...props} preloaded={{ docs: {} }} />,
+  });
+  ```
+
+  MDX 组件模块由所有页面共用，因此无法逐页预先加载文档。请改为传入 [`loadDocument`](/docs/integrations/asyncapi/server#loading-documents-once) 来加载文档。
+</show>
+
+将插件加入你的 `loader()`：
+
+```ts title="lib/source.ts"
+import { asyncapi } from '@/lib/asyncapi';
+import { loader } from 'fumadocs-core/source';
+
+export const source = loader({
+  // [!code ++:2] 可选：在页面树的每个页面项目上加上消息的传递方向
+  plugins: [asyncapi.loaderPlugin()],
+});
+```
+
+`generateFiles()` 也支持下列选项。
+
+### `index` [#index]
+
+生成索引文件，以卡片形式链接至各个生成的页面。
+
+```ts
+import { generateFiles } from '@fumadocs/asyncapi';
+
+void generateFiles({
+  index: {
+    // 用于生成 `href`
+    url: {
+      baseUrl: '/docs',
+      contentDir: './content/docs',
+    },
+    items: [
+      {
+        // 输出路径
+        path: 'index.mdx',
+        // 可选：限制输入文档（与服务端的 `input` 字段相同）
+        only: ['streetlights.yaml'],
+        // 可选：设置 frontmatter
+        description: 'All available pages',
+      },
+    ],
+  },
+});
+```
+
+### `imports` [#imports]
+
+在生成的 MDX 文件中加入自定义导入。若要在生成的文档中引入组件、工具函数或其他依赖包，这个选项就很实用。
+
+```ts
+import { generateFiles } from '@fumadocs/asyncapi';
+
+void generateFiles({
+  imports: [
+    {
+      names: ['API_BASE_URL'],
+      from: '@/constants',
+    },
+  ],
+});
+```
+
+这会在所有生成的 MDX 文件中加入以下导入语句：
+
+```ts
+import { API_BASE_URL } from '@/constants';
+```
+
+### `frontmatter` [#frontmatter]
+
+自定义 MDX 文件的 frontmatter。
+
+默认包含以下字段：
+
+| 属性            | 说明                         |
+| ------------- | -------------------------- |
+| `title`       | 页面标题                       |
+| `description` | 页面描述                       |
+| `full`        | 一律为 true，专为 Fumadocs UI 加入 |
+| `_asyncapi`   | 内部属性                       |
+
+```ts
+import { generateFiles } from '@fumadocs/asyncapi';
+
+void generateFiles({
+  frontmatter: (title, description) => ({
+    myProperty: 'hello',
+  }),
+});
+```
+
+### `addGeneratedComment` [#addgeneratedcomment]
+
+在生成的文件开头加入注解，标示该文件为自动生成。
+
+```ts
+import { generateFiles } from '@fumadocs/asyncapi';
+
+void generateFiles({
+  // 加入默认注解
+  addGeneratedComment: true,
+
+  // 或提供自定义注解
+  addGeneratedComment: 'Custom auto-generated comment',
+
+  // 或禁用注解
+  addGeneratedComment: false,
+});
+```

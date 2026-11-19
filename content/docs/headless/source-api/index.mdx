@@ -1,22 +1,24 @@
 ---
-title: 载入器 API
-description: 将内容来源转换为统一的介面
+title: 加载器 API
+description: 将内容来源转换为统一的界面
 ---
 
-`loader()` 提供一个介面，让 Fumadocs 能与各种内容来源整合。
+## 它的用途是什么？ [#what-it-does]
 
-* 产生[页面 slug 与页面树](/docs/headless/page-conventions)。
+`loader()` 提供一个界面，让 Fumadocs 能与各种内容来源集成。
+
+* 生成[页面 slug 与页面树](/docs/headless/page-conventions)。
 * 为每个页面指派 URL。
-* 提供实用的工具函式，方便您操作内容。
+* 提供实用的工具函数，方便你操作内容。
 
 <Callout type="warn" title="重要须知">
-  - `loader()` 是伺服器端 API，既不是建置时期的魔法，也不是可在浏览器中使用的 API。
-  - 它采用记忆体内储存，档案由您的内容来源传入。
+  - `loader()` 是服务端 API，既不是构建时期的魔法，也不是可在浏览器中使用的 API。
+  - 它采用内存内保存，文件由你的内容来源传入。
 </Callout>
 
 ## 使用方式 [#usage]
 
-您可以搭配 Fumadocs MDX 等内容来源使用，详情请参阅 [`source`](/docs/headless/source-api/source)。
+你可以搭配 Fumadocs MDX 等内容来源使用，详情请参阅 [`source`](/docs/headless/source-api/source)。
 
 ```ts
 import { loader } from 'fumadocs-core/source';
@@ -27,21 +29,27 @@ export const source = loader({
   baseUrl: '/docs',
 });
 ```
-您可以覆写基础 URL，或指定一个函式来产生每个页面的 URL。
+
+### URL [#url]
+
+你可以覆盖基础 URL，或指定一个函数来生成每个页面的 URL。
 
 ```ts
 import { loader } from 'fumadocs-core/source';
 
 loader({
   baseUrl: '/docs',
-  // 或者您也可以使用函式自订
+  // 或者你也可以使用函数自定义
   url(slugs, locale) {
     if (locale) return '/' + [locale, 'docs', ...slugs].join('/');
     return '/' + ['docs', ...slugs].join('/');
   },
 });
 ```
-定义自订函式，用来根据页面档案产生 slug。
+
+### Slugs [#slugs]
+
+定义自定义函数，用来根据页面文件生成 slug。
 
 ```ts
 import { loader } from 'fumadocs-core/source';
@@ -49,14 +57,17 @@ import { loader } from 'fumadocs-core/source';
 loader({
   slugs(file, next) {
     console.log(file.path, file.data);
-    // 您可以透过 `next()` 在预设 slug 的基础上扩充
+    // 你可以通过 `next()` 在默认 slug 的基础上扩展
     if (file.path.startsWith('blog/')) return ['blog', ...next()];
-    // 或回传 `undefined` 以改用预设值
+    // 或返回 `undefined` 以改用默认值
     return ['my', 'slug'];
   },
 });
 ```
-载入页面与 meta 档案中指定的 [icon](/docs/headless/page-conventions#icons) 属性。
+
+### 图标 [#icons]
+
+加载页面与 meta 文件中指定的 [icon](/docs/headless/page-conventions#icons) 属性。
 
 ```ts
 import { loader } from 'fumadocs-core/source';
@@ -66,7 +77,7 @@ import { createElement } from 'react';
 loader({
   icon(icon) {
     if (!icon) {
-      // 您可以设定预设图示
+      // 你可以设置默认图标
       return;
     }
 
@@ -74,7 +85,10 @@ loader({
   },
 });
 ```
-请将 `i18n` 设定传入载入器。
+
+### I18n [#i18n]
+
+请将 `i18n` 设置传入加载器。
 
 ```ts title="lib/source.ts"
 import { i18n } from '@/lib/i18n';
@@ -85,13 +99,13 @@ export const source = loader({
 });
 ```
 
-启用 i18n 后，载入器会为每个语系产生一个页面树。
+激活 i18n 后，加载器会为每个语系生成一个页面树。
 
 若某个页面缺少翻译，则会改用 [`fallbackLanguage`](/docs/headless/internationalization/config#fallback-language) 作为备用语系。
 
 ## 输出 [#output]
 
-它会输出一个内容载入器实例。
+它会输出一个内容加载器实例。
 
 ### 取得页面 [#get-page]
 
@@ -105,7 +119,10 @@ source.getPage(['slug', 'of', 'page']);
 // 使用 i18n 时
 source.getPage(['slug', 'of', 'page'], 'locale');
 ```
-您可以将 props 传入页面内容，例如读者所选的版本。内容会透过 `props` 读取这些值，用法与[路径参数](/docs/headless/page-conventions#path-params)相同：
+
+#### 自定义 Props [#custom-props]
+
+你可以将 props 传入页面内容，例如读者所选的版本。内容会通过 `props` 读取这些值，用法与[路径参数](/docs/headless/page-conventions#path-params)相同：
 
 ```ts
 import { source } from '@/lib/source';
@@ -117,7 +134,7 @@ const page = source.getPage(['slug', 'of', 'page'], {
 });
 ```
 
-页面资料 (包括内容与目录) 是根据这些 props 产生的。MDX 元件也属于 props；若希望处理后的 Markdown 能算绘出您的元件，请将它们传入：
+页面数据 (包括内容与目录) 是根据这些 props 生成的。MDX 组件也属于 props；若希望处理后的 Markdown 能渲染出你的组件，请将它们传入：
 
 ```ts
 import { getMDXComponents } from '@/components/mdx';
@@ -129,12 +146,12 @@ const markdown = await page.data.getText('processed');
 ```
 
 <Callout title="小提醒">
-  搜寻与 LLM 路由是透过 `getPages()` 读取页面，而这些页面只带有路径参数。若要让搜寻或 LLM 看到某个变体，该变体就必须是路径参数。
+  搜索与 LLM 路由是通过 `getPages()` 读取页面，而这些页面只带有路径参数。若要让搜索或 LLM 看到某个变体，该变体就必须是路径参数。
 </Callout>
 
 ### 取得页面 [#get-pages]
 
-取得指定语系下可用的页面清单。
+取得指定语系下可用的页面列表。
 
 ```ts
 import { source } from '@/lib/source';
@@ -145,6 +162,9 @@ source.getPages();
 // 取得特定语系的页面
 source.getPages('locale');
 ```
+
+### 页面树 [#page-tree]
+
 ```ts
 import { source } from '@/lib/source';
 
@@ -154,8 +174,11 @@ source.getPageTree();
 // 使用 i18n
 source.getPageTree('locale');
 ```
-页面树的节点会保留指向其原始档案路径的参照。
-您可以透过树状节点找到对应的原始页面或 meta 档案。
+
+### 从节点取得 [#get-from-node]
+
+页面树的节点会保留指向其原始文件路径的参照。
+你可以通过树状节点找到对应的原始页面或 meta 文件。
 
 ```ts
 import { source } from '@/lib/source';
@@ -163,8 +186,11 @@ import { source } from '@/lib/source';
 source.getNodePage(pageNode);
 source.getNodeMeta(folderNode);
 ```
-产生每个页面的路径参数，以便预先算绘页面。
-产生的参数名称为 `slug: string[]` 与 `lang: string` (仅限 i18n) 。
+
+### 参数 [#params]
+
+生成每个页面的路径参数，以便预先渲染页面。
+生成的参数名称为 `slug: string[]` 与 `lang: string` (仅限 i18n) 。
 
 ```ts tab="Next.js" title="app/docs/[[...slug]]/page.tsx"
 import { source } from '@/lib/source';
@@ -205,7 +231,7 @@ export const getStaticPaths = (() => {
 ---
 ```
 
-React Router 与 TanStack Start 是依 URL 进行预先算绘，因此请改为列出 `source.getPages()` 各页面的 `url`。
+React Router 与 TanStack Start 是依 URL 进行预先渲染，因此请改为列出 `source.getPages()` 各页面的 `url`。
 
 ### 语言项目 [#language-entries]
 
@@ -217,14 +243,17 @@ import { source } from '@/lib/source';
 // 语言 -> 页面
 const entries = source.getLanguages();
 ```
-载入器 API 最适合在 RSC 环境中使用，因为 RSC 允许跨越伺服器与用户端的边界传递 JSX 节点。
 
-在非 RSC 环境中，载入器 API 则提供一个轻量的序列化层。
+## 客户端 API [#client-api]
+
+加载器 API 最适合在 RSC 环境中使用，因为 RSC 允许跨越服务器与客户端的边界传递 JSX 节点。
+
+在非 RSC 环境中，加载器 API 则提供一个轻量的序列化层。
 
 ```ts tab="Server"
 import { source } from '@/lib/source';
 
-// 在此传递 loader 资料
+// 在此传递 loader 数据
 async function loader() {
   const pageTree = source.getPageTree();
 
@@ -238,13 +267,16 @@ async function loader() {
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
 
 function MyComponent() {
-  // `useLoaderData()` 会取得 loader 资料（由您的 React 框架提供）
+  // `useLoaderData()` 会取得 loader 数据（由你的 React 框架提供）
   const { pageTree, ...data } = useFumadocsLoader(useLoaderData());
 
-  // 接著进行算绘（例如透过 Fumadocs UI）
+  // 接着进行渲染（例如通过 Fumadocs UI）
   return <DocsLayout tree={pageTree}>...</DocsLayout>;
 }
 ```
+
+## Dynamic 加载器 [#dynamic-loader]
+
 `dynamicLoader()` 可为内容来源提供额外的重新验证功能，请搭配 [Dynamic 来源](/docs/headless/source-api/source#dynamic-source)使用。
 
 ```ts
@@ -260,16 +292,19 @@ export async function getSource() {
 }
 ```
 
-呼叫 `await source.get()` 时，会回传一个一般的内容载入器物件：
+调用 `await source.get()` 时，会返回一个一般的内容加载器对象：
 
 ```ts
 const docs = await getSource();
 
 const page = docs.getPage(['...']);
 ```
-载入器会快取 Dynamic 来源。
 
-如果您的来源会随时间变动，请呼叫 `invalidate()` 清除快取，或呼叫 `revalidate()` 更新快取：
+### 重新验证 [#revalidation]
+
+加载器会缓存 Dynamic 来源。
+
+如果你的来源会随时间变动，请调用 `invalidate()` 清除缓存，或调用 `revalidate()` 更新缓存：
 
 ```ts
 source.invalidate();
@@ -277,7 +312,7 @@ source.invalidate();
 await source.revalidate();
 ```
 
-若采用[多来源](/docs/headless/source-api/source#multiple-sources)的设定，您可以针对特定来源进行失效 (invalidate) 或重新验证 (revalidate) ：
+若采用[多来源](/docs/headless/source-api/source#multiple-sources)的设置，你可以针对特定来源进行失效 (invalidate) 或重新验证 (revalidate) ：
 
 ```ts
 source.invalidate('docs');

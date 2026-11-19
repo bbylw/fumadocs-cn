@@ -1,0 +1,96 @@
+---
+title: Privatus Analytics
+description: 不使用 Cookie，也能掌握有多少人阅读你的文档。
+staticParams:
+  - framework: next
+---
+
+> 这是由社区维护的集成。
+
+你想知道读者看了哪些文档页面，以及他们从哪里来。许多分析工具会使用 Cookie，因此在不少国家/地区，你必须先跳出 Cookie 同意窗口。很多访客会选择拒绝，这些人就完全不会出现在你的统计数据中。
+
+[Privatus Analytics](https://privatusanalytics.com) 不使用 Cookie 即可计算造访次数，也不会保留任何 IP 地址，并会排除已知的机器人流量。[`@privatus-analytics/next`](https://www.npmjs.com/package/@privatus-analytics/next) 包只需一个标签，就能将其脚本加入你的 Fumadocs 网站。另有免费方案，每月 10,000 个事件，最多可用于 3 个网站，而且不需绑定信用卡。
+
+## 设置 [#setup]
+
+你需要 Privatus Analytics 的网站 ID。它以 `pa_` 开头，可在 **Site settings** 的 **Tracking** 中找到。
+
+### 1. 安装包 [#install-the-package]
+
+```package-install
+@privatus-analytics/next
+```
+
+### 2. 设置你的网站 ID [#set-your-site-id]
+
+```bash title=".env"
+PRIVATUS_SITE_ID=pa_YOURSITEID
+```
+
+请在运行 `next build` 的环境中设置此值，而不只是在网站运行的环境中设置。Next.js 在构建时渲染的页面会于构建当下读取此值，因此若该值只存在于运行时，这些页面就不会加载追踪程序。你也可以改用 `siteId` 将它传给该组件标签。
+
+### 3. 加入标记 [#add-the-tag]
+
+请将 `<PrivatusAnalyticsTag />` 放在根布局的 `<head>` 中，它也能在服务器组件中使用。布局的其他部分则维持原样即可。
+
+```tsx title="app/layout.tsx"
+import { RootProvider } from 'fumadocs-ui/provider/next';
+import { PrivatusAnalyticsTag } from '@privatus-analytics/next/server';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <PrivatusAnalyticsTag modules={['engage', 'auto', 'vitals', 'clicks', 'ask']} />
+      </head>
+      <body className="flex flex-col min-h-screen">
+        <RootProvider>{children}</RootProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+此标签只会在正式环境 (`next build` 与 `next start`) 中输出，在 `next dev` 中则不会输出任何内容，因此你编写文档期间自己的浏览不会被计入。Fumadocs 切换页面时不会整页重新加载，脚本会自行侦测每次的页面切换。
+
+## 不使用包 [#without-the-package]
+
+你也可以改为手动加入 script 标签：
+
+```tsx title="app/layout.tsx"
+<head>
+  <script
+    defer
+    src="https://privatusstats.com/js/pa.js"
+    data-site="pa_YOURSITEID"
+    data-modules="engage,auto,vitals,clicks,ask"
+  />
+</head>
+```
+
+## 追踪事件 [#track-events]
+
+若要统计某个动作 (例如下载) 的次数，请在客户端组件中调用 `usePrivatus()`。此功能需要安装以下包：
+
+```tsx
+'use client';
+import { usePrivatus } from '@privatus-analytics/next';
+
+export function DownloadButton() {
+  const privatus = usePrivatus();
+  return (
+    <button onClick={() => privatus.track('Download', { file: 'guide.pdf' })}>Download</button>
+  );
+}
+```
+
+如果你是手动加入 script 标签，也可以改为加入属性，脚本会在浏览器中读取该属性：
+
+```tsx
+<a href="/guide.pdf" data-privatus-event="Download" data-privatus-prop-file="guide.pdf">
+  Download
+</a>
+```
+
+所有设置请参阅[包 README](https://github.com/Privatus-Analytics/js/tree/main/next)，仪表板的使用说明则请参阅 [Privatus Analytics 文档](https://privatusanalytics.com/docs)。

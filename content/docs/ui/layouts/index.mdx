@@ -1,15 +1,19 @@
 ---
-title: 版面配置
-description: 版面配置元件清单。
+title: 布局
+description: 布局组件列表。
 ---
 
-Fumadocs UI 提供呈现内容所需的基本版面配置。
+## 概览 [#overview]
 
-### 设定 [#configurations]
+Fumadocs UI 提供呈现内容所需的基本布局。
 
-每个版面配置都支援一组共用的选项。
+<DocsCategory />
 
-建议您将这些选项存放在一个档案中，再传递给各个版面配置。
+### 设置 [#configurations]
+
+每个布局都支持一组共用的选项。
+
+建议你将这些选项存放在一个文件中，再传递给各个布局。
 
 ```tsx tab="Shared Options" title="lib/layout.shared.tsx"
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
@@ -59,6 +63,6 @@ export default function Layout({ children }: { children: ReactNode }) {
 }
 ```
 
-关于 [`links`](/docs/ui/layouts/links) 与 [`nav`](/docs/ui/layouts/nav) 选项的详细说明，请参阅相关文件。
+关于 [`links`](/docs/ui/layouts/links) 与 [`nav`](/docs/ui/layouts/nav) 选项的详细说明，请参阅相关文档。
 
 <auto-type-table cwd path="content/docs/ui/props.ts" name="BaseLayoutProps" />

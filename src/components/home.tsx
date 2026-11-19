@@ -53,7 +53,7 @@ export function SiteHomeLayout({
               },
               {
                 text: '框架对比',
-                url: '/docs/comparisons',
+                url: '/docs/next/comparisons',
                 icon: <GitCompareArrows />,
               },
             ],
@@ -94,7 +94,7 @@ export function SiteHomeLayout({
                     </p>
                   </NavbarMenuLink>
 
-                  <NavbarMenuLink href="/docs/integrations/openapi" className="lg:col-start-2">
+                  <NavbarMenuLink href="/docs/next/integrations/openapi" className="lg:col-start-2">
                     <Server className="bg-fd-primary text-fd-primary-foreground p-1 mb-2 rounded-md" />
                     <p className="font-medium">OpenAPI</p>
                     <p className="text-fd-muted-foreground text-sm">
@@ -102,7 +102,7 @@ export function SiteHomeLayout({
                     </p>
                   </NavbarMenuLink>
 
-                  <NavbarMenuLink href="/docs/markdown" className="lg:col-start-3 lg:row-start-1">
+                  <NavbarMenuLink href="/docs/next/markdown" className="lg:col-start-3 lg:row-start-1">
                     <Pencil className="bg-fd-primary text-fd-primary-foreground p-1 mb-2 rounded-md" />
                     <p className="font-medium">Markdown</p>
                     <p className="text-fd-muted-foreground text-sm">
@@ -111,7 +111,7 @@ export function SiteHomeLayout({
                   </NavbarMenuLink>
 
                   <NavbarMenuLink
-                    href="/docs/manual-installation"
+                    href="/docs/next/manual-installation"
                     className="lg:col-start-3 lg:row-start-2"
                   >
                     <PlusIcon className="bg-fd-primary text-fd-primary-foreground p-1 mb-2 rounded-md" />
@@ -122,7 +122,7 @@ export function SiteHomeLayout({
                   </NavbarMenuLink>
 
                   <NavbarMenuLink
-                    href="/docs/comparisons"
+                    href="/docs/next/comparisons"
                     className="flex-row items-center md:col-span-2 lg:col-span-3"
                   >
                     <GitCompareArrows className="bg-fd-primary text-fd-primary-foreground p-1 rounded-md" />

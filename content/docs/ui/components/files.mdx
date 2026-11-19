@@ -1,9 +1,14 @@
 ---
-title: 档案
-description: 在您的文件中呈现档案结构
+title: 文件
+description: 在你的文档中呈现文件结构
+preview: 'files'
 ---
 
-请用 `Files` 包裹档案元件。您可以在 MDX 内容中使用它，也可以把它当成一般的 React.js 元件使用。
+<Installation name="files" />
+
+## 使用方式 [#usage]
+
+请用 `Files` 包裹文件组件。你可以在 MDX 内容中使用它，也可以把它当成一般的 React.js 组件使用。
 
 ```mdx title="content.mdx"
 import { File, Folder, Files } from 'fumadocs-ui/components/files';
@@ -22,15 +27,18 @@ import { File, Folder, Files } from 'fumadocs-ui/components/files';
   <File name="package.json" />
 </Files>
 ```
+
+### File [#file]
+
 <auto-type-table cwd path="content/docs/ui/props.ts" name="FileProps" />
 
-### 资料夹 [#folder]
+### 文件夹 [#folder]
 
 <auto-type-table cwd path="content/docs/ui/props.ts" name="FolderProps" />
 
-## Remark 外挂 [#remark-plugin]
+## Remark 插件 [#remark-plugin]
 
-[`remark-mdx-files`](/docs/headless/mdx/remark-mdx-files) 是一个 remark 外挂，可提供额外的功能与语法。
+[`remark-mdx-files`](/docs/headless/mdx/remark-mdx-files) 是一个 remark 插件，可提供额外的功能与语法。
 
 ```ts tab="unified" title="source.config.ts"
 import { remarkMdxFiles } from 'fumadocs-core/mdx-plugins/remark-mdx-files';
@@ -61,7 +69,10 @@ export default defineConfig({
   },
 });
 ```
-它会将 `files` 程式码区块转换为 `<Files />` 元件，例如：
+
+### 代码块语法 [#codeblock-syntax]
+
+它会将 `files` 代码块转换为 `<Files />` 组件，例如：
 
 ````md title="content.md"
 ```files
@@ -76,7 +87,7 @@ project
 
 ### `<auto-files>` [#auto-files]
 
-根据 glob 模式产生 `<Files />` 元件。
+根据 glob 模式生成 `<Files />` 组件。
 
 ```mdx title="content.mdx"
 <auto-files dir="./my-dir" pattern="**/*.{ts,tsx}" />
@@ -85,5 +96,5 @@ project
 ```
 
 <Callout type="warn">
-  请勿将不受信任的值传入 `dir`，因为它能列出您电脑上任何目录中的档案。
+  请勿将不受信任的值传入 `dir`，因为它能列出你电脑上任何目录中的文件。
 </Callout>

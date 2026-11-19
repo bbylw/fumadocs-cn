@@ -27,7 +27,7 @@ export function AsyncAPIDemo() {
   }
 
   return (
-    <Screen title="频道 docs.updates — AsyncAPI WebSocket 调试台" docs="/docs/integrations/asyncapi">
+    <Screen title="频道 docs.updates — AsyncAPI WebSocket 调试台" docs="/docs/next/integrations/asyncapi">
       <div className="grid h-full min-h-0 gap-4 @2xl:grid-cols-2">
         <div className="flex flex-col gap-3 rounded-xl border border-fd-border bg-fd-card p-4">
           <div className="flex items-center justify-between gap-2 rounded-lg border border-fd-border bg-fd-background px-3 py-2">

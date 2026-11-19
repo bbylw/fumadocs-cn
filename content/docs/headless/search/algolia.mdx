@@ -1,41 +1,48 @@
 ---
-title: Algolia 搜寻
-description: 将 Algolia Search 整合至 Fumadocs
+title: Algolia 搜索
+description: 将 Algolia Search 集成至 Fumadocs
 ---
 
 <Callout title="注意">
-  若您使用 Algolia 的免费方案，则必须[在搜寻对话方块中显示 Algolia 的标志](https://algolia.com/policies/free-services-terms)。
+  若你使用 Algolia 的免费方案，则必须[在搜索对话框中显示 Algolia 的标志](https://algolia.com/policies/free-services-terms)。
 </Callout>
 
-## 设定 [#setup]
+## 设置 [#setup]
 
-安装相依套件：
+安装依赖包：
 
 ```package-install
 algoliasearch
 ```
-请注册帐号并取得搜寻用的应用程式 ID 与 API 金钥，然后将它们存放在 `.env.local` 中 (在 Vite 框架中，`NEXT_PUBLIC_` 应改为 `VITE_`；在 Astro 中则改为 `PUBLIC_`) ：
+
+### 注册 Algolia [#sign-up-on-algolia]
+
+请注册帐号并取得搜索用的应用 ID 与 API 密钥，然后将它们存放在 `.env.local` 中 (在 Vite 框架中，`NEXT_PUBLIC_` 应改为 `VITE_`；在 Astro 中则改为 `PUBLIC_`) ：
 
 ```dotenv
 NEXT_PUBLIC_ALGOLIA_APP_ID="app ID"
 NEXT_PUBLIC_ALGOLIA_SEARCH_KEY="search-only API key"
 ALGOLIA_WRITE_KEY="write API key"
 ```
-预先算绘 `static.json` 路由，在建置时汇出搜寻索引，并于每次建置后透过指令码将索引同步至 Algolia：
+
+### 同步搜索索引 [#sync-search-indexes]
+
+预先渲染 `static.json` 路由，在构建时导出搜索索引，并于每次构建后通过脚本将索引同步至 Algolia：
 
 <feature>search/algolia</feature>
 
-`sync()` 会更新索引设定并取代所有纪录。`build` 指令码会在每次建置时执行同步，因此请在您的部署平台上设定相同的变数。
+`sync()` 会更新索引设置并取代所有记录。`build` 脚本会在每次构建时运行同步，因此请在你的部署平台上设置相同的变量。
 
-### 搜寻 UI [#search-ui]
+### 搜索 UI [#search-ui]
 
-您可以考虑以下几种实作 UI 的方式：
+你可以考虑以下几种实现 UI 的方式：
 
-* 使用 [Fumadocs UI 搜寻对话方块](/docs/search/algolia)。
+* 使用 [Fumadocs UI 搜索对话框](/docs/search/algolia)。
 
-* 透过内建的搜寻用户端 hook 自行建构：
+* 通过内置的搜索客户端 hook 自行构建：
 
   ```ts twoslash
+  // @noErrors
   import { liteClient } from 'algoliasearch/lite';
   import { useAlgoliaSearch } from 'fumadocs-core/search/client';
 
@@ -47,22 +54,22 @@ ALGOLIA_WRITE_KEY="write API key"
   });
   ```
 
-* 直接使用 Algolia 的官方用户端。
+* 直接使用 Algolia 的官方客户端。
 
-## 进阶 [#advanced]
+## 高级 [#advanced]
 
 ### 标签筛选 [#tag-filter]
 
-若要设定标签筛选，请在 `static.json` 路由中将 `tag` 传入 `toDocuments()`：
+若要设置标签筛选，请在 `static.json` 路由中将 `tag` 传入 `toDocuments()`：
 
 ```ts
 toDocuments(source, { tag: (page) => page.slugs[0] });
 ```
 
-接著更新您的搜寻用户端：
+接着更新你的搜索客户端：
 
-* **Fumadocs UI**：在搜寻 UI 中启用[标签筛选](/docs/search/algolia#tag-filter)。
-* **搜寻用户端**：您可以用以下方式加入标签筛选：
+* **Fumadocs UI**：在搜索 UI 中启用[标签筛选](/docs/search/algolia#tag-filter)。
+* **搜索客户端**：你可以用以下方式加入标签筛选：
 
   ```ts
   import { useAlgoliaSearch } from 'fumadocs-core/search/client';
@@ -73,15 +80,15 @@ toDocuments(source, { tag: (page) => page.slugs[0] });
   });
   ```
 
-`tag` 栏位是用于分面搜寻 (faceting) 的属性。您也可以在 Algolia 搜寻用户端中使用 `tag:value` 筛选条件。
+`tag` 字段是用于分面搜索 (faceting) 的属性。你也可以在 Algolia 搜索客户端中使用 `tag:value` 筛选条件。
 
 ### 底层运作原理 [#under-the-hood]
 
-Algolia 整合会自动设定 Algolia Search，用于文件搜寻。
+Algolia 集成会自动设置 Algolia Search，用于文档搜索。
 
-它会为文件中的**每个段落**各建立一笔纪录，这也是 Algolia 建议的做法。
+它会为文档中的**每个段落**各创建一笔记录，这也是 Algolia 建议的做法。
 
-每笔纪录都包含以下可搜寻的属性：
+每笔记录都包含以下可搜索的属性：
 
 | 属性        | 说明               |
 | --------- | ---------------- |
@@ -89,8 +96,8 @@ Algolia 整合会自动设定 Algolia Search，用于文件搜寻。
 | `section` | 标题 ID (可为 null)  |
 | `content` | 段落内容             |
 
-只有位于标题下方的段落才会有 `section` 栏位。标题与
-段落会分别索引为独立的纪录，并依页面 ID 分组。
+只有位于标题下方的段落才会有 `section` 字段。标题与
+段落会分别索引为独立的记录，并依页面 ID 分组。
 
 请注意，页面的 `url` 属性必须是唯一的，请勿让两个页面使用相同的
 URL。

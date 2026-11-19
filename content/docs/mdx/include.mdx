@@ -1,13 +1,15 @@
 ---
 title: 引入
-description: 重复使用其他档案的内容。
+description: 重复使用其他文件的内容。
 ---
 
-无论使用 unified 或 Sätteri，Fumadocs MDX 都会预设启用 [Remark 引入](/docs/headless/mdx/remark-include)。
+## 使用方式 [#usage]
+
+无论使用 unified 或 Sätteri，Fumadocs MDX 都会默认启用 [Remark 引入](/docs/headless/mdx/remark-include)。
 
 ### 内容 [#content]
 
-若要显示另一个 Markdown/MDX 档案的内容，请在 `<include>` 标签中指定该档案相对于目前档案的路径。
+若要显示另一个 Markdown/MDX 文件的内容，请在 `<include>` 标签中指定该文件相对于当前文件的路径。
 
 ```mdx tab="MDX"
 <include>./another.mdx</include>
@@ -18,12 +20,12 @@ description: 重复使用其他档案的内容。
 ```
 
 <Callout type="warn">
-  请勿将不受信任的路径传给 `<include>`，因为它可以嵌入您电脑上的任何档案，例如 `.env`。
+  请勿将不受信任的路径传给 `<include>`，因为它可以嵌入你电脑上的任何文件，例如 `.env`。
 </Callout>
 
 <Callout title="Markdown 的用法">
-  Markdown (`.md`) 档案不支援 JSX 语法，请改用指令 (directive) 语法。
-  Sätteri 预设会解析指令；若使用 unified，请加入 `remark-directive` 这个 remark 外挂：
+  Markdown (`.md`) 文件不支持 JSX 语法，请改用指令 (directive) 语法。
+  Sätteri 默认会解析指令；若使用 unified，请加入 `remark-directive` 这个 remark 插件：
 
   ```ts title="source.config.ts"
   import { defineConfig } from 'fumadocs-mdx/config';
@@ -37,19 +39,17 @@ description: 重复使用其他档案的内容。
   });
   ```
 
-  若要处理 HTML 注解与内容，您可能还需要 `rehype-raw`。
+  若要处理 HTML 注解与内容，你可能还需要 `rehype-raw`。
 </Callout>
 
 ### CodeBlock [#codeblock]
 
-其他类型的档案则会转换为程式码区块：
+其他类型的文件则会转换为代码块：
 
 ```mdx tab="MDX"
 <include>./script.ts</include>
 
-<include lang="md" meta='title="lib.md"'>
-  page.md
-</include>
+<include lang="md" meta='title="lib.md"'>page.md</include>
 ```
 
 ```md tab="Markdown"
@@ -58,7 +58,7 @@ description: 重复使用其他档案的内容。
 ::include[page.md]{lang=md meta='title="lib.md"'}
 ```
 
-您也可以只引入内容中的特定区段：
+你也可以只引入内容中的特定节：
 
 ```ts title="code.ts"
 export function fn() {
@@ -75,18 +75,22 @@ export function fn() {
 ```md tab="Markdown"
 ::include[./code.ts#a]
 ```
-以 cwd 为基准解析相对路径，而非以目前档案为基准：
+
+### `cwd` [#cwd]
+
+以 cwd 为基准解析相对路径，而非以当前文件为基准：
 
 ```mdx tab="MDX"
-<include cwd lang="tsx" meta='title="lib.ts"'>
-  ./script.ts
-</include>
+<include cwd lang="tsx" meta='title="lib.ts"'>./script.ts</include>
 ```
 
 ```md tab="Markdown"
 ::include[./script.ts]{cwd lang=tsx meta='title="lib.ts"'}
 ```
-引用内容档案时，您可以只引入文件中的特定部分。
+
+## 截取 [#extraction]
+
+引用内容文件时，你可以只引入文档中的特定部分。
 
 ### Section [#section]
 
@@ -123,6 +127,9 @@ This is not included.
 
 ::include[a.md#test]
 ```
+
+### 标题 [#heading]
+
 引入特定标题下的内容。
 
 ```mdx tab="a.mdx"

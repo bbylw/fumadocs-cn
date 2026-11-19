@@ -1,0 +1,42 @@
+---
+title: 升级
+description: 将 Fumadocs 包更新至最新版本。
+---
+
+import { CircleArrowUp } from 'lucide-static';
+
+export const frontmatter = { icon: CircleArrowUp };
+
+请一并升级所有 Fumadocs 包。Fumadocs UI 将 `fumadocs-core` 设为 peer dependency，且版本必须与其发布时所搭配的版本完全一致。
+
+以下指令会升级所有 `fumadocs-*` 与 `@fumadocs/*` 包，并保留模板所使用的 `fumadocs-ui` 别名 (指向 `@fumadocs/base-ui`) ：
+
+```bash tab="npm"
+npx npm-check-updates -u "fumadocs-*" "@fumadocs/*" && npm install
+```
+
+```bash tab="pnpm"
+pnpm update --latest "fumadocs-*" "@fumadocs/*"
+```
+
+```bash tab="yarn"
+npx npm-check-updates -u "fumadocs-*" "@fumadocs/*" && yarn install
+```
+
+```bash tab="bun"
+bun update --latest "fumadocs-*" "@fumadocs/*"
+```
+
+Yarn 指令改用 npm-check-updates，因为 `yarn up` 会把别名替换成 Radix UI 版本的 `fumadocs-ui`。
+
+## 主要版本 [#major-versions]
+
+升级跨越主要版本时，请阅读该版本的发行说明：
+
+* [Fumadocs 16](/blog/v16)：移除自 15.2 起已弃用的 API，将 `fumadocs-core/server` 的导出移至各自对应的模块，并需要 React 19.2。
+* [Fumadocs 15](/blog/v15)：将样式迁移至 Tailwind CSS v4。
+
+<show when={props.framework !== 'astro'}>
+  - [Fumadocs MDX 15](/blog/mdx-v15)：需要 `fumadocs-core` 16.7.0 或更新版本{props.framework === 'next' && <>，以及 ESM 格式的 `next.config`</>}。
+  - [Fumadocs MDX 14](/blog/mdx-v14)：将生成的 `.source` 文件夹拆分为 server、browser 与 dynamic 三个进入点。
+</show>

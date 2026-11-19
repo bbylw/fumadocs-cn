@@ -23,7 +23,7 @@ export function GraphQLDemo() {
   );
 
   return (
-    <Screen title="query GetDoc — GraphQL 操作预览" docs="/docs/integrations/graphql">
+    <Screen title="query GetDoc — GraphQL 操作预览" docs="/docs/next/integrations/graphql">
       <div className="grid h-full min-h-0 gap-4 @2xl:grid-cols-2">
         <div className="flex flex-col gap-3 rounded-xl border border-fd-border bg-fd-card p-4">
           <div className="flex items-center justify-between">

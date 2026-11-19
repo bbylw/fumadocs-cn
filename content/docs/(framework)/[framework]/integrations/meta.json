@@ -1,0 +1,15 @@
+{
+  "title": "生态集成",
+  "pages": [
+    "blog",
+    "changelog",
+    "feedback",
+    "llms",
+    "asyncapi",
+    "content",
+    "graphql",
+    "og",
+    "openapi",
+    "story"
+  ]
+}

@@ -1,9 +1,10 @@
 ---
 import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
-import Layout from '@/layouts/Layout.astro';
 import { Docs } from '@/components/docs';
-import { source } from '@/lib/source';
+import Layout from '@/layouts/Layout.astro';
+import { buildGraph } from '@/lib/build-graph';
 import { getPageImageUrl, gitConfig } from '@/lib/shared';
+import { createPageSlotComponents, source } from '@/lib/source';
 
 export const prerender = true;
 
@@ -18,12 +19,20 @@ type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { page } = Astro.props as Props;
 const { body: Content, toc } = await page.data.load();
-const pageTree = await source.serializePageTree(source.getPageTree());
+const serializedTree = await source.serializePageTree(source.getPageTree());
+const data = page.data as {
+  title: string;
+  description?: string;
+  preview?: string;
+  lastModified?: Date | string;
+};
+const graph = data.preview === 'graphView' ? await buildGraph() : undefined;
+const pageComponents = createPageSlotComponents(page);
 ---
 
 <Layout
-  title={page.data.title}
-  description={page.data.description}
+  title={data.title}
+  description={data.description}
   image={getPageImageUrl(page).url}
 >
   <Docs
@@ -31,13 +40,16 @@ const pageTree = await source.serializePageTree(source.getPageTree());
     transition:persist="docs"
     pathname={Astro.url.pathname}
     params={Astro.params}
-    tree={pageTree}
-    title={page.data.title}
-    description={page.data.description}
+    tree={serializedTree}
+    title={data.title}
+    description={data.description}
     toc={toc}
     markdownUrl={`${page.url}.md`}
     githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/docs/${encodeURI(page.path)}`}
+    lastModified={data.lastModified ? new Date(data.lastModified).toISOString() : undefined}
+    preview={data.preview}
+    graph={graph}
   >
-    <Content />
+    <Content components={pageComponents} />
   </Docs>
 </Layout>

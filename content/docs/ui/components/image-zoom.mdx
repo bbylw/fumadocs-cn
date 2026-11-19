@@ -1,9 +1,16 @@
 ---
 title: 可缩放图片
-description: 让文件中的图片支援点击放大检视
+description: 让文档中的图片支持点击放大查看
+preview: zoomImage
 ---
 
-请在您的 MDX 元件中，将 `img` 替换为 `ImageZoom`。
+import { ImageZoom, Lightbox } from 'fumadocs-ui/components/image-zoom';
+
+<Installation name="image-zoom" />
+
+## 使用方式 [#usage]
+
+请在你的 MDX 组件中，将 `img` 替换为 `ImageZoom`。
 
 ```tsx title="components/mdx.tsx"
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
@@ -25,29 +32,34 @@ export function getMDXComponents(components?: MDXComponents) {
 ```mdx
 ![Test](/banner.png)
 ```
-在 Next.js 中，若 `` 元件未指定 [`sizes` 属性](https://nextjs.org/docs/app/api-reference/components/image#sizes)，系统会自动为其设定预设值。
+
+### 图片优化 [#image-optimization]
+
+在 Next.js 中，若 `<Image />` 组件未指定 [`sizes` 属性](https://nextjs.org/docs/app/api-reference/components/image#sizes)，系统会自动为其设置默认值。
 
 ## Lightbox [#lightbox]
 
-`` 内的可缩放图片会在同一个检视器中开启，您可以使用方向键、滑动手势或侧边按钮浏览图片。
+`<Lightbox />` 内的可缩放图片会在同一个查看器中打开，你可以使用方向键、滑动手势或侧边按钮浏览图片。
 
-  
+<Wrapper>
+  <Lightbox>
     <div className="not-prose grid grid-cols-2 gap-2">
-      <ImageZoom src="/docs/notebook-tab-mode.png" width={1453} height={963} alt="Notebook 版面配置" title="页签模式：导览列" />
+      <ImageZoom src="/docs/notebook-tab-mode.png" width={1453} height={963} alt="Notebook 布局" title="选项卡模式：导航列" />
 
       <ImageZoom
         src="/docs/notebook-nav-mode.png"
         width={1451}
         height={954}
-        alt="Notebook 版面配置"
+        alt="Notebook 布局"
         caption={
       <>
-        Nav 模式：顶部，请参阅 <a href="/docs/ui/layouts/notebook#nav-mode">Notebook 版面配置</a>
+        Nav 模式：顶部，请参阅 <a href="/docs/ui/layouts/notebook#nav-mode">Notebook 布局</a>
       </>
     }
       />
     </div>
-  
+  </Lightbox>
+</Wrapper>
 
 用它包覆页面内容，即可浏览整个页面中的所有图片：
 
@@ -62,13 +74,16 @@ import { Lightbox } from 'fumadocs-ui/components/image-zoom';
   </Lightbox>
 </DocsBody>;
 ```
+
+### 图说 [#caption]
+
 图片的标题 (title) 会显示为图说。
 
 ```mdx
 ![Notebook Layout](/notebook.png 'Tab mode: navbar')
 ```
 
-若要加入连结等丰富内容，请传入 `caption`。
+若要加入链接等丰富内容，请传入 `caption`。
 
 ```tsx
 <ImageZoom
@@ -81,7 +96,10 @@ import { Lightbox } from 'fumadocs-ui/components/image-zoom';
   }
 />
 ```
-若要让一组图片可单独浏览，请将它们包在另一个 `` 中，例如以网格排列：
+
+### 图库 [#gallery]
+
+若要让一组图片可单独浏览，请将它们包在另一个 `<Lightbox />` 中，例如以网格排列：
 
 ```mdx
 <Lightbox>

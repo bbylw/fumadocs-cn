@@ -1,0 +1,141 @@
+---
+title: FlexSearch
+description: 快速且轻量的搜索引擎。
+---
+
+## 概览 [#overview]
+
+设置方式请参阅[集成 FlexSearch](/docs/headless/search/flexsearch)。
+
+它会通过服务器上运行的 API 端点进行搜索；若是静态网站，则改用静态缓存的 JSON 文件进行搜索。
+
+## 设置 [#setup]
+
+创建搜索对话框。
+
+<Tabs items={['fetch (default)', 'static']}>
+  <Tab>
+    ```tsx title="components/search.tsx"
+    'use client';
+    import { useFetchSearch } from 'fumadocs-core/search/client';
+    import {
+      SearchDialog,
+      SearchDialogClose,
+      SearchDialogContent,
+      SearchDialogHeader,
+      SearchDialogIcon,
+      SearchDialogInput,
+      SearchDialogList,
+      SearchDialogOverlay,
+      type SharedProps,
+    } from 'fumadocs-ui/components/dialog/search';
+    import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+    export default function DefaultSearchDialog(props: SharedProps) {
+      const { locale } = useI18n(); // (optional) for i18n
+      const search = useFetchSearch({
+        locale,
+      });
+
+      return (
+        <SearchDialog {...search} {...props}>
+          <SearchDialogOverlay />
+          <SearchDialogContent>
+            <SearchDialogHeader>
+              <SearchDialogIcon />
+              <SearchDialogInput />
+              <SearchDialogClose />
+            </SearchDialogHeader>
+            <SearchDialogList />
+          </SearchDialogContent>
+        </SearchDialog>
+      );
+    }
+    ```
+  </Tab>
+
+  <Tab id="static">
+    若为静态网站，请在搜索服务器上设置[静态模式](/docs/headless/search/flexsearch#static-export)，并更换搜索客户端：
+
+    ```tsx title="components/search.tsx"
+    'use client';
+    import {
+      SearchDialog,
+      SearchDialogClose,
+      SearchDialogContent,
+      SearchDialogHeader,
+      SearchDialogIcon,
+      SearchDialogInput,
+      SearchDialogList,
+      SearchDialogOverlay,
+      type SharedProps,
+    } from 'fumadocs-ui/components/dialog/search';
+    import { useFlexsearchStatic } from 'fumadocs-core/search/client/flexsearch-static';
+    import { useI18n } from 'fumadocs-ui/contexts/i18n';
+
+    export default function DefaultSearchDialog(props: SharedProps) {
+      const { locale } = useI18n(); // (optional) for i18n
+      const search = useFlexsearchStatic({ locale });
+
+      return (
+        <SearchDialog {...search} {...props}>
+          <SearchDialogOverlay />
+          <SearchDialogContent>
+            <SearchDialogHeader>
+              <SearchDialogIcon />
+              <SearchDialogInput />
+              <SearchDialogClose />
+            </SearchDialogHeader>
+            <SearchDialogList />
+          </SearchDialogContent>
+        </SearchDialog>
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<include>.shared.mdx</include>
+
+### 标签筛选 [#tag-filter]
+
+你也可以按需加入依标签筛选结果的 UI。请在搜索服务器上设置[标签筛选](/docs/headless/search/flexsearch#tag-filter)，并加入以下内容：
+
+```tsx
+'use client';
+
+import {
+  SearchDialog,
+  SearchDialogContent,
+  SearchDialogFooter,
+  SearchDialogOverlay,
+  type SharedProps,
+  TagsList,
+  TagsListItem,
+} from 'fumadocs-ui/components/dialog/search';
+import { useState } from 'react';
+import { useFlexsearchStatic } from 'fumadocs-core/search/client/flexsearch-static';
+
+export default function CustomSearchDialog(props: SharedProps) {
+  // [!code ++]
+  const [tag, setTag] = useState<string | undefined>();
+  const search = useFlexsearchStatic({
+    tag, // [!code ++]
+  });
+
+  return (
+    <SearchDialog {...search} {...props}>
+      <SearchDialogOverlay />
+      <SearchDialogContent>
+        ...
+        <SearchDialogFooter className="flex flex-row">
+          {/* [!code ++:3] */}
+          <TagsList tag={tag} onTagChange={setTag}>
+            <TagsListItem value="my-value">My Value</TagsListItem>
+          </TagsList>
+        </SearchDialogFooter>
+      </SearchDialogContent>
+    </SearchDialog>
+  );
+}
+```

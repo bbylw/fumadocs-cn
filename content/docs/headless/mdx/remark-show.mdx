@@ -3,24 +3,26 @@ title: Remark Show
 description: 依条件显示内容。
 ---
 
-Remark Show 是用于 [`<show>`](/docs/markdown#show) 语法的 remark 外挂。Fumadocs MDX、`@fumadocs/astro` 与[本机 Markdown](/docs/integrations/content/local-md) 皆预设启用此外挂。
+## 使用方式 [#usage]
 
-当 `when` 表达式为 true 时，`<show>` 会算绘其内容。表达式会在页面算绘时求值，因此可以读取页面的 props，例如[路径参数](/docs/headless/page-conventions#path-params)。若 `<show>` 未指定 `when`，将无法通过编译。
+Remark Show 是用于 [`<show>`](/docs/markdown#show) 语法的 remark 插件。Fumadocs MDX、`@fumadocs/astro` 与[本地 Markdown](/docs/integrations/content/local-md) 皆默认启用此插件。
 
-## 页面资料 [#page-data]
+当 `when` 表达式为 true 时，`<show>` 会渲染其内容。表达式会在页面渲染时求值，因此可以读取页面的 props，例如[路径参数](/docs/headless/page-conventions#path-params)。若 `<show>` 未指定 `when`，将无法通过编译。
 
-未算绘的内容同样不会纳入页面资料，包括目录、[标题 ID](/docs/headless/mdx/headings#headings-with-expressions)、[结构化资料](/docs/headless/mdx/structure)以及[处理后的 Markdown](/docs/headless/mdx/remark-llms)。
+## 页面数据 [#page-data]
+
+未渲染的内容同样不会纳入页面数据，包括目录、[标题 ID](/docs/headless/mdx/headings#headings-with-expressions)、[结构化数据](/docs/headless/mdx/structure)以及[处理后的 Markdown](/docs/headless/mdx/remark-llms)。
 
 <Callout type="warn">
-  这些资料来自 Rehype 目录、Remark Structure 和 Remark LLMs。若未使用 Fumadocs MDX，它们会在编译时期产生资料，
-  此时任何条件都尚未求值，因此含有 `<show>` 的文件
-  会编译失败。若使用自订内容来源，请启用[执行阶段
+  这些数据来自 Rehype 目录、Remark Structure 和 Remark LLMs。若未使用 Fumadocs MDX，它们会在编译时期生成数据，
+  此时任何条件都尚未求值，因此含有 `<show>` 的文档
+  会编译失败。若使用自定义内容来源，请启用[运行时
   输出](/docs/headless/source-api/source#runtime-outputs)。
 </Callout>
 
-## 步骤与页签群组 [#steps-and-tab-groups]
+## 步骤与选项卡分组 [#steps-and-tab-groups]
 
-`<show>` 可以包裹一个[步骤](/docs/headless/mdx/remark-steps)，或是[页签群组](/docs/markdown#tab-groups)中的程式码区块。请参阅[范例](/docs/markdown#show)。
+`<show>` 可以包裹一个[步骤](/docs/headless/mdx/remark-steps)，或是[选项卡分组](/docs/markdown#tab-groups)中的代码块。请参阅[示例](/docs/markdown#show)。
 
-* 在外挂设定中，请将 Remark Show 放在 Remark 步骤与 `remarkCodeTab` 之前。
-* 请至少保留一个步骤或一个页签在 `<show>` 之外，否则每个 `<show>` 都会各自形成独立的步骤或页签群组。
+* 在插件设置中，请将 Remark Show 放在 Remark 步骤与 `remarkCodeTab` 之前。
+* 请至少保留一个步骤或一个选项卡在 `<show>` 之外，否则每个 `<show>` 都会各自形成独立的步骤或选项卡分组。

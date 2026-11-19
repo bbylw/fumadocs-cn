@@ -1,0 +1,76 @@
+---
+title: Asyntai AI 聊天机器人
+description: 让读者提出问题，并从你的文档中取得解答。
+staticParams:
+  - framework: next
+---
+
+> 这是由社区维护的集成。
+
+读者经常找不到所需的页面，或是遇到搜索框无法解答的问题。结果他们不是直接离开，就是提交支持请求。
+
+[Asyntai](https://asyntai.com/documentation/integrations/nextjs/) 能为你的 Fumadocs 网站加入 AI 聊天助理。它会读取你已发布的页面，并根据这些内容以超过 80 种语言回答读者的问题。只要使用一个组件，[`nextjs-ai-chatbot`](https://www.npmjs.com/package/nextjs-ai-chatbot) 包就能加入聊天小工具。Asyntai 另有提供免费方案。
+
+## 设置 [#setup]
+
+你需要一组 Asyntai 小工具 ID。此 ID 以 `asyntai_` 开头，可在 Asyntai 控制台的 **Install** 页面找到。
+
+### 1. 安装包 [#install-the-package]
+
+```package-install
+nextjs-ai-chatbot
+```
+
+### 2. 加入组件 [#add-the-component]
+
+请将 `<AsyntaiChatbot />` 放在根布局中 `<body>` 的最后面。此组件可在服务器组件中使用。布局的其余部分维持原样即可。
+
+```tsx title="app/layout.tsx"
+import { RootProvider } from 'fumadocs-ui/provider/next';
+import { AsyntaiChatbot } from 'nextjs-ai-chatbot';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className="flex flex-col min-h-screen">
+        <RootProvider>{children}</RootProvider>
+        <AsyntaiChatbot widgetId="asyntai_YOURWIDGETID" />
+      </body>
+    </html>
+  );
+}
+```
+
+此小工具会在页面的 `load` 事件触发后才加载，因此你的文档一定会先完成渲染。Fumadocs 切换页面时不会整页重新加载，读者浏览你的文档时，聊天窗口会一直保留在画面上。
+
+### 3. 在控制台中加入你的文档 [#add-your-docs-in-the-dashboard]
+
+请在 Asyntai 控制台中加入你文档网站的 URL。这样一来，助理就会根据嵌入小工具的那些页面内容来回答问题。
+
+## 从环境变量取得 Widget ID [#widget-id-from-an-environment-variable]
+
+你可以省略 `widgetId`，改在 `.env` 中设置：
+
+```bash title=".env"
+NEXT_PUBLIC_ASYNTAI_WIDGET_ID=asyntai_YOURWIDGETID
+```
+
+请在运行 `next build` 的环境中设置此变量，因为 Next.js 会在构建时读取 `NEXT_PUBLIC_` 开头的值。
+
+## 不使用包 [#without-the-package]
+
+你也可以通过 `next/script` 手动加入小工具：
+
+```tsx title="app/layout.tsx"
+import Script from 'next/script';
+
+<Script
+  id="asyntai-chatbot"
+  src="https://widget.asyntai.com/static/js/chat-widget.js"
+  data-asyntai-id="asyntai_YOURWIDGETID"
+  strategy="lazyOnload"
+/>;
+```
+
+所有选项请参阅[包 README](https://github.com/asyntai/nextjs-ai-chatbot)，仪表板相关说明则请参阅 [Asyntai 文档](https://asyntai.com/documentation/integrations/nextjs/)。

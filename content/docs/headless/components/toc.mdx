@@ -3,7 +3,7 @@ title: 目录
 description: 目录
 ---
 
-具备作用中锚点侦测与自动卷动功能的目录。
+具备活动锚点侦测与自动卷动功能的目录。
 
 ## 使用方式 [#usage]
 
@@ -19,13 +19,16 @@ return (
   </Base.AnchorProvider>
 );
 ```
-透过 Intersection Observer API 追踪目前作用中的锚点。
+
+### Anchor Provider [#anchor-provider]
+
+通过 Intersection Observer API 追踪目前活动锚点。
 
 <auto-type-table path="../props.ts" name="AnchorProviderProps" />
 
 ### Scroll Provider [#scroll-provider]
 
-将卷动容器卷动至目前作用中的锚点。
+将滚动容器滚动至目前活动锚点。
 
 <auto-type-table path="../props.ts" name="ScrollProviderProps" />
 
@@ -33,13 +36,11 @@ return (
 
 用于跳至目标锚点的锚点项目。
 
-| 资料属性          | 值             | 说明          |
+| 数据属性          | 值             | 说明          |
 | ------------- | ------------- | ----------- |
 | `data-active` | `true, false` | 锚点是否处于作用中状态 |
 
-## 范例 [#example]
-
-
+## 示例 [#example]
 
 ```tsx
 import { AnchorProvider, ScrollProvider, TOCItem, type TOCItemType } from 'fumadocs-core/toc';
@@ -64,5 +65,3 @@ export function Page({ items, children }: { items: TOCItemType[]; children: Reac
   );
 }
 ```
-
-

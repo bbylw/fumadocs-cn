@@ -1,20 +1,27 @@
 ---
-title: 元件
-description: 让文件更完善的额外元件
+title: 组件
+description: 让文档更完善的额外组件
 ---
 
-您还可以使用以下元件：
+## 概览 [#overview]
 
-### MDX 元件 [#mdx-components]
+你还可以使用以下组件：
 
-预设的 MDX 元件包含卡片 (Cards) 、提示框 (Callouts) 、程式码区块与标题 (Headings) 。
+<DocsCategory />
+
+### MDX 组件 [#mdx-components]
+
+默认的 MDX 组件包含卡片 (Cards) 、提示框 (Callouts) 、代码块与标题 (Headings) 。
 
 ```ts
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 ```
-<Callout type="warn">仅适用于伺服器元件。</Callout>
 
-若要让 `href` 中的连结支援相对档案路径，请以下列方式覆写预设的 `a` 元件：
+### 相对链接 [#relative-link]
+
+<Callout type="warn">仅适用于服务器组件。</Callout>
+
+若要让 `href` 中的链接支持相对文件路径，请以下列方式覆盖默认的 `a` 组件：
 
 ```tsx title="app/docs/[[...slug]]/page.tsx"
 import { createRelativeLink } from 'fumadocs-ui/mdx';
@@ -26,14 +33,14 @@ const page = source.getPage(['...']);
 return (
   <MdxContent
     components={getMDXComponents({
-      // 覆写 `a` 标签
+      // 覆盖 `a` 标签
       a: createRelativeLink(source, page),
     })}
   />
 );
 ```
 
-在 Astro 中，请将它传给 ``，它会以与 Astro MDX 相同的方式算绘：
+在 Astro 中，请将它传给 `<Content />`，它会以与 Astro MDX 相同的方式渲染：
 
 ```astro title="src/pages/docs/[...slug].astro"
 <Content components={{ a: createRelativeLink(source, page) }} />
@@ -43,4 +50,4 @@ return (
 [My Link](./file.mdx)
 ```
 
-范例：[`../../(integrations)/feedback.mdx`](../../\(integrations\)/feedback.mdx)
+示例：[`../../(integrations)/feedback.mdx`](../../\(integrations\)/feedback.mdx)

@@ -1,0 +1,76 @@
+---
+title: 什么是 Fumadocs
+description: 认识 Fumadocs：一个任你拆解改造的文档框架。
+---
+
+import { CircleQuestionMark } from 'lucide-static';
+
+export const frontmatter = { icon: CircleQuestionMark };
+
+**Fumadocs** 框架指的是 UI + Core + 内容来源的组合。与其说是框架，Fumadocs 更像是一种思维框架，其中每一层都能各自作为独立的函数库使用。
+
+## 设计理念 [#philosophy]
+
+Fumadocs 的诞生，是为了让构建文档的过程更具自定义弹性，成为一个不默认立场、不强加既定做法的文档框架，**一个你可以打破的「框架」**。
+
+### 更少的抽象化 [#less-abstraction]
+
+虽然大多数框架都通过配置文件进行设置，但当你想微调细节时，往往不够有弹性。
+你既无法控制它们如何渲染页面，也无法掌控其内部逻辑。
+
+Fumadocs 希望你自行撰写代码，并与软件的其他部分协同运作。它不仰赖配置文件，而是让你清楚了解应用的运作方式，并可完全自定义。
+
+### 无缝集成 [#seamless-integration]
+
+Fumadocs 与你的 React 框架紧密集成，提供实用的工具与美观的 UI。
+
+你依然可以使用框架原有的功能，例如**静态网站生成 (Static Site Generation)&#x20;**。框架的一切仍是你熟悉的样子。
+
+### 可组合的 UI [#composable-ui]
+
+Fumadocs UI (默认主题) 唯一提供的就是**用户界面**。这套 UI 有其既定的设计主张，目的是提供更好的行动设备响应式设计与用户体验。
+
+不过，我们采用受 Shadcn UI 启发、弹性更高的做法。[Fumadocs CLI](/docs/cli) 让你能「fork」Fumadocs UI 的其中一部分，并完全自定义。
+
+### 服务器优先的做法 [#server-first-approach]
+
+传统上，静态网站生成器都是**静态**的。
+
+然而，Fumadocs 采用了以 React 服务器组件为基础的服务器优先做法。
+通过明确划分服务器与客户端的边界，内容得以动态呈现并具备交互性。
+
+你可以从服务器截取数据来显示内容，或集成 CMS 以接收实时更新。内容始终保持最新，且易于维护。
+
+### 精简 [#minimal]
+
+Fumadocs 由 Fuma 与众多贡献者共同维护，并注重代码库的可维护性。
+
+我们并不打算满足大家想要的每一项功能，而是更专注于把基本功能做到完善，并持续妥善维护。
+你也可以通过贡献，让 Fumadocs 变得更加实用！
+
+## 何时使用 Fumadocs [#when-to-use-fumadocs]
+
+Fumadocs 在设计上注重弹性，不局限于特定的使用情境。
+
+* `fumadocs-core` 是用于构建文档的无头式 UI 函数库。
+* `fumadocs-mdx` 是处理 MDX 内容的实用函数库。
+
+对大多数 Web 应用来说，单靠原生 React.js 已经不够用了。
+现在我们往往还需要博客、作品展示页、常见问题页等。在这些情况下，Fumadocs 能协助你更轻松地构建
+文档，并减少样板代码。
+
+如果你有兴趣，可以参阅[比较](/docs/comparisons)。
+
+### 文档 [#documentation]
+
+Fumadocs 专注于**撰写体验**，提供美观的主题以及多种文档自动化工具。
+
+它能协助你更快速地迭代代码库，同时确保文档始终跟上进度。
+本网站就是使用 Fumadocs 构建的文档网站示例，可供你参考。
+
+### 博客网站 [#blog-sites]
+
+大多数 React.js 框架本身就足以满足博客网站的需求。
+
+Fumadocs 另外提供了语法高亮、文档搜索，以及默认主题 (Fumadocs UI) 等工具。
+让你不必重新发明轮子。

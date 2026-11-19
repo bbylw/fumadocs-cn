@@ -1,20 +1,17 @@
 ---
-title: 设定
-description: 共用的 i18n 设定
+title: 设置
+description: 共用的 i18n 设置
 ---
 
-<Callout title="仅限核心 API">
-  框架整合指南请参阅[国际化](/docs/internationalization)。
+<Callout title="仅限内核 API">
+  框架集成指南请参阅[国际化](/docs/internationalization)。
 </Callout>
 
-## 定义设定 [#define-config]
+## 定义设置 [#define-config]
 
-Fumadocs core 提供了支援 i18n 所需的中介软体与工具函式。
+Fumadocs core 提供了支持 i18n 所需的中间件与工具函数。
 
-您可以定义一份设定，让各个工具函式共用。
-
-
-
+你可以定义一份设置，让各个工具函数共用。
 
 ```ts title="lib/i18n.ts"
 import { defineI18n } from 'fumadocs-core/i18n';
@@ -24,9 +21,6 @@ export const i18n = defineI18n({
   languages: ['en', 'cn'],
 });
 ```
-
-
-
 
 ### 隐藏语系前缀 [#hide-locale-prefix]
 
@@ -45,20 +39,20 @@ export const i18n = defineI18n({
 | 模式               | 说明                    |
 | ---------------- | --------------------- |
 | `always`         | 一律隐藏前缀，并从 cookie 侦测语系 |
-| `default-locale` | 仅隐藏预设语系的前缀            |
-| `never`          | 一律不隐藏前缀 (预设)          |
+| `default-locale` | 仅隐藏默认语系的前缀            |
+| `never`          | 一律不隐藏前缀 (默认)          |
 
 <Callout type="warn" title={<>使用 <code>always</code></>}>
-  在 `always` 模式下，语系会以 cookie 的形式储存 (由中介软体设定) ，这对静态网站来说并非理想做法。
+  在 `always` 模式下，语系会以 cookie 的形式保存 (由中间件设置) ，这对静态网站来说并非理想做法。
 
-  这可能会导致非预期的快取问题，且需要特别留意 SEO，以确保搜寻引擎能正确索引您的页面。
+  这可能会导致非预期的缓存问题，且需要特别留意 SEO，以确保搜索引擎能正确索引你的页面。
 </Callout>
 
 ### 备用语言 [#fallback-language]
 
-当档案缺少翻译时所使用的备用语言，预设为您的 `defaultLanguage`。
+当文件缺少翻译时所使用的备用语言，默认为你的 `defaultLanguage`。
 
-其值须为您 `languages` 阵列中的其中一个语言。
+其值须为你 `languages` 数组中的其中一个语言。
 
 ```ts
 import { defineI18n } from 'fumadocs-core/i18n';
@@ -66,12 +60,12 @@ import { defineI18n } from 'fumadocs-core/i18n';
 export const i18n = defineI18n({
   languages: ['en', 'cn'],
   defaultLanguage: 'en',
-  // 若档案缺少英文版本，则使用中文版本
+  // 若文档缺少英文版本，则使用中文版本
   fallbackLanguage: 'cn',
 });
 ```
 
-若要停用备用机制，请将其设为 `null`：
+若要禁用备用机制，请将其设为 `null`：
 
 ```ts
 import { defineI18n } from 'fumadocs-core/i18n';
@@ -83,7 +77,7 @@ export const i18n = defineI18n({
 });
 ```
 
-停用后将不会使用任何备用内容 (包括 `meta.json`) 。您仍可透过 `$` 建立所有语系共用的档案：
+禁用后将不会使用任何备用内容 (包括 `meta.json`) 。你仍可通过 `$` 创建所有语系共用的文件：
 
 <Files>
   <File name="my-page.$.md" />

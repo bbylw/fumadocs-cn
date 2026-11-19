@@ -1,23 +1,9 @@
 {
-  "title": "Fumadocs 中文文档",
   "pages": [
-    "index",
-    "what-is-fumadocs",
-    "comparisons",
-    "manual-installation",
-    "upgrade",
-    "page-conventions",
-    "markdown",
-    "navigation",
-    "deploying",
-    "internationalization",
-    "search",
-    "editor",
-    "guides",
-    "integrations",
+    "(framework)",
     "ui",
-    "cli",
     "headless",
-    "mdx"
+    "mdx",
+    "cli"
   ]
 }

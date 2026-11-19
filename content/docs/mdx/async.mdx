@@ -1,15 +1,17 @@
 ---
-title: 延迟载入
-description: 为集合的输出设定延迟载入。
+title: 延迟加载
+description: 为集合的输出设置延迟加载。
 ---
 
-预设情况下，所有 Markdown 与 MDX 档案都必须先经过预先编译，开发伺服器也同样受此限制。
+## 简介 [#introduction]
 
-对于大型文件网站而言，这可能会拉长开发伺服器的启动时间。您可以在 doc 集合上启用 Async 或 Dynamic 模式来改善这个问题。
+默认情况下，所有 Markdown 与 MDX 文件都必须先经过预先编译，开发服务器也同样受此限制。
+
+对于大型文档网站而言，这可能会拉长开发服务器的启动时间。你可以在 doc 集合上启用 Async 或 Dynamic 模式来改善这个问题。
 
 ## Async 模式 [#async-mode]
 
-Async 模式会透过非同步汇入来产生集合的输出。
+Async 模式会通过异步导入来生成集合的输出。
 
 ```ts tab="Docs Collection"
 import { defineDocs } from 'fumadocs-mdx/config';
@@ -34,18 +36,18 @@ export const doc = defineCollections({
 });
 ```
 
-视您使用的打包工具而定，这可能会大幅缩短开发伺服器的编译时间。
+视你使用的打包工具而定，这可能会大幅缩短开发服务器的编译时间。
 
-<Callout title="Next.js 使用者">
-  Turbopack 目前不支援延迟打包，因此 Async 模式只会提升伺服器
-  效能。
+<Callout title="Next.js 用户">
+  Turbopack 目前不支持延迟打包，因此 Async 模式只会提升服务器
+  性能。
 </Callout>
 
 ## Dynamic 模式 [#dynamic-mode]
 
-Dynamic 模式会进行**随需编译**，并在执行阶段执行编译后的输出结果。
+Dynamic 模式会进行**随需编译**，并在运行时运行编译后的输出结果。
 
-建议您安装 `shiki` 并将其设为外部相依套件 (externalize) ：
+建议你安装 `shiki` 并将其设为外部依赖包 (externalize) ：
 
 ```npm
 npm i shiki
@@ -76,18 +78,18 @@ export const doc = defineCollections({
 });
 ```
 
-接著，请依照 [Dynamic Entry](/docs/mdx/entry/dynamic) 的说明，改从 dynamic entry 存取集合。
+接着，请依照 [Dynamic Entry](/docs/mdx/entry/dynamic) 的说明，改从 dynamic entry 访问集合。
 
 <Callout title="限制" type="warn">
   Dynamic 模式对部分 MDX 功能有所限制。
 
-  * **MDX 档案中不可使用 import/export。** 若要使用 MDX 元件，请改由 `components` prop 传入。
-  * **图片必须以 URL 参照 (例如 `/images/test.png`) 。** 请勿使用 `./image.png` 这类**档案路径**。请将图片放在 `public` 资料夹中，并以 URL 参照。
+  * **MDX 文件中不可使用 import/export。** 若要使用 MDX 组件，请改由 `components` prop 传入。
+  * **图片必须以 URL 参照 (例如 `/images/test.png`) 。** 请勿使用 `./image.png` 这类**文件路径**。请将图片放在 `public` 文件夹中，并以 URL 参照。
 </Callout>
 
 ## 使用方式 [#usage]
 
-您仍可在 `page` 物件上存取 frontmatter 属性，但必须呼叫非同步函式 `load()`，才能载入编译后的内容 (及其汇出项目) 。
+你仍可在 `page` 对象上访问 frontmatter 属性，但必须调用异步函数 `load()`，才能加载编译后的内容 (及其导出项目) 。
 
 例如：
 
@@ -101,7 +103,7 @@ if (page) {
   // 可直接使用 frontmatter 属性
   console.log(page.data);
 
-  // Markdown 内容需要使用 await 载入
+  // Markdown 内容需要使用 await 加载
   const { body: MdxContent, toc } = await page.data.load();
 
   console.log(toc);
@@ -110,4 +112,4 @@ if (page) {
 }
 ```
 
-使用 Async 或 Dynamic 模式时，强烈建议您改用第三方服务实作搜寻功能，这类服务通常更擅长为大量内容建立索引。
+使用 Async 或 Dynamic 模式时，强烈建议你改用第三方服务实现搜索功能，这类服务通常更擅长为大量内容创建索引。

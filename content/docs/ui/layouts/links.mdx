@@ -1,14 +1,16 @@
 ---
-title: 版面配置连结
-description: 适用于所有版面配置的导览设定。
+title: 布局链接
+description: 适用于所有布局的导航设置。
 ---
 
-Fumadocs 可让您透过 `links` prop 在版面配置中加入导览连结，例如连结到您的「展示」页面。
+## 概览 [#overview]
+
+Fumadocs 可让你通过 `links` prop 在布局中加入导航链接，例如链接到你的「展示」页面。
 
 <div className="not-prose grid gap-2 *:border max-sm:*:last:hidden sm:grid-cols-[2fr_1fr]">
-  <>![导览](/docs/nav-layout-home.png)</>
+  <>![导航](/docs/nav-layout-home.png)</>
 
-  <>![导览](/docs/nav-layout-docs.png)</>
+  <>![导航](/docs/nav-layout-docs.png)</>
 </div>
 
 ```tsx tab="All" title="lib/layout.shared.tsx"
@@ -57,11 +59,11 @@ export default function Layout({ children }: { children: ReactNode }) {
 }
 ```
 
-所有支援的项目如下：
+所有支持的项目如下：
 
-### 连结项目 [#link-item]
+### 链接项目 [#link-item]
 
-用于前往某个 URL/href 的连结，也可以是外部连结。
+用于前往某个 URL/href 的链接，也可以是外部链接。
 
 ```tsx title="lib/layout.shared.tsx"
 import { BookIcon } from 'lucide-react';
@@ -74,14 +76,17 @@ export function baseOptions(): BaseLayoutProps {
         icon: <BookIcon />,
         text: 'Blog',
         url: '/blog',
-        // 次要项目在导览列上会以不同方式显示
+        // 次要项目在导航列上会以不同方式显示
         secondary: false,
       },
     ],
   };
 }
 ```
-连结项目被标示为启用状态的条件。
+
+#### 启用模式 [#active-mode]
+
+链接项目被标示为激活状态的条件。
 
 | 模式           | 说明                                |
 | ------------ | --------------------------------- |
@@ -104,8 +109,11 @@ export function baseOptions(): BaseLayoutProps {
   };
 }
 ```
-与连结项目相同，但会显示为图示按钮。
-图示项目预设为次要项目。
+
+### 图标项目 [#icon-item]
+
+与链接项目相同，但会显示为图标按钮。
+图标项目默认为次要项目。
 
 ```tsx title="lib/layout.shared.tsx"
 import { BookIcon } from 'lucide-react';
@@ -125,7 +133,10 @@ export function baseOptions(): BaseLayoutProps {
   };
 }
 ```
-显示自订元件。
+
+### 自定义项目 [#custom-item]
+
+显示自定义组件。
 
 ```tsx title="lib/layout.shared.tsx"
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
@@ -142,7 +153,10 @@ export function baseOptions(): BaseLayoutProps {
   };
 }
 ```
-此外，也提供了快速新增 GitHub 储存库连结项目的捷径。
+
+### GitHub URL [#github-url]
+
+此外，也提供了快速添加 GitHub 保存库链接项目的捷径。
 
 ```tsx twoslash title="lib/layout.shared.tsx"
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
@@ -153,7 +167,10 @@ export function baseOptions(): BaseLayoutProps {
   };
 }
 ```
-包含多个连结项目的选单。
+
+### 一般菜单 [#normal-menu]
+
+包含多个链接项目的菜单。
 
 ```tsx title="lib/layout.shared.tsx"
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
@@ -176,7 +193,10 @@ export function baseOptions(): BaseLayoutProps {
   };
 }
 ```
-在首页版面配置中，您可以在导览列加入导览选单 (附完整动画效果) 。
+
+### 导航菜单 [#navigation-menu]
+
+在首页布局中，你可以在导航列加入导航菜单 (附完整动画效果) 。
 
 ![Nav](/docs/nav-layout-menu.png)
 
@@ -198,7 +218,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       links={[
         {
           type: 'custom',
-          // 仅显示于导览列，不会出现在行动版选单
+          // 仅显示于导航列，不会出现在行动版菜单
           on: 'nav',
           children: (
             <NavbarMenu>

@@ -1,32 +1,32 @@
 ---
-title: MDX 预设组合
-description: 自订 MDX 处理器的预设设定。
+title: MDX 默认组合
+description: 自定义 MDX 处理器的默认设置。
 ---
 
-Fumadocs MDX 提供 MDX 预设组合，可简化**语法突显**等功能的设定。
+Fumadocs MDX 提供 MDX 默认组合，可简化**语法高亮**等功能的设置。
 
-它预设使用 unified 进行编译。您也可以让集合改用 [Sätteri](#satteri) 编译，Sätteri 同样提供包含相同外挂的预设组合。
+它默认使用 unified 进行编译。你也可以让集合改用 [Sätteri](#satteri) 编译，Sätteri 同样提供包含相同插件的默认组合。
 
-## 预设组合 (Default Preset)  [#default-preset]
+## 默认组合 (Default Preset)  [#default-preset]
 
-这是专为文件网站设计的预设组合，在全域 MDX 选项中预设为启用。
+这是专为文档网站设计的默认组合，在全域 MDX 选项中默认为启用。
 
-如需覆写预设值，可传入一个继承自 [`ProcessorOptions`](https://mdxjs.com/packages/mdx/#processoroptions) 的介面：
+如需覆盖默认值，可传入一个继承自 [`ProcessorOptions`](https://mdxjs.com/packages/mdx/#processoroptions) 的界面：
 
-### Remark 外挂 [#remark-plugins]
+### Remark 插件 [#remark-plugins]
 
-以下外挂会预设套用：
+以下插件会默认应用：
 
 * Remark GFM - [GitHub Flavored Markdown](https://github.github.com/gfm)。
-* [Remark Heading](/docs/headless/mdx/headings) - 撷取目录。
+* [Remark Heading](/docs/headless/mdx/headings) - 截取目录。
 * [Remark Image](/docs/headless/mdx/remark-image) - 处理图片。
-* [Remark Code Tab](/docs/markdown#tab-groups) - 程式码区块的页签群组。
-* [Remark NPM](/docs/headless/mdx/remark-npm) - 套件管理器指令。
-* [Remark Structure](/docs/headless/mdx/structure) - 产生搜寻索引。
+* [Remark Code Tab](/docs/markdown#tab-groups) - 代码块的选项卡分组。
+* [Remark NPM](/docs/headless/mdx/remark-npm) - 包管理器指令。
+* [Remark Structure](/docs/headless/mdx/structure) - 生成搜索索引。
 
-[引入](/docs/mdx/include)功能一律启用，即使未使用此预设集也是如此。
+[引入](/docs/mdx/include)功能一律启用，即使未使用此默认集也是如此。
 
-您可以透过以下方式新增其他 remark 外挂：
+你可以通过以下方式添加其他 remark 插件：
 
 ```ts tab="Global Config"
 import { defineConfig } from 'fumadocs-mdx/config';
@@ -35,7 +35,7 @@ import { myPlugin } from './remark-plugin';
 export default defineConfig({
   mdxOptions: {
     remarkPlugins: [myPlugin],
-    // 您也可以传入函式来控制 remark 外挂的顺序。
+    // 你也可以传入函数来控制 remark 插件的顺序。
     remarkPlugins: (v) => [myPlugin, ...v],
   },
 });
@@ -49,17 +49,20 @@ export const blog = defineCollections({
   type: 'doc',
   mdxOptions: applyMdxPreset({
     remarkPlugins: [myPlugin],
-    // 您也可以传入函式来控制 remark 外挂的顺序。
+    // 你也可以传入函数来控制 remark 插件的顺序。
     remarkPlugins: (v) => [myPlugin, ...v],
   }),
 });
 ```
-预设会套用以下外挂：
 
-* [Rehype Code](/docs/headless/mdx/rehype-code) - 语法突显。
-* [Rehype 目录](/docs/headless/mdx/headings#rehype-toc) - 汇出目录。
+### Rehype 插件 [#rehype-plugins]
 
-如同 remark 外挂，您可以传入阵列或函式来新增其他 rehype 外挂。
+默认会应用以下插件：
+
+* [Rehype Code](/docs/headless/mdx/rehype-code) - 语法高亮。
+* [Rehype 目录](/docs/headless/mdx/headings#rehype-toc) - 导出目录。
+
+如同 remark 插件，你可以传入数组或函数来添加其他 rehype 插件。
 
 ```ts tab="Global Config"
 import { defineConfig } from 'fumadocs-mdx/config';
@@ -83,7 +86,10 @@ export const blog = defineCollections({
   }),
 });
 ```
-您可以自订内建外挂的选项，例如：
+
+### 自定义内置插件 [#customize-built-in-plugins]
+
+你可以自定义内置插件的选项，例如：
 
 ```ts tab="Global Config"
 import { defineConfig } from 'fumadocs-mdx/config';
@@ -122,13 +128,16 @@ export const blog = defineCollections({
   }),
 });
 ```
-[Sätteri](https://github.com/bruits/satteri) 是一款具备独立外挂模型的编译器。请先安装：
+
+## Sätteri [#satteri]
+
+[Sätteri](https://github.com/bruits/satteri) 是一款具备独立插件模型的编译器。请先安装：
 
 ```package-install
 @fumadocs/satteri satteri
 ```
 
-在[集合](/docs/mdx/collections#compiler)中设定 `compiler: 'satteri'`。该集合会读取全域的 `satteriOptions`，而非 `mdxOptions`：
+在[集合](/docs/mdx/collections#compiler)中设置 `compiler: 'satteri'`。该集合会读取全域的 `satteriOptions`，而非 `mdxOptions`：
 
 ```ts title="source.config.ts"
 import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
@@ -142,9 +151,9 @@ export const docs = defineDocs({
 
 export default defineConfig({
   satteriOptions: {
-    // 用来取代 remark 外挂；`hastPlugins` 则用来取代 rehype 外挂
+    // 用来取代 remark 插件；`hastPlugins` 则用来取代 rehype 插件
     mdastPlugins: [remarkSteps()],
-    // 内建外挂的选项与 `mdxOptions` 中的相同
+    // 内置插件的选项与 `mdxOptions` 中的相同
     rehypeCodeOptions: {
       themes: { light: 'github-light', dark: 'github-dark' },
     },
@@ -152,17 +161,17 @@ export default defineConfig({
 });
 ```
 
-Remark 与 rehype 外挂无法在 Sätteri 上执行。Fumadocs 已将自家外挂移植至 `@fumadocs/satteri/<name>`，例如 `@fumadocs/satteri/remark-steps`。这两个外挂选项都可接受阵列或函式，用法与 `mdxOptions` 相同。
+Remark 与 rehype 插件无法在 Sätteri 上运行。Fumadocs 已将自家插件移植至 `@fumadocs/satteri/<name>`，例如 `@fumadocs/satteri/remark-steps`。这两个插件选项都可接受数组或函数，用法与 `mdxOptions` 相同。
 
-预设组合会套用与 unified 相同的外挂。GFM 与 directives 是预设启用的解析器 `features`，而设定 `features: { math: true }` 也会使用 KaTeX 算绘[数学公式](/docs/markdown/math)。
+默认组合会应用与 unified 相同的插件。GFM 与 directives 是默认启用的解析器 `features`，而设置 `features: { math: true }` 也会使用 KaTeX 渲染[数学公式](/docs/markdown/math)。
 
-全域的 `compiler` 选项仅用于选择集合以外 MDX 档案的编译器。
+全域的 `compiler` 选项仅用于选择集合以外 MDX 文件的编译器。
 
 ## Source Map [#source-map]
 
-由于产生 source map 会拖慢编译速度，unified 预设会停用此功能。
+由于生成 source map 会拖慢编译速度，unified 默认会禁用此功能。
 
-若要启用，请安装 `source-map`，并将其产生器传入 MDX 选项：
+若要激活，请安装 `source-map`，并将其生成器传入 MDX 选项：
 
 ```npm
 npm i -D source-map
@@ -191,4 +200,4 @@ export const blog = defineCollections({
 });
 ```
 
-编译后内容所抛出的错误，现在可以追溯回原始的 Markdown 档案。
+编译后内容所抛出的错误，现在可以追溯回原始的 Markdown 文件。

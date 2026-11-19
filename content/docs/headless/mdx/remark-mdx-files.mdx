@@ -1,9 +1,11 @@
 ---
 title: Remark Files
-description: 从程式码区块产生档案。
+description: 从代码块生成文件。
 ---
 
-此外挂会将像这样的程式码区块：
+## 简介 [#introduction]
+
+此插件会将像这样的代码块：
 
 ````md
 ```files
@@ -31,7 +33,10 @@ project
   </Folder>
 </Files>
 ```
-Remark Files 是一个 remark 外挂，请将它加入您的设定档中：
+
+## 设置 [#setup]
+
+Remark Files 是一个 remark 插件，请将它加入你的配置文件中：
 
 ```ts tab="unified" title="source.config.ts"
 import { remarkMdxFiles } from 'fumadocs-core/mdx-plugins';
@@ -59,4 +64,4 @@ export default defineConfig({
 });
 ```
 
-另外，请确认您已定义 `<Files />`、`<Folder />` 和 `<File />` 这几个 MDX 元件。
+另外，请确认你已定义 `<Files />`、`<Folder />` 和 `<File />` 这几个 MDX 组件。
