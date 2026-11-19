@@ -1,320 +1,61 @@
 ---
+import type { ShikiTransformer } from 'shiki';
+import '@/styles/landing.css';
 import Layout from '@/layouts/Layout.astro';
-import { docsRoute } from '@/lib/shared';
+import { LandingPage } from '@/components/landing/LandingPage';
+import { summary } from '@/components/landing/content';
+import { loadInks } from '@/components/landing/sections/style/presets';
+import { INSTALL_TABS, TWOSLASH_SNIPPET } from '@/components/landing/sections/write/data';
+import { BEFORE, EDIT_LINE, SOURCE } from '@/components/landing/sections/automate/data';
+import { getProofMetrics } from '@/components/landing/sections/proof/data';
+import { highlightCode } from '@/lib/shiki';
 
-const githubUrl = 'https://github.com/fuma-nama/fumadocs';
-const upstreamUrl = 'https://github.com/fuma-nama/fumadocs';
-const stackblitzUrl = 'https://stackblitz.com/github/fuma-nama/fumadocs/tree/main/examples/stackblitz';
+function excerptTransformer(hasEdit: boolean): ShikiTransformer {
+  return {
+    line(node, line) {
+      const i = line - 1;
+      const last = hasEdit ? EDIT_LINE + 1 : EDIT_LINE;
+      if (i >= EDIT_LINE - 1 && i <= last) {
+        node.properties['data-excerpt'] = '';
+      }
+    },
+  };
+}
 
-const layouts = [
-  { href: '/docs/ui/layouts/docs', title: 'Docs', desc: '默认文档版面，侧边栏与目录齐备。' },
-  { href: '/docs/ui/layouts/notebook', title: 'Notebook', desc: '笔记本式导航，适合知识库。' },
-  { href: '/docs/ui/layouts/flux', title: 'Flux', desc: '流线型布局，信息密度更高。' },
-  { href: '/docs/ui/layouts/glass', title: 'Glass', desc: '半透明玻璃质感，清新通透。' },
-  { href: '/docs/ui/layouts/spacious', title: 'Spacious', desc: '宽松留白，阅读节奏舒缓。' },
-];
+const [table, installTabs, rawTwoslash, sourceHtml, includedBeforeHtml, includedAfterHtml, metrics] =
+  await Promise.all([
+    loadInks(),
+    Promise.all(
+      INSTALL_TABS.map(async (tab) => ({
+        label: tab.label,
+        html: await highlightCode(tab.code, 'bash'),
+      })),
+    ),
+    highlightCode(TWOSLASH_SNIPPET, 'ts'),
+    highlightCode(SOURCE, 'tsx'),
+    highlightCode(BEFORE, 'tsx', [excerptTransformer(false)]),
+    highlightCode(SOURCE, 'tsx', [excerptTransformer(true)]),
+    getProofMetrics(),
+  ]);
 
-const integrations = [
-  { href: '/docs/integrations/openapi', title: 'OpenAPI' },
-  { href: '/docs/integrations/llms#ask-ai', title: 'AI 聊天' },
-  { href: '/docs/integrations/llms', title: 'llms.txt' },
-  { href: '/docs/internationalization', title: '国际化' },
-  { href: '/docs/integrations/og', title: 'OG 图片' },
-  { href: '/docs/integrations/asyncapi', title: 'AsyncAPI' },
-  { href: '/docs/integrations/graphql', title: 'GraphQL' },
-  { href: '/docs/markdown/twoslash', title: 'Twoslash' },
-];
-
-const layers = [
-  { name: 'Fumadocs Core', desc: '搜索、内容源适配器、Markdown 扩展', tag: 'Core' },
-  { name: 'Fumadocs UI', desc: '默认主题：美观交互与文档级组件', tag: 'UI' },
-  { name: '内容源', desc: 'MDX 本地层，也可接 CMS / 远程数据', tag: 'Content' },
-  { name: 'Fumadocs CLI', desc: '安装组件、自动化处理、任意分叉', tag: 'CLI' },
-];
+const completionPopup =
+  '<span class="twoslash-completion-cursor"><ul class="twoslash-completion-list" role="listbox"><li data-active="true"><span>getPage</span></li><li><span>getPages</span></li><li><span>getPageTree</span></li><li><span>generateParams</span></li></ul></span>';
+const twoslashHtml = rawTwoslash.replace('getP', `getP${completionPopup}`);
 ---
 
 <Layout
-  title="Fumadocs 中文文档 — 数秒内，构建更好的文档"
-  description="Fumadocs 是面向开发者的文档框架：数秒内，构建更好的文档。本站为 Astro + Bun 最新栈的中文完整文档，参考 fumadocs.dev。"
+  landing
+  title="Fumadocs — 数秒内构建更好的 React 文档框架"
+  description={summary}
+  image="/banner.png"
 >
-  <main class="landing-hero">
-    <!-- 顶部导航：对齐 fumadocs.dev -->
-    <header class="mx-auto max-w-6xl px-5 pt-4">
-      <nav class="flex items-center justify-between gap-4" aria-label="主导航">
-        <a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
-          <span class="grid size-6 place-items-center rounded-full bg-orange-600 text-xs font-bold text-white" aria-hidden="true">F</span>
-          Fumadocs
-        </a>
-        <div class="flex items-center gap-1 text-sm text-zinc-600 sm:gap-2">
-          <a class="rounded-md px-3 py-1.5 hover:text-zinc-950" href="/docs/">文档</a>
-          <a class="hidden rounded-md px-3 py-1.5 hover:text-zinc-950 sm:inline" href="/docs/comparisons">对比</a>
-          <a class="hidden rounded-md px-3 py-1.5 hover:text-zinc-950 sm:inline" href="/docs/what-is-fumadocs">博客</a>
-          <a class="hidden rounded-md px-3 py-1.5 hover:text-zinc-950 sm:inline" href="/docs/ui/">演示</a>
-          <a class="hidden rounded-md px-3 py-1.5 hover:text-zinc-950 sm:inline" href={upstreamUrl} target="_blank" rel="noreferrer">赞助</a>
-          <a class="rounded-md border border-zinc-300 px-3 py-1.5 text-zinc-950 hover:bg-white" href={githubUrl} target="_blank" rel="noreferrer">GitHub ↗</a>
-        </div>
-      </nav>
-    </header>
-
-    <!-- Hero：对齐上游 H1 + CTA 组合 -->
-    <section class="mx-auto max-w-6xl px-5 pb-14 pt-12 sm:pt-16">
-      <div class="grid items-center gap-10 lg:grid-cols-2">
-        <div>
-          <h1 class="text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
-            数秒内，构建
-            <span class="text-orange-600">更好的文档</span>。
-          </h1>
-          <p class="mt-5 max-w-xl text-base leading-relaxed text-zinc-600 sm:text-lg">
-            Fumadocs 是一款由 Fuma Nama 精心设计的、面向开发者的 React 文档框架，顺畅集成 Astro。
-          </p>
-          <div class="mt-7 flex flex-wrap items-center gap-3">
-            <a href="/docs/" class="rounded-md border border-zinc-900 bg-yellow-300 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-yellow-200">
-              开始使用
-            </a>
-            <span class="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm">
-              <span class="text-zinc-500">$</span>
-              <code class="text-zinc-950">bunx create-fumadocs-app</code>
-              <span class="border-l border-zinc-300 pl-2 text-zinc-500" aria-hidden="true">⧉</span>
-            </span>
-            <a href={stackblitzUrl} class="text-sm text-zinc-950 underline underline-offset-4 hover:text-zinc-700" target="_blank" rel="noreferrer">
-              在 StackBlitz 打开 ↗
-            </a>
-          </div>
-          <p class="mt-5 text-sm text-zinc-500">
-            运行于
-            <a class="underline underline-offset-4 hover:text-zinc-950" href="/docs/manual-installation">Astro</a> ·
-            <a class="underline underline-offset-4 hover:text-zinc-950" href="https://fumadocs.dev/docs/next/manual-installation" target="_blank" rel="noreferrer">Next.js</a> ·
-            <a class="underline underline-offset-4 hover:text-zinc-950" href="https://fumadocs.dev/docs/react-router/manual-installation" target="_blank" rel="noreferrer">React Router</a> ·
-            <a class="underline underline-offset-4 hover:text-zinc-950" href="https://fumadocs.dev/docs/tanstack-start/manual-installation" target="_blank" rel="noreferrer">TanStack Start</a> ·
-            <a class="underline underline-offset-4 hover:text-zinc-950" href="https://fumadocs.dev/docs/waku/manual-installation" target="_blank" rel="noreferrer">Waku</a>
-          </p>
-        </div>
-
-        <!-- Hero 视觉：代码窗 + 分层标签（替代上游插画） -->
-        <div class="float-y">
-          <div class="code-window overflow-hidden rounded-2xl">
-            <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
-              <div class="flex gap-1.5" aria-hidden="true">
-                <span class="size-3 rounded-full bg-zinc-300"></span>
-                <span class="size-3 rounded-full bg-zinc-300"></span>
-                <span class="size-3 rounded-full bg-zinc-300"></span>
-              </div>
-              <span class="text-xs text-zinc-500">docs/index.mdx</span>
-              <span class="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-600">Astro 7</span>
-            </div>
-            <pre class="overflow-auto p-5 text-[13px] leading-6 text-zinc-800"><code><span class="text-zinc-500">---</span>
-<span class="text-zinc-500">title:</span> <span class="text-orange-700">快速入门</span>
-<span class="text-zinc-500">---</span>
-
-<span class="text-zinc-900">## 自动安装</span>
-<span class="text-zinc-600">开始使用 Fumadocs！</span>
-
-<span class="text-orange-700">bunx</span> create-fumadocs-app</code></pre>
-            <div class="flex flex-wrap items-center gap-2 border-t border-zinc-200 px-4 py-3 text-xs">
-              <span class="rounded-full bg-zinc-900 px-2.5 py-1 font-medium text-white">Core</span>
-              <span class="rounded-full border border-zinc-300 px-2.5 py-1 text-zinc-600">UI</span>
-              <span class="rounded-full border border-zinc-300 px-2.5 py-1 text-zinc-600">Content</span>
-              <span class="ml-auto hidden bg-zinc-950 px-3 py-1.5 text-[11px] text-white sm:inline">我正在努力打造完美的文档框架</span>
-            </div>
-          </div>
-          <p class="mt-3 text-center text-xs text-zinc-500">本站即最新栈实测：Astro 7.4.13 · Fumadocs 16.19.4 · React 19 · Bun 1.4.5 · 共 164 篇文档</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Style：对齐上游介绍 + 三个要点 -->
-    <section class="border-t border-zinc-200 bg-white">
-      <div class="mx-auto max-w-6xl px-5 py-16">
-        <h2 class="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">Fumadocs 是一款面向开发者的 React 文档框架，由 Fuma Nama 精心设计。</h2>
-        <ul class="mt-6 space-y-2 text-base text-zinc-600">
-          <li>• 为你的文档工作流带来强大功能。</li>
-          <li>• 高度可定制，贴合你的偏好。</li>
-          <li>• 与任意 React 框架、CMS 或任何内容无缝协作。</li>
-        </ul>
-
-        <div class="mt-10">
-          <div class="flex items-center justify-between gap-4">
-            <h2 class="text-2xl font-bold tracking-tight">版面配置</h2>
-            <a href="/docs/ui/layouts" class="text-sm text-zinc-950 underline underline-offset-4 hover:text-zinc-700">版面配置文档 ↗</a>
-          </div>
-          <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {
-              layouts.map((l) => (
-                <a href={l.href} class="paper-card group rounded-xl p-5 transition hover:bg-zinc-50">
-                  <p class="text-base font-semibold group-hover:text-orange-700">{l.title}</p>
-                  <p class="mt-1 text-sm leading-relaxed text-zinc-500">{l.desc}</p>
-                </a>
-              ))
-            }
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Express：Markdown -->
-    <section class="border-t border-zinc-200">
-      <div class="mx-auto grid max-w-6xl items-start gap-8 px-5 py-16 lg:grid-cols-2">
-        <div>
-          <h2 class="text-3xl font-bold tracking-tight">用你已熟悉的 Markdown，表达更多。</h2>
-          <p class="mt-4 leading-relaxed text-zinc-600">
-            Fumadocs 原生支持 Markdown 与 MDX，并提供额外组件、数学公式、Twoslash 类型注释等文档增强。
-          </p>
-          <div class="mt-6 flex flex-wrap gap-3">
-            <a href="/docs/" class="rounded-md border border-zinc-900 bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800">阅读文档 →</a>
-            <a href="/docs/markdown" class="rounded-md border border-zinc-300 bg-white px-5 py-2.5 text-sm font-medium hover:bg-zinc-50">Markdown 指南 ↗</a>
-          </div>
-        </div>
-        <div class="code-window overflow-hidden rounded-2xl">
-          <pre class="overflow-auto p-5 text-[13px] leading-6 text-zinc-800"><code><span class="text-orange-700">## 写文档，就是写 Markdown</span>
-<span class="text-zinc-600">欢迎来到 Fumadocs + Astro！</span>
-<span class="text-zinc-500">%% 用 $$ 写数学公式 %%</span>
-<span class="text-zinc-900">$$\int_0^\infty e&#123;-x&#125;\,dx = 1$$</span></code></pre>
-        </div>
-      </div>
-    </section>
-
-    <!-- Quick Start：安装三步 -->
-    <section class="border-t border-zinc-200 bg-white">
-      <div class="mx-auto max-w-6xl px-5 py-16">
-        <h2 class="text-3xl font-bold tracking-tight">安装</h2>
-        <p class="mt-3 text-zinc-600">三步，拥有自己的文档站。要求 Bun 1.4+（或 Node 22+）。</p>
-        <div class="mt-8 grid gap-4 md:grid-cols-3">
-          <article class="paper-card rounded-xl p-6">
-            <p class="text-xs font-semibold tracking-widest text-zinc-400">STEP 1</p>
-            <h3 class="mt-2 font-semibold">脚手架</h3>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-600">运行 <code class="rounded bg-zinc-100 px-1.5 py-0.5">bunx create-fumadocs-app</code>，选择 Astro 模板。</p>
-          </article>
-          <article class="paper-card rounded-xl p-6">
-            <p class="text-xs font-semibold tracking-widest text-zinc-400">STEP 2</p>
-            <h3 class="mt-2 font-semibold">写内容</h3>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-600">在 <code class="rounded bg-zinc-100 px-1.5 py-0.5">content/docs</code> 新建 MDX，配置 <code class="rounded bg-zinc-100 px-1.5 py-0.5">meta.json</code> 组织侧边栏。</p>
-          </article>
-          <article class="paper-card rounded-xl p-6">
-            <p class="text-xs font-semibold tracking-widest text-zinc-400">STEP 3</p>
-            <h3 class="mt-2 font-semibold">部署</h3>
-            <p class="mt-2 text-sm leading-relaxed text-zinc-600"><code class="rounded bg-zinc-100 px-1.5 py-0.5">bun run build</code> 生成静态站，一键托管 GitHub Pages / Vercel。</p>
-          </article>
-        </div>
-        <div class="mt-8">
-          <a href="/docs/" class="inline-block rounded-md border border-zinc-900 bg-zinc-950 px-8 py-3.5 text-sm font-semibold text-white hover:bg-zinc-800">开始快速开始教程 →</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Always up to date：代码生成 -->
-    <section class="border-t border-zinc-200">
-      <div class="mx-auto max-w-6xl px-5 py-16">
-        <h2 class="max-w-3xl text-3xl font-bold tracking-tight">始终保持最新。从代码生成内容，单一真相来源。</h2>
-        <p class="mt-4 max-w-2xl leading-relaxed text-zinc-600">
-          通过 Fumadocs CLI 与各内容源，自动从代码、OpenAPI、GraphQL 等生成文档，让文档与代码同步演进。
-        </p>
-        <div class="mt-6 flex flex-wrap gap-3">
-          <a href="/docs/cli" class="rounded-md border border-zinc-900 bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800">Fumadocs CLI 文档 ↗</a>
-          <a href="/docs/integrations/openapi" class="rounded-md border border-zinc-300 bg-white px-5 py-2.5 text-sm font-medium hover:bg-zinc-50">OpenAPI 集成 ↗</a>
-          <a href="/docs/cli" class="text-sm text-zinc-950 underline underline-offset-4 hover:text-zinc-700">查看全部集成 ↗</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Composable：分层 -->
-    <section class="border-t border-zinc-200 bg-white">
-      <div class="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[0.9fr_1.1fr]">
-        <div>
-          <h2 class="text-3xl font-bold tracking-tight">设计为可组合，按层分离。</h2>
-          <p class="mt-4 leading-relaxed text-zinc-600">
-            从无头逻辑到默认主题，从内容源到 CLI 脚手架 —— 看懂每一层如何协作，完全掌控渲染与路由。
-          </p>
-          <a href="/docs/what-is-fumadocs" class="mt-6 inline-flex items-center gap-2 text-sm font-medium text-orange-700 hover:underline">深入理解设计理念 →</a>
-        </div>
-        <ol class="space-y-3">
-          {
-            layers.map((l, i) => (
-              <li class="paper-card flex items-center gap-4 rounded-xl p-5">
-                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-zinc-950 text-sm font-bold text-white">{i + 1}</span>
-                <div class="min-w-0 flex-1">
-                  <p class="font-semibold">{l.name}</p>
-                  <p class="mt-0.5 text-sm text-zinc-500">{l.desc}</p>
-                </div>
-                <span class="rounded-full border border-zinc-300 px-2.5 py-1 text-[11px] font-medium tracking-wider text-zinc-500">{l.tag}</span>
-              </li>
-            ))
-          }
-        </ol>
-      </div>
-    </section>
-
-    <!-- Integrations：扩展 -->
-    <section class="border-t border-zinc-200">
-      <div class="mx-auto max-w-6xl px-5 py-16">
-        <h2 class="max-w-3xl text-3xl font-bold tracking-tight">轻松以集成，扩展你的文档。</h2>
-        <p class="mt-3 text-zinc-600">搜索、AI、国际化、OpenAPI、OG 图片与更多，开箱即用。</p>
-        <div class="mt-6 flex flex-wrap gap-2">
-          {
-            integrations.map((it) => (
-              <a href={it.href} class="rounded-full border border-zinc-300 bg-white px-4 py-2 text-sm hover:border-zinc-950">
-                {it.title} ↗
-              </a>
-            ))
-          }
-        </div>
-      </div>
-    </section>
-
-    <!-- CLI 掌控 -->
-    <section class="border-t border-zinc-200 bg-white">
-      <div class="mx-auto max-w-6xl px-5 py-16">
-        <h2 class="max-w-3xl text-3xl font-bold tracking-tight">想要更多掌控？使用 Fumadocs CLI 安装并拥有 UI 代码。</h2>
-        <p class="mt-4 max-w-2xl leading-relaxed text-zinc-600">
-          一键分叉组件到你的仓库，自由修改默认主题，不再被锁死在黑盒里。
-        </p>
-        <div class="mt-6">
-          <a href="/docs/cli" class="inline-block rounded-md border border-zinc-900 bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800">查看 CLI 文档 ↗</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Battle-tested：数据条 -->
-    <section class="border-t border-zinc-200">
-      <div class="mx-auto max-w-6xl px-5 py-16">
-        <h2 class="text-3xl font-bold tracking-tight">久经考验，运行于生产环境。</h2>
-        <dl class="mt-8 grid max-w-2xl grid-cols-3 gap-6">
-          <div>
-            <dt class="text-3xl font-bold">164 篇</dt>
-            <dd class="mt-1 text-sm text-zinc-500">完整中文文档</dd>
-          </div>
-          <div>
-            <dt class="text-3xl font-bold">3 分钟</dt>
-            <dd class="mt-1 text-sm text-zinc-500">从初始化到部署</dd>
-          </div>
-          <div>
-            <dt class="text-3xl font-bold">100%</dt>
-            <dd class="mt-1 text-sm text-zinc-500">静态生成 · 可托管 CDN</dd>
-          </div>
-        </dl>
-      </div>
-    </section>
-
-    <!-- Final CTA -->
-    <section class="border-t border-zinc-200 bg-zinc-950 text-white">
-      <div class="mx-auto max-w-6xl px-5 py-16 text-center">
-        <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">你的文档，离上线只差一条命令。</h2>
-        <p class="mx-auto mt-4 max-w-xl text-zinc-400">本站为最佳实践：Astro 负责路由与静态生成，Fumadocs 负责文档层。</p>
-        <div class="mt-8">
-          <a href="/docs/" class="inline-block rounded-md bg-white px-8 py-4 text-sm font-semibold text-zinc-950 hover:bg-zinc-200">开始阅读文档 →</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- 页脚 -->
-    <footer class="border-t border-zinc-200 bg-white">
-      <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-10 text-sm text-zinc-500 sm:flex-row">
-        <p>© {new Date().getFullYear()} Fumadocs</p>
-        <div class="flex gap-4">
-          <a href={docsRoute} class="hover:text-zinc-950">文档</a>
-          <a href={githubUrl} class="hover:text-zinc-950" target="_blank" rel="noreferrer">GitHub</a>
-          <a href="/docs/integrations/llms" class="hover:text-zinc-950">LLMs</a>
-        </div>
-      </div>
-    </footer>
-  </main>
+  <LandingPage
+    client:load
+    pathname={Astro.url.pathname}
+    params={Astro.params}
+    table={table}
+    writeCode={{ installTabs, twoslashHtml }}
+    automateCode={{ sourceHtml, includedBeforeHtml, includedAfterHtml }}
+    metrics={metrics}
+  />
 </Layout>

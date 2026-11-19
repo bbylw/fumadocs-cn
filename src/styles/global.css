@@ -1,10 +1,101 @@
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/jetbrains-mono';
 @import 'tailwindcss';
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
+@plugin 'tailwindcss-animate';
+
+@font-face {
+  font-family: 'Geist Pixel';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('/fonts/GeistPixel-Square.woff2') format('woff2');
+}
+
+:root {
+  --font-sans:
+    'Geist Variable', 'Geist', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', ui-sans-serif,
+    system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+  --font-geist-pixel: 'Geist Pixel', 'PingFang SC', 'Microsoft YaHei', monospace;
+
+  color-scheme: light dark;
+
+  &:has(> head > meta[name='color-scheme'][content='dark']) {
+    color-scheme: dark;
+  }
+
+  &:has(> head > meta[name='color-scheme'][content='light']) {
+    color-scheme: light;
+  }
+}
+
+@custom-variant noscript (@media (scripting: none));
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+@utility scrollbar-thumb-lp-ink {
+  scrollbar-color: var(--lp-ink) var(--lp-paper, transparent);
+}
+
+@utility scrollbar-track-lp-paper {
+  scrollbar-color: var(--lp-ink, currentColor) var(--lp-paper);
+}
+
+@utility paused {
+  animation-play-state: paused;
+}
+
+@theme inline {
+  --color-lp-paper: var(--lp-paper);
+  --color-lp-paper-2: var(--lp-paper-2);
+  --color-lp-ink: var(--lp-ink);
+  --color-lp-ink-2: var(--lp-ink-2);
+  --color-lp-line: var(--lp-line);
+  --color-lp-line-strong: var(--lp-line-strong);
+  --color-lp-orange: var(--lp-orange);
+  --color-lp-sun: var(--lp-sun);
+  --color-lp-yellow: var(--lp-yellow);
+  --color-lp-on-yellow: #121210;
+
+  --font-pixel: var(--font-geist-pixel), var(--font-sans);
+  --text-pixel: 13.16px;
+  --text-pixel--line-height: 1rem;
+
+  --animate-lp-caret: lp-caret 1s steps(1, end) infinite;
+  --animate-lp-print: lp-print 0.3s steps(12);
+
+  @keyframes lp-caret {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes lp-print {
+    from {
+      translate: 0;
+    }
+  }
+
+  --breakpoint-sheet: 87.5rem;
+  --aspect-og: 1.91 / 1;
+  --text-mark: max(1rem, 0.5em);
+  --text-mark--line-height: 1.8;
+  --container-title: 30ch;
+
+  --default-font-family: var(--font-sans);
+  --default-mono-font-family: var(--font-mono);
+}
 
 html {
   scrollbar-gutter: stable;
-  scroll-behavior: smooth;
 }
 
 html > body[data-scroll-locked] {
@@ -12,33 +103,21 @@ html > body[data-scroll-locked] {
   --removed-body-scroll-bar-size: 0px !important;
 }
 
-/* 落地页专属：浅色暖纸背景（参考 fumadocs.dev） */
-.landing-hero {
-  background:
-    radial-gradient(900px 420px at 85% -8%, rgba(234, 88, 12, 0.07), transparent 60%),
-    radial-gradient(800px 420px at 15% -8%, rgba(37, 99, 235, 0.06), transparent 60%),
-    #f8f7f5;
-  color: #18181b;
+body {
+  background-color: var(--color-fd-background);
 }
 
-.paper-card {
-  background: #ffffff;
-  border: 1px solid rgba(24, 24, 27, 0.1);
+/* #region pele */
+.pele {
+  --pele-font: var(--font-sans);
+  --pele-font-mono: var(--font-mono);
+  --pele-bg: var(--color-fd-background);
+  --pele-fg: var(--color-fd-foreground);
+  --pele-muted: var(--color-fd-muted-foreground);
+  --pele-line: var(--color-fd-muted-foreground);
+  --pele-surface: var(--color-fd-card);
+  --pele-surface-alt: var(--color-fd-secondary);
+  --pele-border: var(--color-fd-border);
+  --pele-accent: var(--color-fd-primary);
 }
-
-.code-window {
-  background: #ffffff;
-  border: 1px solid rgba(24, 24, 27, 0.12);
-  box-shadow: 0 24px 60px rgba(24, 24, 27, 0.08);
-}
-
-/* 滚动淡入动画 */
-@keyframes float-y {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-.float-y { animation: float-y 5s ease-in-out infinite; }
-
-@media (prefers-reduced-motion: reduce) {
-  .float-y { animation: none; }
-}
+/* #endregion */

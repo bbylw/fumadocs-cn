@@ -1,0 +1,17 @@
+---
+import StoryLayout from '@/layouts/StoryLayout.astro';
+import { StoryFrame } from '@/components/layout-preview/StoryFrame';
+import { LAYOUTS, type LayoutId } from '@/components/landing/sections/style/data';
+
+export function getStaticPaths() {
+  return LAYOUTS.map((layout) => ({
+    params: { name: layout.id },
+  }));
+}
+
+const { name } = Astro.params as { name: LayoutId };
+---
+
+<StoryLayout title={`Fumadocs 布局预览 - ${name}`}>
+  <StoryFrame client:only="react" initialStory={name} />
+</StoryLayout>
