@@ -1,0 +1,18 @@
+{
+  "title": "Fumadocs 中文文档",
+  "pages": [
+    "index",
+    "what-is-fumadocs",
+    "comparisons",
+    "manual-installation",
+    "cli",
+    "page-conventions",
+    "markdown",
+    "navigation",
+    "deploying",
+    "internationalization",
+    "search",
+    "ui",
+    "integrations"
+  ]
+}

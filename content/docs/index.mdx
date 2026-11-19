@@ -1,5 +1,6 @@
 ---
 title: 快速开始
+description: 快速、灵活、可拆解的文档框架 — 基于 Astro 7 + Fumadocs 16 + Bun 1.4 构建的中文文档站。
 ---
 
 # 快速开始
@@ -38,15 +39,19 @@ Fumadocs 的默认主题，为文档站点提供了美观的外观与交互式�
 
 ## 自动安装
 
-要求 Node.js 最低版本为 22。
+要求 Bun 1.4 或 Node.js 22+。
 
 ```bash
+# Bun（推荐，本站技术栈）
+bunx create-fumadocs-app
+
+# 或 Node.js
 npm create fumadocs-app
 ```
 
 它会询问你要使用的内置模板：
 
-- **React.js 框架**：Next.js、Waku、React Router、Tanstack Start。
+- **React 框架 / Meta 框架**：Astro、Next.js、Waku、React Router、Tanstack Start。
 - **内容源**：Fumadocs MDX。
 
 一个新的 Fumadocs 应用会被初始化，默认配置以下功能：
@@ -60,7 +65,7 @@ npm create fumadocs-app
 
 ## 开始享受吧！
 
-在 docs 文件夹中创建你的第一个 MDX 文件。
+在 `content/docs` 文件夹中创建你的第一个 MDX 文件。
 
 ```mdx
 ---
@@ -70,10 +75,11 @@ title: Hello World
 ## Yo what's up
 ```
 
-以开发模式运行应用，访问 `http://localhost:3000/docs`。
+以开发模式运行应用，访问 `http://localhost:4321/docs`。
 
 ```bash
-npm run dev
+bun run dev
+# 或 npm run dev
 ```
 
 ## 常见问题
